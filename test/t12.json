@@ -17,5 +17,5 @@
  {"eval":"(()=>{const g=window.__game;g.sim(80,1/30);return [g.G.state,g.P.hp]})()","log":"post"},
  {"wait":2500},
  {"eval":"(()=>{const g=window.__game;return [g.G.state,document.getElementById('menuTitle').textContent,document.getElementById('menuMsg').textContent,document.getElementById('btnStart').textContent]})()","log":"death menu (if dead)"},
- {"eval":"(()=>{const g=window.__game;g.SAVE.stage=3;localStorage.setItem('opInsurgentes2',JSON.stringify(g.SAVE));return 1})()"},
+ {"eval":"(()=>{const g=window.__game;g.SAVE.stage=3;localStorage.setItem('thursday1',JSON.stringify(g.SAVE));return 1})()"},
  {"shot":"f_end"}]

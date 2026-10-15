@@ -8,7 +8,7 @@ a full document head, three.js and the fonts inlined (no outside requests), and 
 """
 import argparse, base64, json, os, shutil
 
-SITE = 'https://mrbbqgc-pixel.github.io/operacion-insurgentes/'
+SITE = 'https://mrbbqgc-pixel.github.io/thursday/'
 ap = argparse.ArgumentParser()
 ap.add_argument('--out', default='')
 ap.add_argument('--single', default='')
@@ -23,7 +23,7 @@ b64 = lambda p: base64.b64encode(rd(p, 'rb')).decode()
 src = rd(a.src or os.path.join(root, 'src/operacion-insurgentes.html'))
 s0, s1 = src.index('<style>'), src.index('</style>') + len('</style>')
 pre, style, rest = src[:s0], src[s0:s1], src[s1:]
-assert '<title>Operación Insurgentes</title>' in pre and 'fonts.googleapis.com' in pre and pre.count('<') == 3, pre
+assert '<title>THURSDAY</title>' in pre and 'fonts.googleapis.com' in pre and pre.count('<') == 3, pre
 CDN = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
 assert rest.count(CDN) == 1 and rest.rstrip().endswith('</script>')
 three = rd(os.path.join(here, 'vendor/three.min.js'))
@@ -40,9 +40,9 @@ FONTS = [('Saira Stencil One', 400, 'saira-stencil-one-latin-400-normal.woff2'),
 fontcss = ''.join("@font-face{font-family:'%s';font-style:normal;font-weight:%d;font-display:swap;src:url(data:font/woff2;base64,%s) format('woff2')}\n"
                   % (n, w, b64(os.path.join(here, 'vendor/fonts', f))) for n, w, f in FONTS)
 
-TITLE = 'Operación Insurgentes'
-DESC = ('A first-person shooter set in Ciudad Insurgentes, Baja California Sur, on the town’s real street grid. '
-        'Plays in the browser on a phone or a computer, nothing to install.')
+TITLE = 'THURSDAY'
+DESC = ('The day before the weekend. Nobody told the private army. A first-person shooter comedy in an alternate Rancho Cucamonga, '
+        'around the year 2000. Plays in the browser on a phone or a computer, nothing to install.')
 single = bool(a.single)
 out = os.path.abspath(a.single or a.out or root)
 base = '' if single else a.base.rstrip('/') + '/'
@@ -54,7 +54,7 @@ head = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">
         '<meta name="apple-mobile-web-app-capable" content="yes">',
         '<meta name="mobile-web-app-capable" content="yes">',
         '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
-        '<meta name="apple-mobile-web-app-title" content="Insurgentes">',
+        '<meta name="apple-mobile-web-app-title" content="THURSDAY">',
         '<meta property="og:type" content="website">',
         '<meta property="og:title" content="%s">' % TITLE,
         '<meta property="og:description" content="%s">' % DESC]
@@ -70,7 +70,7 @@ if base:
 else:
     head += ['<link rel="icon" type="image/png" href="data:image/png;base64,%s">' % b64(os.path.join(root, 'icon-64.png')),
              '<link rel="apple-touch-icon" href="data:image/png;base64,%s">' % b64(os.path.join(root, 'icon-180.png'))]
-head += ['<!-- Operación Insurgentes. Engine: three.js r128 (MIT). Connections: PeerJS 1.5.5 (MIT). Fonts: Saira Stencil One and Saira Condensed, (c) The Saira Project Authors, SIL Open Font License 1.1. -->',
+head += ['<!-- THURSDAY. Inspired by Southern California suburbs; all characters and businesses are fictional. Engine: three.js r128 (MIT). Connections: PeerJS 1.5.5 (MIT). Fonts: Saira Stencil One and Saira Condensed, (c) The Saira Project Authors, SIL Open Font License 1.1. -->',
          '<style>',
          'html,body{margin:0;padding:0;overscroll-behavior:none}[hidden]{display:none!important}',
          '.over{overscroll-behavior:contain;touch-action:manipulation}',
@@ -89,7 +89,7 @@ if base:
     if out != root:
         for f in ('icon-64.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'preview.jpg'):
             shutil.copy(os.path.join(root, f), os.path.join(out, f))
-    man = {'name': TITLE, 'short_name': 'Insurgentes', 'description': DESC, 'start_url': './', 'scope': './', 'display': 'fullscreen',
+    man = {'name': TITLE, 'short_name': 'THURSDAY', 'description': DESC, 'start_url': './', 'scope': './', 'display': 'fullscreen',
            'orientation': 'landscape', 'background_color': '#15110c', 'theme_color': '#15110c',
            'icons': [{'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png'}]}
     open(os.path.join(out, 'manifest.webmanifest'), 'w', encoding='utf8').write(json.dumps(man, ensure_ascii=False, indent=1) + '\n')

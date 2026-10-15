@@ -107,7 +107,7 @@ function drawBigMap(){if(el.bigmap.width!==MAPW){el.bigmap.width=MAPW;el.bigmap.
     g.save();g.translate(X(P.x),Z(P.z));g.rotate(-P.yaw);g.fillStyle='#fff';g.strokeStyle=COL.ink;g.lineWidth=3;g.beginPath();g.moveTo(0,-16);g.lineTo(11,12);g.lineTo(0,6);g.lineTo(-11,12);g.closePath();g.fill();g.stroke();g.restore();}}
 // ---------- menus
 let menuMode='main';
-function showMenu(mode,title,msg,stats){menuMode=mode;el.menuTitle.textContent=title;el.menuMsg.textContent=msg;el.menuStats.hidden=!stats;el.menuStats.textContent='';
+function showMenu(mode,title,msg,stats){menuMode=mode;$('tagline').hidden=mode!=='main';el.menuTitle.textContent=title;el.menuMsg.textContent=msg;el.menuStats.hidden=!stats;el.menuStats.textContent='';
   if(stats)stats.forEach(s=>{const d=document.createElement('div'),a=document.createElement('dt'),b=document.createElement('dd');a.textContent=s[0];b.textContent=s[1];d.append(a,b);el.menuStats.append(d);});
   const mission=G.mode==='mission',mp=MP.on&&mode!=='main';mpClose();
   el.btnStart.textContent=mode==='main'?(SAVE.stage>0?'Continue mission':'Start mission'):mode==='pause'?'Resume':mode==='dead'?(mission?'Retry from checkpoint':'Try again'):mode==='mpend'?'Back to lobby':'Play again';
