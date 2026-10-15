@@ -72,3 +72,15 @@ Survival and multiplayer (Versus arenas: the tract, the Promenade, the Outlets p
 
 Late-afternoon Inland Empire light, a little smog haze, the mountains sharp and huge to the north; around 2000: older cars (sedans,
 pickups, minivans, a lowrider or two), satellite dishes, basketball hoops over garages, sprinklers, Santa Ana wind dust.
+
+## Additions from the owner's friend (beta)
+
+- **The Pacific Electric Trail** (real public rail-trail, keeps its real name) runs east–west just north of Base Line (game z ≈ −636),
+  from Archibald past Haven to Central Park. Stage 5 is a chase along it: Ray and Junebug on lowrider bikes, Bobo after them on his
+  tiny scooter. The Bobo fight moves to the open lawn of Central Park (Milliken & Base Line).
+- **Mission is now 8 stages:** 1 wake-up call, 2 cul-de-sac, 3 Route 66, 4 Market Hall, 5 the Trail (bike chase), 6 Bobo at
+  Central Park, 7 the Promenade, 8 the Outlets. Long gaps between stages are bridged by a short fade ("I know a shortcut").
+- **Third-person view by default** (over the shoulder, like GTA), first person as an option; lowrider bikes you can ride.
+- **The friend as a playable character, for the beta only.** A basic avatar from two photos he sends (front and back): skin tone,
+  hair, clothes and a simple face texture. Only the small game textures made from the photos go in the game and the repository,
+  never the original photos; the character is taken out before a public release unless he says otherwise.
