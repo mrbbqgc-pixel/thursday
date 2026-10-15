@@ -98,6 +98,10 @@ function sndBobo(kind,x,z){if(!AU.ctx)return;try{const s=spatial(x,z,kind==='sla
   else if(kind==='slam'){nz(o,.7,Math.min(1000,s.lp),40,1,false,.55);osc(o,'sine',62,24,.6,1);if(s.d<10)deafen(.4*(1-s.d/10));}
   else if(kind==='thud'){nz(o,.22,800,120,1,false,.7);osc(o,'sine',95,42,.2,.9);}
   else{nz(o,.07,2000,500,.9);osc(o,'sine',170,60,.09,.7);}}catch(e){}}
+// Bobo's scooter: a small two-stroke buzz that rises with speed
+function scootSound(on,x,z,sp){if(!AU.ctx)return;try{if(on&&!AU.scoot){const c=AU.ctx,o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.value=70;f.type='lowpass';f.frequency.value=800;g.gain.value=0;
+      o.connect(f);f.connect(g);g.connect(AU.master);o.start();AU.scoot={o,g};}
+    if(AU.scoot){if(on){const q=spatial(x,z,14);AU.scoot.g.gain.value=Math.min(.22,.3*q.vol);AU.scoot.o.frequency.value=58+(sp||0)*7;}else{AU.scoot.o.stop();AU.scoot=null;}}}catch(e){}}
 function heliSound(on,x,z){if(!AU.ctx)return;try{if(on&&!AU.heli){const c=AU.ctx,s=c.createBufferSource();s.buffer=AU.noise;s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=420;
       const g=c.createGain();g.gain.value=0;const l=c.createOscillator(),lg=c.createGain();l.frequency.value=13;lg.gain.value=.5;const m=c.createGain();m.gain.value=.5;
       l.connect(lg);lg.connect(m.gain);s.connect(f);f.connect(m);m.connect(g);g.connect(AU.master);s.start();l.start();AU.heli={s,l,g};}

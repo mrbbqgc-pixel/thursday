@@ -20,7 +20,7 @@ function seeTarget(s,t,range){const dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz);if
 function percFoe(s,tick){let best=null,bd=1e9,bv=0;
   if(P.alive){const v=seeTarget(s,P,s.aware?s.K.range+40:75);if(v){best=P;bd=Math.hypot(P.x-s.x,P.z-s.z);bv=v;}}
   for(let k=0;k<MP.mates.length;k++){const a=MP.mates[k];if(!a.alive)continue;const d=Math.hypot(a.x-s.x,a.z-s.z);if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+40:75);if(v){best=a;bd=d;bv=v;}}} // the other players
-  for(let k=0;k<allies.length;k++){const a=allies[k];if(!a.alive)continue;const d=Math.hypot(a.x-s.x,a.z-s.z)*1.25;if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+20:60);if(v){best=a;bd=d;bv=v;}}}
+  for(let k=0;k<allies.length;k++){const a=allies[k];if(!a.alive||a.parked)continue;const d=Math.hypot(a.x-s.x,a.z-s.z)*1.25;if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+20:60);if(v){best=a;bd=d;bv=v;}}}
   if(best){const hum=best===P||!!best.remote,hc=best===P?P.crouch:best.crouch,hs=best===P?P.speed:(best.speed||0);
     if(!s.aware){s.spot+=tick*(bd<14?5:bd<40?1.7:.85)*((hum&&hc>.5)?.55:1)*((hum&&hs>4)?1.3:1);
       if(s.spot<1){s.target=null;return;}s.aware=true;s.lowered=false;s.reactT=R2(.35,.8);alertNear(s,45);}

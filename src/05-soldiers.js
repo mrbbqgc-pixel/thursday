@@ -134,7 +134,7 @@ function addSoldier(team,kind,x,z,o){o=o||{};const m=buildSoldier(kind,o.wid),K=
 function setSoldierWeapon(s,wid){s.mesh.geometry=rigGeo(s.kind,wid);}
 function removeSoldier(s){scene.remove(s.g);}
 // pose and limb animation
-function animSoldier(s,dt){if(s.kind==='bobo'){animBobo(s,dt);return;}const c=s.crouch,m=s.moveAmt,ph=s.ph,sw=Math.sin(ph)*(s.run?.95:.65)*m;
+function animSoldier(s,dt){if(s.kind==='bobo'){animBobo(s,dt);return;}if(s.ride&&s.bikeM){animRider(s);return;}const c=s.crouch,m=s.moveAmt,ph=s.ph,sw=Math.sin(ph)*(s.run?.95:.65)*m;
   s.body.position.y=-.42*c+Math.abs(Math.sin(ph))*.035*m;
   // positive x rotation swings a hanging limb forward (towards -z)
   s.lL.rotation.x=1.15*c+sw;s.lR.rotation.x=1.15*c-sw;
@@ -144,7 +144,7 @@ function animSoldier(s,dt){if(s.kind==='bobo'){animBobo(s,dt);return;}const c=s.
   s.aR.rotation.set(.75-lw*.35,0,-.1);s.fR.rotation.x=1.25-lw*.5;s.aL.rotation.set(1.2-lw*.5,0,.5);s.fL.rotation.x=.3;
   s.wp.rotation.x=-lw*.6;s.wp.position.y=.36-lw*.12;}
 // Bobo has no gun: arms swing, and his moves have poses of their own (s.bs: walk, wind, charge, stun, slamUp, slam, grab, throw, punch, sit, up)
-function animBobo(s,dt){const m=s.moveAmt,ph=s.ph,st=s.bs||'walk',k=s.bT||0,sw=Math.sin(ph)*(s.run?.95:.55)*m;
+function animBobo(s,dt){s.up.rotation.z=0;const m=s.moveAmt,ph=s.ph,st=s.bs||'walk',k=s.bT||0,sw=Math.sin(ph)*(s.run?.95:.55)*m;
   let by=Math.abs(Math.sin(ph))*.05*m,lean=-.08*m*(s.run?3:1),aL=-sw*.8,aR=sw*.8,zL=-.24,zR=.24,fL=.25,fR=.25,lL=sw,lR=-sw,
     kL=-Math.max(0,Math.sin(ph+PI*.5))*.8*m,kR=-Math.max(0,Math.sin(ph+PI*1.5))*.8*m;
   if(st==='wind'){const p=Math.sin(k*13);lean=-.38;by=-.1;aL=-.45;aR=-.45;zL=-.55;zR=.55;fL=fR=.9;lL=.3;lR=-.35+p*.35;kL=-.55;kR=-.3-Math.max(0,p)*.5;}  // head down, scraping a foot
@@ -154,10 +154,16 @@ function animBobo(s,dt){const m=s.moveAmt,ph=s.ph,st=s.bs||'walk',k=s.bT||0,sw=M
   else if(st==='stun'){lean=-.45+Math.sin(G.time*5)*.05;aL=aR=.35;fL=fR=.45;by=-.1;lL=lR=.15;kL=kR=-.3;}
   else if(st==='grab'||st==='throw'){aL=aR=1.45;zL=-.05;zR=.05;fL=fR=.3;lean=.05;if(st==='throw'){const e=Math.min(1,k/.22);aR=1.45-1.1*e;aL=1.45+.7*e;lean=.05-.35*e;}}
   else if(st==='punch'){const e=Math.sin(Math.min(1,k/.35)*PI);aR=.35+1.25*e;fR=1.3-1.2*e;lean=-.18*e;}
+  else if(st==='scoot'||st==='swing'||st==='wobble'){by=-.5+Math.sin(G.time*20)*.012;lean=-.12;aL=aR=1.2;zL=-.15;zR=.15;fL=fR=.45;lL=lR=1.38;kL=kR=-1.6; // knees up, on a scooter far too small
+    if(st==='swing'){const e=Math.min(1,k/.5);zR=.15+1.35*e;aR=1.2-.9*e;fR=.45-.4*e;lean=-.12+.15*e;}
+    else if(st==='wobble'){const q=1-k/1.3;s.up.rotation.z=Math.sin(k*14)*.3*q;aL=1.2+Math.sin(k*17)*.7*q;aR=1.2-Math.sin(k*15)*.7*q;}}
   else if(st==='sit'||st==='up'){const e=st==='sit'?Math.min(1,k/.6):Math.max(0,1-k/.9),q=1-e;
     by=by*q-.8*e;lean=lean*q+.18*e;aL=aL*q+.6*e;aR=aR*q+.6*e;fL=fL*q+1*e;fR=fR*q+1*e;zL=-.24*q-.35*e;zR=.24*q+.35*e;lL=lL*q+1.45*e;lR=lR*q+1.4*e;kL=kL*q-.15*e;kR=kR*q-.1*e;}
   s.body.position.y=by;s.up.rotation.x=lean;s.aL.rotation.set(aL,0,zL);s.aR.rotation.set(aR,0,zR);s.fL.rotation.x=fL;s.fR.rotation.x=fR;
   s.lL.rotation.x=lL;s.lR.rotation.x=lR;s.kL.rotation.x=kL;s.kR.rotation.x=kR;s.wp.position.y=.36;}
+// a squad mate on a lowrider bike: sitting low, pedalling, hands on the bars
+function animRider(s){const p=s.ph;s.body.position.y=-.3;s.up.rotation.x=-.3;s.up.rotation.z=0;s.aL.rotation.set(1.25,0,-.12);s.aR.rotation.set(1.25,0,.12);s.fL.rotation.x=s.fR.rotation.x=.35;
+  s.lL.rotation.x=1.05+Math.sin(p)*.35;s.lR.rotation.x=1.05-Math.sin(p)*.35;s.kL.rotation.x=-1.25-Math.cos(p)*.3;s.kR.rotation.x=-1.25+Math.cos(p)*.3;s.wp.rotation.x=-.7;s.wp.position.y=.24;}
 // ray against soldiers: head sphere, torso and leg cylinders. Result in RS.
 const RS={s:null,t:0,zone:1};
 function raySoldiers(list,ox,oy,oz,dx,dy,dz,maxT){let bt=maxT;RS.s=null;const a=dx*dx+dz*dz;

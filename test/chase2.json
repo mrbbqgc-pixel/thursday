@@ -1,0 +1,4 @@
+[
+ {"click":"#btnStart"},{"wait":400},
+ {"eval":"(()=>{const g=window.__game,P=g.P;g.startMission(4);const b=g.MS.chaser;b.x=P.x-3;b.z=P.z;b.whiff=1;b.swingCD=0;const L=[];for(let i=0;i<150;i++){g.BOT.on=true;g.BOT.f=0;g.sim(1,1/30);if(i%10===0)L.push([i,g.MS.i,g.MS.st&&g.MS.st.key,g.MS.knockT.toFixed(1),g.MS.chaser&&g.MS.chaser.bs,g.G.state,g.G.mode,Math.round(P.x),Math.round(P.z)]);}g.BOT.on=false;return L})()","log":"knock-off"}
+]

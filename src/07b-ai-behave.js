@@ -57,10 +57,10 @@ function updMark(s,dt){if(s.flinch>0)s.flinch-=dt;if(s.revealT>0)s.revealT-=dt;s
   else{s.aimT=Math.max(0,s.aimT-dt*2);if(s.laser)s.laser.visible=false;s.wantCrouch=s.aware&&s.seeT>1.5;s.aimP=0;if(!s.aware||s.seeT>4){s.yaw+=Math.sin(G.time*.4+s.ph)*dt*.5;s.g.rotation.y=s.yaw;}
     else face(s,s.lkx,s.lkz,dt,2);}
   s.crouch+=clamp((s.wantCrouch?1:0)-s.crouch,-dt*4.5,dt*4.5);s.moveAmt=0;animSoldier(s,dt);}
-function updAlly(s,dt,idx){if(s.kind==='bobo'){updBoboAlly(s,dt);return;}
+function updAlly(s,dt,idx){if(s.kind==='bobo'){updBoboAlly(s,dt);return;}if(s.parked){s.g.visible=false;return;}
   if(s.down){s.downT-=dt*(Math.hypot(P.x-s.x,P.z-s.z)<3.5?3:1);s.crouch=Math.min(1,s.crouch+dt*4);s.lowered=true;s.moveAmt=0;s.up.rotation.z=.5;animSoldier(s,dt);
     if(s.downT<=0){s.down=false;s.alive=true;s.hp=s.maxHp*.6;s.up.rotation.z=0;radio(s.name,vox(s,'up'));}return;}
-  if(s.flinch>0)s.flinch-=dt;if(s.hp<s.maxHp)s.hp=Math.min(s.maxHp,s.hp+5*dt);
+  if(s.flinch>0)s.flinch-=dt;if(s.hp<s.maxHp)s.hp=Math.min(s.maxHp,s.hp+5*dt);if(s.ride){updRider(s,dt);return;}
   s.percT-=dt;if(s.percT<=0){s.percT=.25;percAlly(s,.25);}
   s.mx=0;s.mz=0;s.spd=0;const t=s.target,vis=t&&t.alive&&s.seeT<.35,pd=Math.hypot(P.x-s.x,P.z-s.z);
   if(pd>95){const bx=P.x+Math.sin(P.yaw)*9+R2(-3,3),bz=P.z+Math.cos(P.yaw)*9+R2(-3,3);if(freeSpot(bx,bz)){s.x=bx;s.z=bz;}}
@@ -95,7 +95,7 @@ function updBobo(s,dt){if(s.flinch>0)s.flinch-=dt;s.bT+=dt;s.mx=0;s.mz=0;s.spd=0
   let t=null,d=1e9;for(const h of humans()){const q=Math.hypot(h.x-s.x,h.z-s.z);if(q<d){d=q;t=h;}}
   const rage=s.hp<s.maxHp*.4?1.3:1,ox=s.x,oz=s.z,fx=-Math.sin(s.yaw),fz=-Math.cos(s.yaw);
   if(!s.said.a&&s.hp<s.maxHp*.7){s.said.a=1;boboSay(s,'hurt1',true);}if(!s.said.b&&s.hp<s.maxHp*.4){s.said.b=1;boboSay(s,'hurt2',true);sayLater([[2.2,'AUNT RO','He is getting angrier, Ray. That is normal for Bobo.']]);}
-  if(s.bs==='idle'){if(t&&d<40){s.aware=true;boboSet(s,'walk');s.chargeCD=2.5;boboSay(s,'spot',true);sayLater([[2.6,'RAY','I don\'t have a car, man. I took the bus here.']]);}
+  if(s.bs==='idle'){if(t&&d<40){s.aware=true;boboSet(s,'walk');s.chargeCD=2.5;boboSay(s,'spot',true);sayLater([[2.6,'RAY','I told you, man. I don\'t even have a car.']]);}
     else{s.yaw+=Math.sin(G.time*.5)*dt*.3;s.g.rotation.y=s.yaw;}}
   else if(!t){if(s.bs!=='stun')boboSet(s,'stun');s.stunT=1;}
   else if(s.bs==='walk'){face(s,t.x,t.z,dt,2.6);moveToward(s,t.x,t.z,s.K.spd*rage,null);
