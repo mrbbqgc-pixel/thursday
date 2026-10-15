@@ -73,7 +73,7 @@ Landmarks (fictional names; centre positions):
 | towncenter | Vista Town Center | big-box shopping center | (190, −45) | big-box stores and a huge parking lot north of Foothill |
 | ballpark | the ballpark | minor-league stadium | (770, 130) | small stadium, stands and lights |
 | station | Metrolink station | train station | (440, 480) | platforms, tracks E–W along z ≈ 476 |
-| promenade | Rancho Promenade | outdoor main-street mall | (1200, −170) | a 200 m "main street" of two-story storefronts N–S, fountain plaza at (1200, −170), parking around |
+| promenade | Rancho Promenade | outdoor main-street mall | (1150, −160) | a 200 m "main street" of two-story storefronts N–S, fountain plaza at (1150, −160), parking around |
 | outlets | Inland Empire Outlets | giant outlet mall | (660, 1110) | huge single-story mall, about 330 × 160 m, ringed by parking; entrance courts; Kingsley command post inside the south-west court |
 | industrial | warehouses | south Rancho industrial park | x 0…1400, z 520…980 | big tilt-up warehouses, truck yards — cheap geometry |
 | parks | Church St Park, Coyote Park, Central Park | city parks | (−200, −150), (300, −190), (430, −530) | grass, trees, ball fields, playgrounds |
@@ -89,7 +89,7 @@ Playable bounds: x −540 … 1480, z −560 … 1200. Spawn of the mission: Aun
 3. Route 66 — clear the strip mall and gas station on Foothill (−120, 30), r 60.
 4. The Market Hall — retake the food hall (40, 205), r 50.
 5. Bobo — boss fight at the Civic Center (25, 100): knock Bobo down (big health bar; he does not die, he gives up), then he joins.
-6. The Promenade — fight down the main street to the fountain (1200, −170), r 45.
+6. The Promenade — fight down the main street to the fountain (1150, −160), r 45.
 7. The Outlets — clear the parking lot and take the command post at the outlets' south-west court (≈ (540, 1170)); final: "Mission
    complete".
 Travel between stages is long on this map; each stage's `spawn` (checkpoint) is placed near its zone, and the HUD waypoint guides the
