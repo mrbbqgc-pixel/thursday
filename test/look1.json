@@ -1,0 +1,7 @@
+[
+ {"click":"#btnStart"},{"wait":500},
+ {"eval":"(()=>{const g=window.__game;g.clearSoldiers();g.sim(2,1/30);g.G.state='pause';const P=g.P,x0=P.x,z0=P.z;window.__lk=[];const K=['rifle','rush','heavy','mark','june','penn','ally','bobo'];K.forEach((k,i)=>{const s=g.addSoldier(1,k,x0-7+i*2,z0-6,{yaw:0,aware:false,list:[]});s.lowered=false;s.moveAmt=0;g.animSoldier(s,.1);window.__lk.push(s);});g.cam(x0,1.6,z0-0.2,x0,1.2,z0-6);document.getElementById('hud').hidden=true;return [x0,z0]})()","log":"placed"},
+ {"wait":600},{"shot":"look-front"},
+ {"eval":"(()=>{const g=window.__game;for(const s of window.__lk){s.yaw=Math.PI;s.g.rotation.y=Math.PI;}return 1})()"},{"wait":400},{"shot":"look-back"},
+ {"eval":"(()=>{const g=window.__game,P=g.P;for(const s of window.__lk){s.yaw=0.6;s.g.rotation.y=0.6;}g.cam(P.x+1.5,1.7,P.z-3.2,P.x+1.5,1.3,P.z-6);return 1})()"},{"wait":400},{"shot":"look-close"}
+]

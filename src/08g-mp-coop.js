@@ -2,7 +2,7 @@
 // 08g CO-OP: survival and the story mission for several players. The host's machine runs the hostile soldiers and the
 // mission. Guests see the hostiles as stand-ins, report the hits they score, and are told when they are hit themselves.
 // =====================================================================
-const FKINDS=['rifle','rush','heavy','mark'];
+const FKINDS=['rifle','rush','heavy','mark','bobo']; // THURSDAY hook: Bobo is a kind the guests can show
 MP.fshots=[];MP.fmap=new Map();MP.fseq=0;MP.allDeadT=0;
 function coDiff(d){d=clamp(d|0,0,2);G.diff=[.55,.85,1.15][d];G.dmgK=[.8,1,1.15][d];} // for this game only: the single-player setting is not touched
 function coRefill(){for(const w of P.slots){const D=WDEF[w.id];w.mag=D.mag;w.res=Math.max(w.res,Math.round(D.max*.55));}P.nades=Math.max(2,P.nades);}
@@ -14,7 +14,7 @@ function coBegin(X){X=X||{};coDiff(MP.cfg.diff);MP.fmap.clear();MP.fshots.length
   // a guest starts in an empty town that the host then fills in
   G.mode=surv?'survival':'mission';resetWorldState();removeJammer(false);for(const a of allies)removeSoldier(a);allies.length=0;MS.st=null;MS.i=-1;MS.surv=null;MS.phase='';MS.defT=0;
   G.score=0;G.stats={kills:0,heads:0,shots:0,hits:0,deaths:0,time:0};giveLoadout();OBJ.show=false;OBJ.text='';OBJ.sub='';OBJ.prog=0;
-  const sp=surv?[-4,16,0]:ST[clamp(X.stage|0,0,ST.length-2)].spawn,bx=X.late&&isFinite(+X.sx)?+X.sx:sp[0],bz=X.late&&isFinite(+X.sz)?+X.sz:sp[1],p=coSpot(bx,bz)||[sp[0],sp[1]];
+  const sp=surv?SURV.spawn:ST[clamp(X.stage|0,0,ST.length-2)].spawn,bx=X.late&&isFinite(+X.sx)?+X.sx:sp[0],bz=X.late&&isFinite(+X.sz)?+X.sz:sp[1],p=coSpot(bx,bz)||[sp[0],sp[1]];
   P.x=p[0];P.z=p[1];P.y=0;P.yaw=sp[2];P.spawnT=2;camera.rotation.z=0;}
 function coStageRx(i,force){if(i===MS.i&&!force)return;MS.i=i;MS.st=i>=0&&i<ST.length?ST[i]:null;G.stage=Math.max(0,i);const st=MS.st;MS.phase='';
   if(!st||!(st.heli||st.type==='reach'))hideHeli();}
@@ -35,7 +35,7 @@ function mpHurtMate(s,dmg,fx,fz){s.flinch=.22;mpEvent('ah',s.pid,[Math.round(dmg
 MPE.fh=(from,a)=>{if(!MP.host)return;const nid=a[0]|0;let s=null;for(let k=0;k<foes.length;k++)if(foes[k].nid===nid){s=foes[k];break;}if(!s||!s.alive)return;
   const pl=MP.players.get(from),w=a[4]|0;MP.hitBy=from;try{damageSoldier(s,clamp(+a[1]||0,0,400),a[2]|0,pl?pl.x:s.x,pl?pl.z:s.z,false,!!a[3],w<WIDS.length?WDEF[WIDS[w]]:null);}finally{MP.hitBy=0;}};
 // everybody down at the same moment: back to the checkpoint in the mission, the end of the line in survival
-function coWipe(){if(G.mode==='survival'){coFinish(false);return;}radio('COMMAND','Everyone is down. Regroup at the last checkpoint.');restartCheckpoint();camera.rotation.z=0;}
+function coWipe(){if(G.mode==='survival'){coFinish(false);return;}radio('AUNT RO','Everybody is down. Regroup at the last checkpoint.');restartCheckpoint();camera.rotation.z=0;}
 function coFinish(won){if(!MP.host||MP.phase!=='play')return;MP.phase='end';MP.ended=MP.round;const rows=Array.from(MP.players.values(),p=>[p.name,p.k,p.d,p.team,p.id,p.sc]);rows.sort((a,b)=>b[5]-a[5]);
   const Rr={title:won?'Mission complete':G.mode==='survival'?'Overrun at wave '+(MS.surv?MS.surv.wave:0):'Mission failed',rows,coop:1};
   for(const pl of MP.players.values())netTx(pl.conn,['end',Rr,MP.round]);mpBroadcastLobby();hideHeli();mpShowEnd(Rr);}
@@ -45,7 +45,7 @@ function coTick(dt,raw){
   const st=MS.st;if(!st)return;
   if(st.heli){if(!heli.g)makeHeli();if(!heli.on){heli.on=true;heli.landed=false;heli.g.visible=true;MP.heliP=OBJ.prog;}MP.heliP+=(OBJ.prog-MP.heliP)*Math.min(1,dt*1.6);updHeli(dt,MP.heliP);} // the progress arrives in whole percent a few times a secondelse if(st.type==='reach'){if(!heli.g)makeHeli();heli.on=true;heli.g.visible=true;updHeli(dt,1);}
   if(st.type==='plant'&&P.alive){const d=Math.hypot(P.x-st.x,P.z-st.z);
-    if(MS.phase===''&&MS.jam&&d<st.r)G.prompt='Hold <b>'+(isTouch?'USE':'F')+'</b> to plant the charge';else if(MS.phase==='defend'&&d<11&&MS.defT<8)G.prompt='Move away from the truck';}}
+    if(MS.phase===''&&MS.jam&&d<st.r)G.prompt=plantPrompt();else if(MS.phase==='defend'&&d<11&&MS.defT<8)G.prompt=PLANT_AWAY;}} // THURSDAY hook: prompts from 08-mission
 // down in co-op: back after a few seconds next to a team mate who is still standing
 function coDead(dt){const H=humans();if(!H.length){G.prompt='Everyone is down';return;}if(MP.respT>0){G.prompt='Back in <b>'+Math.ceil(MP.respT)+'</b>';return;}
   let m=H[0],bd=1e9;for(const h of H){const d=Math.hypot(h.x-P.x,h.z-P.z);if(d<bd){bd=d;m=h;}}const p=coSpot(m.x,m.z);if(!p){G.prompt='Stand by';return;}
@@ -60,7 +60,7 @@ MPE.fk=(from,a)=>{if(from!==1)return;const s=MP.fmap.get(a[0]|0);if(s&&s.alive){
 MPE.crate=(from,a)=>{if(from===1&&isFinite(+a[0]+ +a[1]))addPick('crate',+a[0],+a[1]);};
 MPE.rad=(from,a)=>{if(from===1)radio(String(a[0]).slice(0,16),String(a[1]).slice(0,240));};
 MPE.ban=(from,a)=>{if(from!==1)return;const t=String(a[0]).slice(0,60);banner(t,String(a[1]||'').slice(0,90));if(/COMPLETE|CLEAR/.test(t))sndUi('obj');};
-MPE.jam=from=>{if(from!==1)return;if(MS.jam)removeJammer(true,true);else explode(44,1.2,-478.5,9.5,200,true,true,0);};
+MPE.jam=from=>{if(from!==1)return;if(MS.jam)removeJammer(true,true);else{const t=plantSt();explode(t.x,1.2,t.z,9.5,200,true,true,0);}}; // THURSDAY hook: the objective's place comes from the stage table
 MPE.ckpt=(from,a)=>{if(from!==1)return;resetWorldState();MP.fmap.clear();removeJammer(false);coStageRx(clamp(a[0]|0,0,ST.length-1),true);const sp=MS.st.spawn,p=spotNear(sp[0],sp[1],5,30)||sp;
   P.x=p[0];P.z=p[1];P.y=0;P.yaw=sp[2];coRefill();P.spawnT=2;camera.rotation.z=0;killFeed('','Back to the checkpoint');};
 function coSnapRx(d){const now=performance.now(),F=d[4];

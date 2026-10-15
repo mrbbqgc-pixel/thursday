@@ -24,11 +24,14 @@ button{font-family:var(--ui);color:var(--bone)}
 #objBar{height:5px;background:rgba(243,232,211,.16)}#objFill{display:block;height:100%;width:0;background:var(--sun)}
 #squad{display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--rule);padding-top:5px}
 .sq{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em}
-.sq span{flex:0 0 52px}.sq div{flex:1;height:4px;background:rgba(243,232,211,.16)}.sq i{display:block;height:100%;background:var(--sky)}
+.sq span{flex:0 0 76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sq div{flex:1;height:4px;background:rgba(243,232,211,.16)}.sq i{display:block;height:100%;background:var(--sky)}
 .sq.down{opacity:.55}.sq.down i{background:var(--blood)}
 #topc{position:absolute;left:50%;top:calc(10px + var(--st));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
 #compass{width:min(340px,36vw);height:26px;background:var(--panel)}
 #area{font-size:12px;letter-spacing:.12em;background:var(--panel);padding:1px 8px;white-space:nowrap}
+#boss{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:6px;width:min(440px,56vw);background:var(--panel);padding:5px 10px 7px;border-bottom:3px solid var(--blood)}
+#boss b{font:400 22px/1 var(--display);letter-spacing:.14em;color:var(--sun)}#bossBar{width:100%;height:9px;background:rgba(243,232,211,.16)}#bossFill{display:block;height:100%;width:100%;background:var(--blood);transition:width .15s}
+#fade{position:absolute;inset:0;background:#0d0a07;opacity:0}
 #tr{position:absolute;right:calc(16px + var(--sr));top:calc(12px + var(--st));display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 #mini{width:118px;height:118px;border-radius:50%;border:2px solid var(--rule);background:var(--panel)}
 .hb{pointer-events:auto;font:700 13px var(--ui);letter-spacing:.12em;background:var(--panel);border:1px solid var(--rule);padding:5px 10px;cursor:pointer}
@@ -161,12 +164,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   #mpHome{flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:8px 12px}#mpHome .fine{flex:none;width:100%;max-width:100%}}
 @media (max-height:440px){#card{max-width:640px}#btns{gap:8px}.alt{padding:9px 12px}}
 @media (max-width:560px){#kills{top:36%}#leftCol{width:min(210px,50vw)}#compass{width:30vw}#area{display:none}}
-@media (max-height:440px){#mini{width:92px;height:92px}#objText{font-size:14px}#feed p{font-size:13px}}
+@media (max-height:440px){#boss{margin-top:2px;padding:3px 8px 5px}#boss b{font-size:16px}#mini{width:92px;height:92px}#objText{font-size:14px}#feed p{font-size:13px}}
 </style>
 <canvas id="view"></canvas>
 <div id="hud" hidden>
   <div id="leftCol"><div id="objPanel"><span class="lbl">Objective</span><div id="objText"></div><div id="objBar"><i id="objFill"></i></div><div id="squad"></div><div id="mpBoard" hidden></div></div><div id="feed"></div></div>
-  <div id="topc"><canvas id="compass" width="680" height="52"></canvas><div id="area"></div></div>
+  <div id="fade"></div>
+  <div id="topc"><canvas id="compass" width="680" height="52"></canvas><div id="area"></div><div id="boss" hidden><b>BOBO</b><div id="bossBar"><i id="bossFill"></i></div></div></div>
   <div id="tr"><canvas id="mini" width="236" height="236"></canvas><div id="trb"><button class="hb" id="btnMap" type="button">MAP</button><button class="hb" id="btnPause" type="button">PAUSE</button></div></div>
   <div id="kills"></div>
   <div id="bc">

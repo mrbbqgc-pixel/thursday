@@ -59,7 +59,7 @@ function initAudio(){if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume();re
     AU.lp=c.createBiquadFilter();AU.lp.type='lowpass';AU.lp.frequency.value=18000;const comp=c.createDynamicsCompressor();
     AU.master.connect(AU.lp);AU.lp.connect(comp);comp.connect(c.destination);
     AU.noise=c.createBuffer(1,c.sampleRate,c.sampleRate);const d=AU.noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-    // quiet desert wind
+    // a dry Santa Ana breeze
     const w=c.createBufferSource();w.buffer=AU.noise;w.loop=true;const wf=c.createBiquadFilter();wf.type='lowpass';wf.frequency.value=320;const wg=c.createGain();wg.gain.value=.05;
     w.connect(wf);wf.connect(wg);wg.connect(AU.master);w.start();}catch(e){AU.ctx=null;}}
 function setSound(on){AU.on=on;if(AU.ctx)AU.master.gain.value=on?.85:0;}
@@ -92,6 +92,12 @@ function sndUi(kind){if(!AU.ctx)return;try{const o=aOut(.5,0);
   else if(kind==='knife')nz(o,.12,2500,600,.5,true,1.6);}catch(e){}}
 function sndStep(hard,vol){if(!AU.ctx)return;try{const o=aOut(vol||.16,0);nz(o,.07,hard?1500:650,hard?500:220,1);if(hard)osc(o,'sine',120,70,.05,.3);}catch(e){}}
 function sndStepAt(x,z){if(!AU.ctx)return;const s=spatial(x,z,5);if(s.d>26)return;try{nz(aOut(.14*s.vol,s.pan),.07,600,220,1);}catch(e){}}
+// Bobo: a growl before a charge or a slam, the thud of a slam or a body, a punch
+function sndBobo(kind,x,z){if(!AU.ctx)return;try{const s=spatial(x,z,kind==='slam'?26:14),o=aOut(Math.min(1,(kind==='slam'?1.4:1)*s.vol),s.pan);
+  if(kind==='roar'){osc(o,'sawtooth',105,62,.75,.32);osc(o,'square',53,40,.7,.12);nz(o,.6,700,180,.5,false,.5);}
+  else if(kind==='slam'){nz(o,.7,Math.min(1000,s.lp),40,1,false,.55);osc(o,'sine',62,24,.6,1);if(s.d<10)deafen(.4*(1-s.d/10));}
+  else if(kind==='thud'){nz(o,.22,800,120,1,false,.7);osc(o,'sine',95,42,.2,.9);}
+  else{nz(o,.07,2000,500,.9);osc(o,'sine',170,60,.09,.7);}}catch(e){}}
 function heliSound(on,x,z){if(!AU.ctx)return;try{if(on&&!AU.heli){const c=AU.ctx,s=c.createBufferSource();s.buffer=AU.noise;s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=420;
       const g=c.createGain();g.gain.value=0;const l=c.createOscillator(),lg=c.createGain();l.frequency.value=13;lg.gain.value=.5;const m=c.createGain();m.gain.value=.5;
       l.connect(lg);lg.connect(m.gain);s.connect(f);f.connect(m);m.connect(g);g.connect(AU.master);s.start();l.start();AU.heli={s,l,g};}

@@ -17,11 +17,11 @@ const {lab,sleep}=require('./mplab');
   const bad=await L.add();await L.players[bad].pg.click('#btnMp');await L.players[bad].pg.fill('#mpCode','ZZZZ9');await L.players[bad].pg.click('#btnMpJoin');
   await until(bad,"/No game with that code/.test(document.getElementById('mpMsg').textContent)",15000,'a wrong code gives a clear message');
   console.log('--- start');
-  await ev(0,"(__game.mpSetCfg('arena','plaza'),__game.mpSetCfg('kills',3),1)");await until(1,"__game.MP.cfg.kills===3",4000,'settings reach the guests');
+  await ev(0,"(__game.mpSetCfg('arena','route66'),__game.mpSetCfg('kills',3),1)");await until(1,"__game.MP.cfg.kills===3",4000,'settings reach the guests');
   await L.players[0].pg.click('#btnMpStart');
   for(const k of [0,1,2])await until(k,"__game.G.state==='play'&&__game.MP.phase==='play'",8000,'player '+k+' is in the match');
-  await sleep(1200);let S=[await st(0),await st(1),await st(2)];const A={x0:154,z0:-726,x1:358,z1:-594};
-  ok(S.every(s=>s.alive&&s.hp===100&&s.x>A.x0&&s.x<A.x1&&s.z>A.z0&&s.z<A.z1),'everyone spawned alive inside the Plaza arena',S.map(s=>[s.x,s.z]));
+  await sleep(1200);let S=[await st(0),await st(1),await st(2)];const A={x0:-250,z0:-60,x1:250,z1:120};
+  ok(S.every(s=>s.alive&&s.hp===100&&s.x>A.x0&&s.x<A.x1&&s.z>A.z0&&s.z<A.z1),'everyone spawned alive inside the Route 66 arena',S.map(s=>[s.x,s.z]));
   ok(Math.hypot(S[0].x-S[1].x,S[0].z-S[1].z)>20&&Math.hypot(S[0].x-S[2].x,S[0].z-S[2].z)>20,'first spawns are spread out');
   ok(S.every(s=>s.rivals===2&&s.mates===0),'in free-for-all everyone else is a rival');
   // replication: where player 1 sees player 0 is where player 0 really is

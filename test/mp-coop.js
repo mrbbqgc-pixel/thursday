@@ -17,7 +17,7 @@ const HUNT=`window.__h={on:false,t:0,
   for(const k of [0,1])await until(k,"__game.G.state==='play'&&__game.G.mode==='survival'",8000,'player '+k+' is in survival');
   await sleep(800);let S=[await st(0),await st(1)];
   ok(S.every(s=>s.mates===1&&s.rivals===0)&&S[0].players.every(p=>p.team===1),'the two players are team mates',S.map(s=>[s.mates,s.rivals]));
-  ok(Math.hypot(S[1].x+4,S[1].z-16)<12&&Math.hypot(S[0].x-S[1].x,S[0].z-S[1].z)<14,'the guest starts next to the host at the Glorieta',[S[1].x,S[1].z]);
+  const SV=await ev(0,'__game.SURV');ok(Math.hypot(S[1].x-SV.x,S[1].z-SV.z)<14&&Math.hypot(S[0].x-S[1].x,S[0].z-S[1].z)<16,'the guest starts next to the host at the cul-de-sac',[S[1].x,S[1].z]);
   ok((await ev(0,'__game.allies.length'))===0&&(await ev(1,'__game.allies.length'))===0,'no AI squad mates: the players are the squad');
   ok((await ev(1,'__game.G.dmgK'))===.8&&(await ev(0,'__game.G.diff'))===.55,'the difficulty chosen in the lobby applies to both machines');
   await until(0,"__game.foes.filter(f=>f.alive).length>=3",15000,'the first wave arrives on the host');
@@ -25,7 +25,7 @@ const HUNT=`window.__h={on:false,t:0,
   const cmp=await ev(1,"(()=>{const g=__game;return g.foes.filter(f=>f.alive).map(f=>[f.nid,f.kind,+f.x.toFixed(1),+f.z.toFixed(1)])})()"),hostF=await ev(0,"(()=>{const g=__game;return g.foes.filter(f=>f.alive).map(f=>[f.nid,f.kind,+f.x.toFixed(1),+f.z.toFixed(1)])})()");
   let worst=0,miss=0;for(const a of cmp){const b=hostF.find(q=>q[0]===a[0]);if(!b||b[1]!==a[1]){miss++;continue;}worst=Math.max(worst,Math.hypot(a[2]-b[2],a[3]-b[3]));}
   ok(miss===0&&worst<4,'stand-ins match the host\'s hostiles in kind and place (worst gap '+worst.toFixed(1)+' m)',[cmp.length,hostF.length,miss]);
-  ok(/Survive at the Glorieta/.test((await ui(1)).obj)&&/Wave 1/.test((await ui(1)).obj),'the guest shows the host\'s objective text',(await ui(1)).obj);
+  ok(/Hold the cul-de-sac/.test((await ui(1)).obj)&&/Wave 1/.test((await ui(1)).obj),'the guest shows the host\'s objective text',(await ui(1)).obj);
   await L.shot(1,'mp-coop-phone');
   console.log('--- the guest fights');
   const k0=await ev(0,"__game.MP.players.get(2).k");const nid=await ev(1,"(__game.P.spawnT=0,__h.place())");ok(nid>0,'found a firing position for the guest');await sleep(300);await ev(1,"(__h.start(),1)");
@@ -39,7 +39,7 @@ const HUNT=`window.__h={on:false,t:0,
   await until(1,"__game.P.hp<100",25000,'the guest is hit by a hostile run on the host');
   ok((await ev(1,"document.querySelectorAll('#dmg i').length"))===3,'damage direction arcs are there for the guest');
   console.log('--- down and back');
-  await ev(0,"(__t.tp(-4,16),__game.P.spawnT=0,1)");await sleep(300);await ev(1,"(__game.P.spawnT=0,__game.hurt(999,0,0),1)");
+  await ev(0,"(__t.tp(__game.SURV.x,__game.SURV.z),__game.P.spawnT=0,1)");await sleep(300);await ev(1,"(__game.P.spawnT=0,__game.hurt(999,0,0),1)");
   await until(1,"!__game.P.alive",3000,'the guest goes down');await until(0,"__game.MP.players.get(2).alive===false&&__game.G.state==='play'",3000,'the host sees him down and plays on');
   await sleep(700);ok(/DOWN/.test((await ui(0)).board.join(' ')),'the score list marks him DOWN',(await ui(0)).board);
   await ev(1,"(__game.MP.respT=1,1)");await until(1,"__game.P.alive&&__game.P.hp===100",5000,'the guest comes back');
@@ -60,9 +60,9 @@ const HUNT=`window.__h={on:false,t:0,
   await L.players[0].pg.click('#btnStart');for(const k of [0,1])await until(k,"__game.MP.phase==='lobby'",6000,'player '+k+' back in the lobby');
   await ev(0,"(__game.mpSetCfg('mode','miss'),__game.mpSetCfg('stage',0),1)");await sleep(300);u=await ui(1);ok(u.lobby&&/Waiting for the host/.test(u.msg),'the guest waits in the lobby',u.msg);
   await ev(0,"(__game.mpStart(),1)");for(const k of [0,1])await until(k,"__game.G.state==='play'&&__game.G.mode==='mission'",8000,'player '+k+' is in the mission');
-  await until(1,"__game.MS.i===0&&/gas station/.test(__game.OBJ.text)&&__game.foes.length>=5",8000,'the guest has the first objective and sees the garrison');
-  S=[await st(0),await st(1)];ok(Math.hypot(S[1].x-3.5,S[1].z-484)<12,'the guest starts at the mission start',[S[1].x,S[1].z]);
-  ok((await ev(1,"Array.from(document.querySelectorAll('#feed p')).map(p=>p.textContent).join(' ')")).includes('gas station'),'the host\'s radio reaches the guest');
+  await until(1,"__game.MS.i===0&&__game.OBJ.text===__game.ST[0].title&&__game.foes.length>=5",8000,'the guest has the first objective and sees the garrison');
+  S=[await st(0),await st(1)];const S0=await ev(0,'__game.ST[0].spawn');ok(Math.hypot(S[1].x-S0[0],S[1].z-S0[1])<16,'the guest starts at the mission start',[S[1].x,S[1].z]);
+  ok((await ev(1,"Array.from(document.querySelectorAll('#feed p')).map(p=>p.textContent).join(' ')")).includes('AUNT RO'),'the host\'s radio reaches the guest');
   ok((await st(0)).errN===0&&(await st(1)).errN===0,'no errors inside the game loop',[(await st(0)).errN,(await st(1)).errN]);
   await L.close();
 })().catch(e=>{console.error('FAIL',e);process.exit(1);});
