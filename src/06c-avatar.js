@@ -66,7 +66,7 @@ function avPaint(){const g=avCv.getContext('2d'),A=AVATAR,st=A.shirtStyle||'tee'
   {const gr=g.createRadialGradient(...avXY(4,.75,.45),2,...avXY(4,.75,.45),40);gr.addColorStop(0,'rgba(255,255,255,.2)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,128,128,64); // worn front
     g.strokeStyle='rgba(0,0,0,.14)';g.lineWidth=1.5;for(let k=0;k<6;k++){const [x,y]=avXY(4,R(),.86+R()*.12);g.beginPath();g.moveTo(x-12,y);g.quadraticCurveTo(x,y+3,x+12,y);g.stroke();} // stacked at the shoes
     g.fillStyle='rgba(0,0,0,.14)';for(const u of [0,.5])g.fillRect(avXY(4,u,0)[0]-1,128,2,64);g.fillRect(126,128,2,64);}
-  for(const s of [-1,1]){const [x,y]=avXY(5,.25+s*.065,.32),w=19,h=24;g.fillStyle=css(shade(Pn,.84));g.beginPath();g.moveTo(x-w/2,y-h/2);g.lineTo(x+w/2,y-h/2);g.lineTo(x+w/2-1,y+h/2-4);g.lineTo(x,y+h/2);g.lineTo(x-w/2+1,y+h/2-4);g.closePath();g.fill();
+  for(const s of [-1,1]){const [x,y]=avXY(5,.25+s*.1,.33),w=16,h=26;g.fillStyle=css(shade(Pn,.84));g.beginPath();g.moveTo(x-w/2,y-h/2);g.lineTo(x+w/2,y-h/2);g.lineTo(x+w/2-1,y+h/2-4);g.lineTo(x,y+h/2);g.lineTo(x-w/2+1,y+h/2-4);g.closePath();g.fill();
     g.strokeStyle='rgba(214,170,90,.55)';g.lineWidth=1;g.stroke();}                                                                         // back pockets with stitching
   for(const u of [.07,.19,.31,.43,.57,.69,.81,.93]){const [x,y]=avXY(5,u,.03);g.fillStyle=css(shade(Pn,.8));g.fillRect(x-1.5,y-6,3,7);}      // belt loops
   // hair strands, tinted by the vertices
@@ -76,8 +76,8 @@ function avPaint(){const g=avCv.getContext('2d'),A=AVATAR,st=A.shirtStyle||'tee'
 // the look the figure builder (05) takes, from AVATAR
 function avLook(){const A=AVATAR,st=A.shirtStyle||'tee',hs=A.hairStyle||'short',tr=((A.shirt>>16&255)+(A.shirt>>8&255)+(A.shirt&255))>380?0x1d3f7a:0xf2efe6,h=A.hat&&A.hat.type==='cap'?A.hat:null;
   return{skin:A.skin,shirt:A.shirt,sleeve:st==='jersey'?'none':st==='flannel'?'long':'short',collar:st==='flannel'?'polo':'crew',collarC:st==='jersey'?tr:undefined,tuck:false,
-    hemY:st==='jersey'?-.12:undefined,pants:A.pants,cut:'baggy',rise:-.035,seat:1,belt:A.belt===undefined?0x2a2420:A.belt,shoeType:'sneaker',shoe:A.shoes,sole:A.shoeSole===undefined?0xf4f2ec:A.shoeSole,
-    hair:A.hair,hairStyle:hs==='bald'?'none':hs,hat:h?'cap':null,hatC:h?(h.col===undefined?0x1d3f7a:h.col):undefined,laces:A.shoes};}
+    hemY:st==='jersey'?-.12:undefined,pants:A.pants,cut:'baggy',rise:-.035,seat:1,belt:A.belt===undefined?0x2a2420:A.belt,shoeType:'sneaker',shoe:A.shoes,sole:A.shoeSole===undefined?0xbfb6a6:A.shoeSole,
+    hair:A.hair,hairStyle:hs==='bald'?'none':hs,hat:h?'cap':null,hatC:h?(h.col===undefined?0x1d3f7a:h.col):undefined,laces:shade(A.shoes,.86)};}
 // a piece from point a to point c (pieces grow along +y from their base); also used by the bikes (06d)
 const _sq=new T.Quaternion(),_sq2=new T.Quaternion(),_sv=new T.Vector3(),_sy=new T.Vector3(0,1,0),SE=new T.Euler();
 function segRot(ax,ay,az,bx,by,bz,spin){_sv.set(bx-ax,by-ay,bz-az);const l=_sv.length()||1e-6;_sv.multiplyScalar(1/l);_sq.setFromUnitVectors(_sy,_sv);

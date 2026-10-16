@@ -222,7 +222,7 @@ function figParts(L,X){const o={},sk=L.skin||0xc68e64,Wd=L.w||1,BL=L.belly||0,kp
   const fr=a=>-Math.sin(a),HL=(f0,f1,f2)=>a=>{const f=fr(a);return f0+f1*f-f2*f*f;};
   if(!hatT||hatT==='cap'||hatT==='capb'){
     if(hs==='short'||hs==='crop')fgShell(b,X,3,HL(.725,.058,.017),(a,t)=>t?(hs==='crop'?.008:.011)*(.45+.55*t)+(t>.5?.004:0)*(hs==='short'?1:0):.002,
-      (i,j,x,y,z)=>X.vc(3,i===0?mixc(hairC,sk,.45):y<.72&&z>-.03?mixc(hairC,sk,.3):hairC),X.hq?null:[0,.35,.75,1],X.hq?12:10);
+      (i,j,x,y,z)=>X.vc(3,i===0?mixc(hairC,sk,.45):y<.72&&z>-.03?mixc(hairC,sk,.3):hairC),X.hq?[0,.12,.35,.65,.88,1]:[0,.35,.75,1],X.hq?12:10);
     else if(hs==='buzz')fgShell(b,X,3,HL(.725,.055,.02),(a,t)=>t?.004:.0015,(i)=>X.vc(3,mixc(hairC,sk,i?.38:.6)),X.hq?null:[0,.4,.8,1],X.hq?12:10);
     else if(hs==='braids'){fgShell(b,X,3,HL(.722,.058,.02),(a,t)=>.006+.006*Math.abs(Math.sin(a*7))*(1-t*.6),hairC,[0,.25,.5,.75,1],16);
       for(let k=0;k<5;k++){const x=(k-2)*.026,z=.085-Math.abs(x)*.4;fgSweep(b,X,3,[[x,.72,z],[x*1.15,.64,z+.03],[x*1.25,.56,z+.05],[x*1.3,.5,z+.055]],[.012,.011,.01,.003],5,hairC);}}
@@ -249,6 +249,7 @@ function figParts(L,X){const o={},sk=L.skin||0xc68e64,Wd=L.w||1,BL=L.belly||0,kp
   if(L.stache)bx(b,0,0,.655,-.102,.15,0,0,.05,.016,.012,L.stache);
   if(L.beard)fgPatch(b,3,6,(i,j,q)=>{const a=(7/12-.03+j*(1/3+.06)/6)*TAU;fgHead([.6,.632,.668][i],a,i===2?.004:.008,q);return q;},{col:X.vc(3,L.beard),inn:[0,.66,0],uv:(u,v,x,y,z,q)=>X.uv(3,u,v,q)});
   if(L.headset){bx(b,0,.083,.68,-.015,0,0,0,.02,.05,.045,0x15151a);fgSeg(b,X,0,GEO.rod,.08,.69,-.04,.03,.66,-.11,.005,.005,0x15151a);}
+  if(L.headK){const k=L.headK;for(let i=0;i<b.p.length;i+=3){b.p[i]*=k;b.p[i+1]=.5+(b.p[i+1]-.5)*k;b.p[i+2]*=k;}} // a bigger head (round the base of the neck)
   o.head=b.build();return o;}
 // what each kind wears (old fields: shirt, sl, pants, vest, pouch, patch, hat, hatC, skin, glove, pack, tie, heavy, visor, shades, headset, print,
 // baggy, lanyard, shorts, sock, glasses, stache, belt, shoe; new: sleeve, collar, cut, hair, hairStyle, hatC, beard, w, belly, crop, ...)
@@ -273,7 +274,7 @@ function lookOf(kind,v){const V=UVAR[kind];return Object.assign({},UNI[kind]||UN
 function parts(kind,v){v=v|0;const key=kind+':'+v;if(partGeo[key])return partGeo[key];return partGeo[key]=kind==='bobo'?boboParts():figParts(lookOf(kind,v),SXC);}
 // Bobo: a giant in a souvenir T-shirt a size too small (his belly shows), denim cut-offs, flip-flops, a ponytail and a gold bracelet
 function boboParts(){return figParts({skin:0xc98d68,w:1.25,belly:.1,armW:1.65,legW:1.55,neckW:1.5,shirt:0x8fd0ef,chestPrint:7,collar:'crew',crop:.075,tuck:false,
-  pants:0x56698a,cut:'cutoff',rise:.0,shoeType:'flip',sole:0x30302e,strap:0x2bb3a0,hair:0x1d1712,hairStyle:'pony',bracelet:0xd6b24a,stache:0x1d1712},SXC);}
+  pants:0x56698a,cut:'cutoff',rise:.0,headK:1.1,shoeType:'flip',sole:0x30302e,strap:0x2bb3a0,hair:0x1d1712,hairStyle:'pony',bracelet:0xd6b24a,stache:0x1d1712},SXC);}
 
 // ---------- weapons in the world (in hands and on the ground): the barrel points to -z, the origin is on the bore above the grip
 const wGeo={};
@@ -326,10 +327,10 @@ const footShade=new T.MeshBasicMaterial({transparent:true,depthWrite:false,polyg
 // ---------- the rig: one skinned mesh per person (a single draw call). Bones 0 hips, 1 chest, 2/3 left arm and forearm, 4/5 right,
 // 6 weapon, 7/8 left thigh and shin, 9/10 right; and three more: 11/12 the feet (ankles), 13 the head. Joints blend over a few centimetres.
 const skinMat=L({vertexColors:true,map:solMat.map,skinning:true}),figMat=L({vertexColors:true,map:FIGT,skinning:true}),rigCache={};
-const JOINT=[[0,0,0],[0,1,0],[-.19,.46,0],[0,-.36,0],[.19,.46,0],[0,-.36,0],[.12,.36,-.42],[-.1,.9,0],[0,-.46,0],[.1,.9,0],[0,-.46,0]],PARENT=[-1,0,1,2,1,4,1,0,7,0,9];
-const JX=[[0,-.37,0],[0,-.37,0],[0,.56,0]],PX=[8,10,1],NB=14;
+const JOINT=[[0,0,0],[0,1,0],[-.19,.46,0],[0,-.36,0],[.19,.46,0],[0,-.36,0],[.12,.36,-.42],[-.1,.9,0],[0,-.46,0],[.1,.9,0],[0,-.46,0],[0,-.37,0],[0,-.37,0],[0,.56,0]],
+  PARENT=[-1,0,1,2,1,4,1,0,7,0,9,8,10,1],NB=JOINT.length;
 const JK={bobo:JOINT.map((p,k)=>k===2?[-.225,.46,0]:k===4?[.225,.46,0]:k===7?[-.12,.9,0]:k===9?[.12,.9,0]:p)};
-function rigJ(kind){const J=(JK[kind]||JOINT).concat(JX),P=PARENT.concat(PX),W=[];for(let k=0;k<NB;k++){const p=J[k].slice(),q=P[k];if(q>=0){p[0]+=W[q][0];p[1]+=W[q][1];p[2]+=W[q][2];}W.push(p);}return{J,P,W};}
+function rigJ(kind){const J=JK[kind]||JOINT,P=PARENT,W=[];for(let k=0;k<NB;k++){const p=J[k].slice(),q=P[k];if(q>=0){p[0]+=W[q][0];p[1]+=W[q][1];p[2]+=W[q][2];}W.push(p);}return{J,P,W};}
 // where a vertex of bone b blends into a neighbour: [other bone, joint, side (+1: the other bone is above), range]
 function seams(W){const s=[];s[0]=[[1,W[1][1],1,.06]];s[1]=[[0,W[1][1],-1,.06]];
   for(const [a,f] of [[2,3],[4,5]]){s[a]=[[1,W[a][1]+.02,1,.07],[f,W[f][1],-1,.045]];s[f]=[[a,W[f][1],1,.045]];}
@@ -402,14 +403,16 @@ function armsOn(s){const H=HOLD[s.wid]||HOLD.m4,J=s.J||JOINT,q=s.wp.quaternion,p
   else{_wq.set(H.f[0],H.f[1],H.f[2]).applyQuaternion(q).add(p);armReach(s.aL,s.fL,J[2],_wq.x,_wq.y,_wq.z,-.35,-1,.1,.36,.33);}}
 // walk (0) or run (1), and the legs and hips for a gait phase ph
 const bump=(x,c,w)=>{let d=x-c;d-=TAU*Math.round(d/TAU);return Math.abs(d)<w?.5+.5*Math.cos(d/w*PI):0;};
+// knee bend through the stride (swing, then a little at the footfall) and the foot's roll (toe off, heel strike)
+function gaitKnee(p,r,m){return-((lerp(1.0,1.75,r)*bump(p,-.55+.15*r,1.35)+lerp(.15,.55,r)*bump(p,2.3,1.)+.03)*m);}
+function gaitFoot(p,m){return(-.42*bump(p,-1.75,.75)+.14*bump(p,1.45,.6)+.08*bump(p,-.2,.9))*m;}
 function legPose(s,dt){const c=s.crouch,m=s.moveAmt,ph=s.ph;s.gt=lerp(s.gt===undefined?0:s.gt,s.run?1:0,Math.min(1,dt*5));const r=s.gt,kn=c*(1-m)*(s.down?0:1);
   const A=lerp(.43,.66,r)*m,fb=lerp(.02,.16,r)*m,sL=Math.sin(ph),sR=-sL;
-  const knee=p=>-((lerp(1.0,1.75,r)*bump(p,-.55+.15*r,1.35)+lerp(.15,.55,r)*bump(p,2.3,1.)+.03)*m),foot=p=>(-.42*bump(p,-1.75,.75)+.14*bump(p,1.45,.6)+.08*bump(p,-.2,.9))*m;
-  let hL=A*sL+fb,hR=A*sR+fb,kL=knee(ph),kR=knee(ph+PI);
+  let hL=A*sL+fb,hR=A*sR+fb,kL=gaitKnee(ph,r,m),kR=gaitKnee(ph+PI,r,m);
   // crouch: a squat while moving, one knee down when still
   hL=hL*(1-c)+c*lerp(.95,1.35,kn);kL=kL*(1-c)+c*lerp(-1.55,-1.48,kn);hR=hR*(1-c)+c*lerp(.95,-.32,kn);kR=kR*(1-c)+c*lerp(-1.55,-1.3,kn);
   s.lL.rotation.set(hL,0,.03+c*.12*(1-kn));s.lR.rotation.set(hR,0,-.03-c*.12*(1-kn)+c*kn*.08);s.kL.rotation.x=kL;s.kR.rotation.x=kR;
-  if(s.ftL){s.ftL.rotation.x=-(hL+kL)*lerp(.75,1,c)+foot(ph)*(1-c);s.ftR.rotation.x=-(hR+kR)*lerp(.75,1,c)+foot(ph+PI)*(1-c)-c*kn*.9;}
+  if(s.ftL){s.ftL.rotation.x=-(hL+kL)*lerp(.75,1,c)+gaitFoot(ph,m)*(1-c);s.ftR.rotation.x=-(hR+kR)*lerp(.75,1,c)+gaitFoot(ph+PI,m)*(1-c)-c*kn*1.2;}
   // hips: down at each footfall, sway and turn with the stride
   const L0=.88,drop=L0*(1-Math.cos(A))*.85*(1-r*.5)*(.5-.5*Math.cos(2*ph)),bounce=r*m*.05*Math.abs(Math.sin(ph+.4));
   s.body.position.y=-c*lerp(.28,.41,kn)+.006*m-drop+bounce-r*m*.035;s.body.rotation.set(0,-.13*sL*m*(1-c),.035*Math.sin(ph*2+.5)*m*(1-r*.4));return r;}
