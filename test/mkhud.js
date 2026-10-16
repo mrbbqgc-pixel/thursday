@@ -1,6 +1,6 @@
 // writes hud1.json (play screens for the HUD check; run with --ios, --mobile or none): start house with the splash and radio, a firefight, bike, survival
 const fs=require('fs'),cov=fs.readFileSync(__dirname+'/hudcov.js','utf8').trim().replace(/^\/\/.*\n/,'');
-const S=[{"tap":"#btnStart"},{"wait":600},{"eval":"(()=>{window.__game.setViewMode(true);return window.__game.VIEW.tp})()","log":"third person"},
+const S=[{"eval":"document.getElementById('btnStart').click()"},{"wait":600},{"eval":"(()=>{window.__game.setViewMode(true);return window.__game.VIEW.tp})()","log":"third person"},
  {"eval":"(()=>{const g=window.__game;g.sim(45,1/30);return {state:g.G.state,obj:g.OBJ.text,feed:[...document.querySelectorAll('#feed p')].map(p=>p.textContent)}})()","log":"start"},
  {"wait":300},{"shot":"hud-start"},{"eval":cov,"log":"coverage start"},
  {"eval":"(()=>{const g=window.__game;g.sim(150,1/30);g.allies[0].hp=g.allies[0].maxHp*.4;g.P.hp=58;g.radio('JUNEBUG','Cuz, they got a golf cart. A golf cart, Ray.');g.G.toasts.push({t:'+100 Security down'});g.sim(3,1/30);return {hp:g.P.hp,feed:document.querySelectorAll('#feed p').length}})()","log":"fight"},

@@ -22,7 +22,12 @@ const {lab,sleep}=require('./mplab');
   await ev(0,"(__game.mpSetCfg('arena','test'),__game.mpSetCfg('kills',3),1)");await until(1,"__game.MP.cfg.kills===3",4000,'settings reach the guests');
   await L.players[0].pg.click('#btnMpStart');
   for(const k of [0,1,2])await until(k,"__game.G.state==='play'&&__game.MP.phase==='play'",8000,'player '+k+' is in the match');
-  await sleep(1200);let S=[await st(0),await st(1),await st(2)];const A={x0:154,z0:-726,x1:358,z1:-594};
+  await sleep(1200);
+  // a look at the Versus HUD on the phone player (drawing is switched back on for one frame)
+  await ev(1,"(()=>{const g=window.__game;g.renderer.render=g.__render;return 1})()");await sleep(700);await L.players[1].pg.screenshot({path:'mp-versus-hud.png'});
+  ok(await ev(1,"!document.getElementById('mpBoard').hidden&&document.querySelectorAll('#mpBoard div').length===3"),'the phone player sees the score list');
+  await ev(1,"(()=>{const g=window.__game;g.renderer.render=function(){};return 1})()");
+  let S=[await st(0),await st(1),await st(2)];const A={x0:154,z0:-726,x1:358,z1:-594};
   ok(S.every(s=>s.alive&&s.hp===100&&s.x>A.x0&&s.x<A.x1&&s.z>A.z0&&s.z<A.z1),'everyone spawned alive inside the test arena',S.map(s=>[s.x,s.z]));
   ok(Math.hypot(S[0].x-S[1].x,S[0].z-S[1].z)>20&&Math.hypot(S[0].x-S[2].x,S[0].z-S[2].z)>20,'first spawns are spread out');
   ok(S.every(s=>s.rivals===2&&s.mates===0),'in free-for-all everyone else is a rival');

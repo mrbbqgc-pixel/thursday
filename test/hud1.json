@@ -1,4 +1,4 @@
-[{"tap":"#btnStart"},
+[{"eval":"document.getElementById('btnStart').click()"},
  {"wait":600},
  {"eval":"(()=>{window.__game.setViewMode(true);return window.__game.VIEW.tp})()","log":"third person"},
  {"eval":"(()=>{const g=window.__game;g.sim(45,1/30);return {state:g.G.state,obj:g.OBJ.text,feed:[...document.querySelectorAll('#feed p')].map(p=>p.textContent)}})()","log":"start"},
