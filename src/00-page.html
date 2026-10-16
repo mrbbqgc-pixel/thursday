@@ -124,7 +124,7 @@ body.touch #feed{bottom:calc(66px + var(--sb));max-width:min(420px,47vw)}
 body.touch #feed p{font-size:12px}
 body.touch #prompt{left:auto;top:auto;right:calc(262px + var(--sr));bottom:calc(204px + var(--sb));transform:none;font-size:12.5px} /* next to the USE button */
 body.touch #kills{left:calc(50% + 40px)}
-#ver{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));margin:0;font-size:11px;letter-spacing:.1em;opacity:.55;pointer-events:none}
+#studio{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));margin:0;text-align:right;line-height:1.25;pointer-events:none}#studio b{display:block;font-size:12px;letter-spacing:.14em;opacity:.8;font-weight:700}#studio span{display:block;font-size:10px;letter-spacing:.08em;opacity:.55}#ver{margin:2px 0 0;font-size:10px;letter-spacing:.1em;opacity:.45}
 .over{position:fixed;inset:0;display:flex;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 #menu{align-items:center;justify-content:flex-start;background:linear-gradient(90deg,rgba(21,17,12,.86) 0%,rgba(21,17,12,.55) 55%,rgba(21,17,12,.1) 100%)}
 #card{max-width:480px;min-width:0;margin-left:clamp(0px,5vw,64px);display:flex;flex-direction:column;gap:13px;align-items:flex-start;margin-block:auto}
@@ -223,7 +223,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   <p id="mapNote">Distances between places are about 30% of real; buildings, cars and people are real size. Up is north, toward the San Gabriel Mountains. Main streets follow the real grid; landmarks carry made-up names, and houses and shops are generated.</p>
 </div>
 <div id="menu" class="over">
-  <p id="ver"></p>
+  <div id="studio"><b>J&amp;E Studios</b><span>Javier &amp; Eric</span><p id="ver"></p></div>
   <div id="card">
     <p class="eyebrow">Rancho Cucamonga · Inland Empire · around 2000</p>
     <h1 id="menuTitle">THURSDAY</h1>
