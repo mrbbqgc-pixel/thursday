@@ -64,7 +64,8 @@ function meleeStrike(){const f=lookDir();let best=null,bd=2.4;
 function throwNade(){if(P.nades<=0||P.nadeT>0||P.swapT>0)return;P.nades--;P.nadeT=1;const f=lookDir(),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw),
     tp=VIEW.on,cx=tp?P.x:camera.position.x,cy=tp?P.y+eyeH()+.1:camera.position.y,cz=tp?P.z:camera.position.z; // third person: from the body
   const n=spawnNade(cx+f[0]*.5+rx*.2,cy-.1+f[1]*.5,cz+f[2]*.5+rz*.2,f[0]*16+P.vx*.5,f[1]*16+4.2,f[2]*16+P.vz*.5,2.5,true);if(MP.on)mpNade(n);sndUi('pin');P.kick=Math.min(1,P.kick+.6);}
-function hurt(dmg,sx,sz){if(P.bike&&P.hp-dmg*G.dmgK<=0&&G.state==='play'&&P.alive&&!(MP.on&&P.spawnT>0))dismountBike(1);if(G.state!=='play'||!P.alive||(MP.on&&P.spawnT>0))return;dmg*=G.dmgK;P.hp-=dmg;P.hurtT=0;G.vig=Math.min(1,.35+dmg/40);P.punch+=R2(.008,.022)*Math.min(3,dmg/12);P.roll+=R2(-.03,.03);
+function hurt(dmg,sx,sz){if(P.car)dmg=carHurt(dmg); // (drive) less damage in a car; a fatal hit throws you out first (06e)
+  if(P.bike&&P.hp-dmg*G.dmgK<=0&&G.state==='play'&&P.alive&&!(MP.on&&P.spawnT>0))dismountBike(1);if(G.state!=='play'||!P.alive||(MP.on&&P.spawnT>0))return;dmg*=G.dmgK;P.hp-=dmg;P.hurtT=0;G.vig=Math.min(1,.35+dmg/40);P.punch+=R2(.008,.022)*Math.min(3,dmg/12);P.roll+=R2(-.03,.03);
   G.arcs.push({x:sx,z:sz,t:1.3});if(G.arcs.length>3)G.arcs.shift();sndUi('hurt');if(P.hp<=0){P.hp=0;P.alive=false;P.deadT=0;G.stats.deaths++;onPlayerDeath();}}
 function takeWeapon(p){const w=curW();if(P.swapT>0)return;cancelReload();addPick('w',P.x+R2(-.6,.6),P.z+R2(-.6,.6),{id:w.id,mag:w.mag,res:w.res,life:90});
   P.slots[P.cur]={id:p.id,mag:p.mag,res:p.res};scene.remove(p.m);picks.splice(picks.indexOf(p),1);showWeapon();P.swapT=.3;P.swapTo=-1;sndUi('pick');toast(WDEF[p.id].name);}
@@ -79,7 +80,7 @@ function updPicks(dt){let near=null,nd=1.9;
       else if(p.kind==='crate'){resupply();take=true;}
       else if(p.kind==='w'){const same=P.slots.find(w=>w.id===p.id);
         if(same){const D=WDEF[p.id],add=p.mag+p.res;if(same.res<D.max&&add>0){same.res=Math.min(D.max,same.res+add);toast('+'+D.name+' AMMO');take=true;}}
-        else if(d<nd&&!P.bike){nd=d;near=p;}}}
+        else if(d<nd&&!P.bike&&!P.car){nd=d;near=p;}}}
     if(take){sndUi('pick');scene.remove(p.m);picks.splice(k,1);}else if(p.t<=0){scene.remove(p.m);picks.splice(k,1);}}
   if(near){G.prompt='<b>'+(isTouch?'USE':'F')+'</b> swap '+curD().name+' for '+WDEF[near.id].name;if(IN.use){IN.use=false;takeWeapon(near);}}}
 // touch only: the view is drawn gently towards a hostile that is already close to the sights
@@ -87,7 +88,8 @@ function aimAssist(dt){P.asT=(P.asT||0)-dt;const cx=camera.position.x,cy=camera.
   if(P.asT<=0){P.asT=.12;P.asTgt=null;const f=lookDir(),HL=hostList();let best=.13;for(let k=0;k<HL.length;k++){const s=HL[k];if(!s.alive)continue;const dx=s.x-cx,dy=chestY(s)-cy,dz=s.z-cz,d=Math.hypot(dx,dy,dz);if(d>75||d<1)continue;
       const ang=Math.acos(clamp((dx*f[0]+dy*f[1]+dz*f[2])/d,-1,1));if(ang<best&&los(cx,cy,cz,s.x,chestY(s),s.z)){best=ang;P.asTgt=s;}}}
   const s=P.asTgt;if(s&&s.alive){const dx=s.x-cx,dz=s.z-cz,d=Math.hypot(dx,dz),k=Math.min(1,dt*(IN.fire||P.ads>.5?3.2:1.5));P.yaw+=angDiff(Math.atan2(-dx,-dz),P.yaw)*k;P.pitch+=(Math.atan2(chestY(s)-cy,d)-P.pitch)*k;}}
-function updPlayer(dt){const w=curW(),D=WDEF[w.id],bk=P.bike;
+function updPlayer(dt){if(P.car){driveUpdate(dt);return;} // (drive) in a car: 06e drives instead
+  const w=curW(),D=WDEF[w.id],bk=P.bike;
   if(IN.crouchT){IN.crouchT=false;if(!bk)P.crouching=!P.crouching;}
   let f=IN.f,s=IN.s;const m=Math.hypot(f,s);if(m>1){f/=m;s/=m;}
   if(P.stumT>0){P.stumT-=dt;f*=.15;s*=.15;} // knocked off a bike
@@ -128,7 +130,8 @@ function updPlayer(dt){const w=curW(),D=WDEF[w.id],bk=P.bike;
   P.bloom=Math.max(0,P.bloom-dt*.09);P.kick*=Math.exp(-dt*13);P.punch*=Math.exp(-dt*7);P.roll*=Math.exp(-dt*6);
   if(P.flashT>0){P.flashT-=dt;}flash.visible=P.flashT>0&&!(D2.scope&&P.ads>.9);tpFlash.visible=P.flashT>0&&VIEW.on&&VIEW.sc<.5;vmSmoke(D2,VIEW.on&&VIEW.sc<.5);
   updBikes(dt);}
-function updCamera(dt){const D=curD();VIEW.on=viewTP();if(VIEW.on){tpCamera(dt,D);updAvatar(dt);return;}VIEW.sc=0;updAvatar(dt);
+function updCamera(dt){if(P.car){carCamera(dt);return;} // (drive) chase camera, 06e
+  const D=curD();VIEW.on=viewTP();if(VIEW.on){tpCamera(dt,D);updAvatar(dt);return;}VIEW.sc=0;updAvatar(dt);
   const eye=lerp(1.65,1.05,P.crouch),amp=(P.sprinting?.055:.03)*(1-P.ads*.75)*clamp(P.speed/4,0,1);
   camera.position.set(P.x+(shake?R2(-1,1)*shake*.07:0),P.y+eye+Math.sin(P.bob)*amp+(shake?R2(-1,1)*shake*.07:0),P.z+(shake?R2(-1,1)*shake*.07:0));
   camera.rotation.set(P.pitch+P.punch,P.yaw,P.roll+Math.sin(P.bob*.5)*amp*.25);

@@ -103,6 +103,7 @@ function pushCar(B,g,x,y,z,ry,col,col2){_ce.set(0,ry,0);_cq.setFromEuler(_ce);_c
 // draws a vehicle into the paint batch of its chunk and remembers the vertex range, so a wreck can be recoloured in place.
 // lite: falsy = full model, 1 = parked at street level, 2 = parked on a raised lot, true = the cheapest model; col2: second tone (roof and pillars)
 function vehicle(type,x,z,alongX,col,dir,lite,low,ryO,yO,col2){const V=VEH[type],ry=ryO!==undefined?ryO:(alongX?PI/2:0)+(dir<0?PI:0),B=bat(M.paint,x,z),v0=B.p.length/3,yb=(lite===2?PADY:0)+(yO||0),ly0=(low&&type!=='lowrider'?-.12:0)+yb;
+  {const bw=typeof carBorrow==='function'&&carBorrow(type,x,z,ry,ly0,col,col2===undefined?col:col2);if(bw)return Object.assign(bw,{w:alongX?V.len:V.wid,d:alongX?V.wid:V.len,h:V.h});} // (drive) a car you can borrow is a mesh of its own (06e), not baked
   anchor(x,z,()=>{pushCar(B,!lite?V.full:(lite===true||carLo)?V.lo:V.mid,x,ly0,z,ry,col,col2===undefined?col:col2);
     if(!yO)blob(x,z,alongX?V.len*.58:V.wid*.72,alongX?V.wid*.72:V.len*.58,lite===2?PADY:0);});
   return{B,v0,v1:B.p.length/3,x,z,w:alongX?V.len:V.wid,d:alongX?V.wid:V.len,h:V.h,type};}
