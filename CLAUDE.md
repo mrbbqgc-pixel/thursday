@@ -7,9 +7,8 @@ on phones (iPhone Safari first), so every change is checked at phone size as wel
 
 ## Where it is published
 
-- **Public site (planned):** https://mrbbqgc-pixel.github.io/thursday/ from a GitHub repository `mrbbqgc-pixel/thursday` that the owner
-  creates. GitHub Pages serves the root of the **`gh-pages`** branch; `main` and `gh-pages` are kept on the same commit; publishing is
-  `git push origin main main:gh-pages`. Until the repository exists, work is committed locally only.
+- **Public site:** https://mrbbqgc-pixel.github.io/thursday/ (repository `mrbbqgc-pixel/thursday`). GitHub Pages serves the root of the
+  **`gh-pages`** branch; `main` and `gh-pages` are kept on the same commit; publishing is `git push origin main main:gh-pages`.
 - **Claude artifact:** the same game without the standalone wrapper and without multiplayer, published from a copy of
   `src/operacion-insurgentes.html` named `thursday.html` (the build product keeps the engine's file name).
 
