@@ -2,9 +2,10 @@
 // 08e VERSUS: players against players in one part of the town. Free-for-all or two teams, weapon classes,
 // respawns away from the enemy, a kill limit and a clock (both kept by the host).
 // =====================================================================
-const ARENAS={plaza:{n:'Plaza Principal',x0:154,z0:-726,x1:358,z1:-594},glorieta:{n:'La Glorieta',x0:-70,z0:-126,x1:166,z1:134},
-  blvd:{n:'Blvd. Benito Juárez',x0:-70,z0:-486,x1:70,z1:-234},centro:{n:'Centro (large)',x0:-70,z0:-726,x1:358,z1:-234}};
-const arena=()=>ARENAS[MP.cfg.arena]||ARENAS.plaza;
+const ARENAS={tract:{n:'Terra Linda tract',x0:-480,z0:-500,x1:-20,z1:-40},route66:{n:'Route 66',x0:-250,z0:-60,x1:250,z1:120},
+  promenade:{n:'Rancho Promenade',x0:1040,z0:-310,x1:1260,z1:-10},outlets:{n:'Outlets parking lot',x0:380,z0:980,x1:940,z1:1200}};
+MP.cfg.arena='tract'; // the lobby's first choice
+const arena=()=>ARENAS[MP.cfg.arena]||ARENAS.tract;
 function giveClass(c){const id=CLS[c]||'m4',D=WDEF[id];P.slots=[{id,mag:D.mag,res:Math.round(D.max*.72)},{id:'pistol',mag:15,res:45}];P.cur=0;P.nades=2;showWeapon();}
 // street corners inside the arena, in order round its centre, so that the first spawns can be dealt out evenly
 function arenaSpots(){const A=arena(),cx=(A.x0+A.x1)/2,cz=(A.z0+A.z1)/2,L=[];

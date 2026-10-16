@@ -1,32 +1,102 @@
 // =====================================================================
-// 08 MISSION: objectives through the real town, garrisons, reinforcements, checkpoints, helicopter, survival
+// 08 MISSION: THURSDAY's stages, garrisons, reinforcements, checkpoints, the squad's lines, Bobo's fight, the command post, survival
 // =====================================================================
+// The THURSDAY mission in the shared world frame (origin Haven Ave x Foothill Blvd, x east, z south, 30% distances).
+// talk: [seconds after the stage starts, who, line]; outro: the same, from the moment the stage is done.
+// warp: a far stage. When the stage before it is done the screen fades to black on warpLine, and everyone is set down at its spawn (banner warpBan).
+// chase: the trail. Bobo follows on his scooter, chase metres behind the start; the bikes come from the bike module when it is there.
 const ST=[
- {key:'gas',title:'Secure the gas station on Blvd. Benito Juárez',x:24,z:254,r:26,type:'capture',spawn:[3.5,484,0],
-  groups:[{x:0,z:345,r:16,units:{rifle:3}},{x:26,z:254,r:24,units:{rifle:4,rush:1}}],marks:0,reinf:{at:.4,n:3,kinds:['rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','Halcón, hostiles hold the gas station ahead. Push up the boulevard and secure it.'],outro:['COMMAND','Gas station is ours. The Glorieta is three blocks north.']},
- {key:'glorieta',title:'Take the Glorieta',x:0,z:0,r:24,type:'capture',spawn:[18,286,0],
-  groups:[{x:0,z:124,r:18,units:{rifle:2}},{x:0,z:6,r:24,units:{rifle:4,heavy:1,rush:1}},{x:44,z:0,r:10,units:{rifle:2}}],marks:1,reinf:{at:.45,n:4,kinds:['rifle','rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','The statue marks the crossroads where Highway 1 turns for Loreto. Take it.'],outro:['COMMAND','Crossroads secured. Expect a counterattack from the Loreto road. Dig in.']},
- {key:'hold',title:'Hold the Glorieta',x:0,z:0,r:34,type:'hold',time:75,spawn:[-4,14,0],
-  waves:[{t:3,n:5,kinds:['rifle','rifle','rush'],dir:[1,0]},{t:26,n:5,kinds:['rifle','rush','rush'],dir:[0,-1]},{t:48,n:6,kinds:['rifle','rifle','heavy','rush'],dir:[1,0]}],
-  outro:['COMMAND','Counterattack broken. Move north up the boulevard to Calle Miguel Hidalgo.']},
- {key:'north',title:'Clear the boulevard up to Calle Miguel Hidalgo',x:0,z:-312,r:30,type:'capture',spawn:[4,-16,0],
-  groups:[{x:-20,z:-90,r:22,units:{rifle:2}},{x:0,z:-200,r:18,units:{rifle:3,rush:1}},{x:-4,z:-300,r:26,units:{rifle:4}}],marks:1,reinf:{at:.5,n:4,kinds:['rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','Supermarket on your left, then the hotel and the gas station. Watch the rooftops.'],outro:['COMMAND','Good work. A radio jammer is parked by the bus terminal, two blocks up at the corner of Pípila.']},
- {key:'jam',title:'Destroy the radio jammer at the bus terminal',x:44,z:-478.5,r:4.6,type:'plant',spawn:[4,-322,0],defend:24,
-  groups:[{x:30,z:-466,r:24,units:{rifle:5,rush:1}}],marks:1,waves:[{t:2,n:4,kinds:['rifle','rush'],dir:[0,-1]},{t:12,n:4,kinds:['rifle','rifle','rush'],dir:[1,0]}],
-  outro:['COMMAND','Jammer is down. Go east along Pípila to Avenida 20 de Noviembre, then north past Allende to the Plaza Principal.']},
- {key:'plaza',title:'Clear the Plaza Principal',x:208,z:-630,r:64,type:'eliminate',spawn:[30,-478,-1.57],
-  groups:[{x:112,z:-480,r:16,units:{rifle:2}},{x:160,z:-548,r:16,units:{rifle:2,rush:1}},{x:208,z:-630,r:30,units:{rifle:5,heavy:1,rush:1}}],marks:0,belfry:true,
-  intro:['COMMAND','Marksmen are in the bell towers of the parish. Use cover and take the plaza.'],outro:['COMMAND','Plaza is clear. Helicopter is inbound. Hold until it lands.']},
- {key:'exfil',title:'Hold the plaza until the helicopter lands',x:208,z:-630,r:46,type:'hold',time:55,spawn:[208,-612,0],heli:true,
-  waves:[{t:3,n:5,kinds:['rifle','rush'],dir:[-1,0]},{t:22,n:5,kinds:['rifle','rifle','rush'],dir:[0,1]},{t:40,n:5,kinds:['rifle','heavy','rush'],dir:[1,0]}]},
- {key:'board',title:'Board the helicopter',x:256,z:-600,r:5.5,type:'reach',spawn:[208,-612,0],intro:['REYES','Bird is on the deck. Go, go!']}];
-const MS={stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null};
+ {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-230,z:-280,r:40,type:'eliminate',spawn:[-230,-285,PI],
+  groups:[{x:-230,z:-250,r:12,units:{rifle:2}},{x:-198,z:-262,r:12,units:{rifle:1,rush:1}},{x:-262,z:-258,r:12,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[0,1]},
+  talk:[[0,'AUNT RO','Ray. Wake up. There are men in khakis on my street, and they are standing on the Hendersons\' lawn.'],[4,'RAY','It\'s seven in the morning.'],
+   [7.5,'AUNT RO','It\'s Thursday. Get them off my street. Junebug, Mr. Pennington, go with him.'],[11.5,'JUNEBUG','Cuz! Welcome to the suburbs! It\'s not usually like this. Usually it\'s leaf blowers.']],
+  outro:[[0,'AUNT RO','Street is clear. Now the cul-de-sac. The neighbours are trying to get their cars out.']]},
+ {key:'culdesac',title:'Hold the cul-de-sac while the neighbours get out',x:-230,z:-320,r:30,type:'hold',time:45,spawn:[-224,-322,PI],
+  waves:[{t:3,n:4,kinds:['rifle','rush'],dir:[0,1]},{t:16,n:5,kinds:['rifle','rifle','rush'],dir:[1,0]},{t:30,n:5,kinds:['rifle','rush','heavy'],dir:[-1,0]}],
+  talk:[[0,'AUNT RO','Hold the cul-de-sac. Nobody leaves without their good casserole dish, and that takes time.'],
+   [5,'KINGSLEY','(loudspeaker) Residents of Terra Linda, this is Chet Kingsley. Please stay indoors while we improve your lifestyle.'],
+   [12,'MR. PENNINGTON','Here they come. Through the side yards. Over my roses.'],[22,'JUNEBUG','Mr. P, how many you got? I got like... forty.'],[25,'MR. PENNINGTON','You have two, son.']],
+  outro:[[0,'AUNT RO','Everybody is out. Good. Kingsley has the strip mall on Route 66 now. Go take it back. I need stamps.']]},
+ {key:'route66',title:'Route 66: clear the strip mall and the gas station',x:-120,z:30,r:60,type:'eliminate',spawn:[-250,-60,PI],
+  groups:[{x:-200,z:-6,r:12,units:{rifle:2}},{x:-150,z:32,r:22,units:{rifle:3,rush:1}},{x:-62,z:25,r:14,units:{rifle:2,heavy:1}}],marks:1,reinf:{at:.5,n:4,kinds:['rifle','rush'],dir:[1,0]},
+  talk:[[0,'AUNT RO','Kingsley has the strip mall and the gas station on Foothill. That is where I buy my lottery tickets. Clear it.'],
+   [5,'JUNEBUG','The donut place is in there, cuz. If they touched the donut place, it\'s personal.'],[10,'RAY','They put a checkpoint on Route 66. Isn\'t that, like, a historic road?'],
+   [14,'MR. PENNINGTON','Watch the roofs, son. Security guards love a roof.']],
+  outro:[[0,'AUNT RO','The strip mall is ours. Next, the Market Hall on Haven. They are eating the free samples.']]},
+ {key:'market',title:'Retake the Market Hall on Haven',x:40,z:205,r:50,type:'capture',spawn:[-4,135,PI],
+  groups:[{x:6,z:170,r:10,units:{rifle:2}},{x:40,z:185,r:16,units:{rifle:3,rush:1}},{x:42,z:212,r:18,units:{rifle:2,rush:1,heavy:1}}],marks:1,reinf:{at:.45,n:4,kinds:['rifle','rifle','rush'],dir:[0,1]},
+  talk:[[0,'JUNEBUG','The Market Hall! Best tacos in the Inland Empire, and the security guards are eating them. For free.'],
+   [5,'AUNT RO','Retake the hall. Do not shoot the espresso machine. It was a gift to the community.'],
+   [10,'KINGSLEY','(loudspeaker) Attention diners. The Market Hall is now a Kingsley Prime Lifestyle Experience. Please enjoy responsibly.'],
+   [15,'RAY','I just wanted a breakfast burrito.']],
+  outro:[[0,'AUNT RO','The hall is ours. Ray, the Civic Center is just north of you. There is... a situation.']]},
+ {key:'trail',title:'Ride the Pacific Electric Trail to Central Park',x:420,z:-560,r:30,type:'chase',spawn:[6,-637,-PI/2],chase:42,
+  warp:true,warpLine:['JUNEBUG','I know a shortcut. It goes through the Hendersons\' backyard.'],warpBan:['PACIFIC ELECTRIC TRAIL','THE HAVEN TRAILHEAD'],
+  groups:[{x:140,z:-630,r:8,units:{rifle:2}},{x:265,z:-642,r:8,units:{rifle:1,rush:1}},{x:405,z:-606,r:10,units:{rifle:2}}],marks:0,
+  talk:[[0,'JUNEBUG','Lowriders, cuz! The Pacific Electric Trail runs all the way to Central Park. Nobody catches us on these.'],
+   [4.5,'AUNT RO','Ray. Junebug. A very large man on a very small scooter is coming up the trail behind you. That is Bobo. Pedal.'],
+   [9.5,'BOBO','KINGSLEY BOYS! YOU TOWED MY CAR!'],[13,'RAY','I don\'t even have a car! This is Junebug\'s bike!'],
+   [17,'JUNEBUG','Don\'t slow down, cuz! If he gets close, he swings!'],[24,'MR. PENNINGTON','I\'m at Central Park, son. Bring him to the lawn. Plenty of room on the lawn.']],
+  outro:[[0,'BOBO','End of the trail, bike boy. Get off the bike.'],[2.6,'AUNT RO','Knock him down, Ray. Do NOT kill him. He is a neighbour, and he is on the board.']]},
+ {key:'bobo',title:'Knock Bobo down on the Central Park lawn',x:420,z:-541,r:45,type:'boss',spawn:[420,-588,PI],
+  talk:[[0,'JUNEBUG','Bobo used to wrestle. On TV. He threw a guy through a buffet table once. Two buffet tables.'],
+   [4.5,'MR. PENNINGTON','When he puts his head down, step aside, son. Then let him have it.'],[9.5,'AUNT RO','And mind the lawn. The city just reseeded it.']],
+  outro:[[1,'AUNT RO','Bobo is with us now. Lord help Kingsley Prime.']]},
+ {key:'promenade',title:'Fight down the Promenade to the fountain',x:1150,z:-160,r:45,type:'capture',spawn:[1150,-12,0],
+  warp:true,warpLine:['JUNEBUG','Everybody in the van! Bobo, you take the scooter.'],warpBan:['RANCHO PROMENADE','TWENTY MINUTES LATER'],
+  groups:[{x:1150,z:-55,r:12,units:{rifle:2}},{x:1150,z:-105,r:16,units:{rifle:2,rush:1}},{x:1150,z:-160,r:22,units:{rifle:3,heavy:1,rush:1}},{x:1150,z:-215,r:14,units:{rifle:2}}],
+  marks:2,reinf:{at:.5,n:4,kinds:['rifle','rush'],dir:[0,-1]},
+  talk:[[1,'AUNT RO','Kingsley moved his people into the Promenade. They closed the fountain. On a THURSDAY.'],[5.5,'BOBO','My car is here. I can feel it.'],
+   [9.5,'KINGSLEY','(loudspeaker) Shoppers, the Promenade is closed for a private lifestyle event. Your loyalty points will not be honored.'],
+   [15,'JUNEBUG','Straight down the main street, cuz. Do not stop at the pretzel place. I know you want to.']],
+  outro:[[0,'BOBO','Not here. They took my car to the outlets. With Princess\'s bed in the back seat.'],
+   [3,'AUNT RO','The outlets are where Kingsley set up his command post. End this. I have book club at seven.']]},
+ {key:'lot',title:'Storm the outlets parking lot',x:440,z:1105,r:55,type:'eliminate',spawn:[420,1018,PI],
+  warp:true,warpLine:['JUNEBUG','Next stop, the outlets. I know a shortcut. It\'s the freeway.'],warpBan:['INLAND EMPIRE OUTLETS','THURSDAY, 11:40 AM'],
+  groups:[{x:430,z:1060,r:16,units:{rifle:3}},{x:450,z:1120,r:18,units:{rifle:2,rush:2}},{x:440,z:1170,r:14,units:{rifle:2,heavy:1}}],marks:1,reinf:{at:.5,n:4,kinds:['rifle','rush','heavy'],dir:[1,0]},
+  talk:[[1,'AUNT RO','Kingsley\'s command post is in the south-west court. Clear the parking lot first.'],[5.5,'JUNEBUG','My kiosk is in there. Phone covers. If they touched my phone covers...'],
+   [10,'MR. PENNINGTON','Long sightlines, son. Stay low between the cars.'],[16,'KINGSLEY','(loudspeaker) This is Chet Kingsley. I would like to speak to whoever is in charge of the HOA.'],
+   [20,'AUNT RO','Oh, you will, Chet.']],
+  outro:[[0,'BOBO','THERE. My car! On the tow truck, next to the command post!']]},
+ {key:'cmd',title:'Cut the power at Kingsley\'s command post',x:540,z:1170,r:4.6,type:'plant',spawn:[470,1165,-PI/2],defend:20,away:[-30,-8],last:true,endT:7.5,
+  groups:[{x:532,z:1162,r:12,units:{rifle:3,heavy:1}},{x:512,z:1180,r:10,units:{rush:2}}],marks:0,
+  waves:[{t:2,n:4,kinds:['rifle','rush'],dir:[1,0]},{t:10,n:4,kinds:['rifle','rifle','heavy'],dir:[0,-1]}],
+  talk:[[0,'AUNT RO','The generator behind the command post runs everything. Get on the panel and overload it.'],[4.5,'RAY','Shouldn\'t somebody call the police?'],
+   [7.5,'AUNT RO','I called the HOA. That is better.']],
+  outro:[[0,'KINGSLEY','(loudspeaker) Okay. Okay! The lifestyle district is... postponed. Indefinitely.'],[2.5,'BOBO','I got my car back. Princess, Daddy is coming home.'],
+   [5,'AUNT RO','Mission complete, Ray. I\'m pulling up in the minivan. Wipe your feet.']]}];
+const SURV={x:-230,z:-320,spawn:[-230,-320,0]}; // survival: hold the cul-de-sac (the co-op guests start here too)
+const SQUAD=[['june','JUNEBUG'],['penn','PENNINGTON']];
+// what the squad says. {d} is a direction
+const VOX={
+  june:{contact:['Yo! Khakis, {d} side!','Cuz! {d}! They\'re {d}!','Polo shirts to the {d}. So many polo shirts.'],down:['Junebug is down! Ray, help your cousin up. Stand next to him.','Junebug is hit! Get over there, Ray. He owes me rent.'],
+    up:['I\'m good! I\'m good. Nobody saw that.','I\'m up! Tell my kiosk I love it.'],nade:['Grenade! GRENADE! Move, cuz!','Something just bounced over here! Move!']},
+  penn:{contact:['Movement, {d}. Polo shirts.','Contact, {d}. They\'re on the Hendersons\' lawn again.','{d}. I see him.'],down:['Mr. Pennington is down! Ray, get him up. He is the HOA treasurer.','Mr. Pennington is hit! Stand by him, Ray. He is too stubborn to stay down.'],
+    up:['Just a scratch. Mostly my pride.','Back on my feet. Where were we.'],nade:['Grenade, son. I\'d move.','Grenade. Everybody off the lawn.']},
+  bobo:{contact:['Over there. {d}. Bobo sees them.','{d}. Leave them to Bobo.'],down:['Bobo is down! Give him a minute, Ray. He has done this on live television.'],up:['Bobo is UP.','Bobo is back. Bobo is still angry.']}};
+const vox=(s,k)=>RP((VOX[s.kind]||VOX.june)[k]);
+const BOBO_LINES={spot:['YOU. Kingsley boy. Where. Is. My. CAR.'],charge:['Ten years in the ring, kid!','Hold STILL!','This one is for my car!','Princess, close your eyes!'],
+  grab:['Gotcha. Up you go.','Come here, little guy.'],swing:['Clothesline TIME!','Bobo is coming through!','Get OFF that bike!'],whiff:['Whoa. Whoa. WHOA.','Missed. Bobo meant to do that.'],wall:['Ow. Who put that there.','That wall was not there yesterday.'],hurt1:['Princess hits harder than that. She weighs four pounds.'],hurt2:['Okay. Now Bobo is mad.']};
+const BOSS_TALK=[[0,'BOBO','Okay. OKAY. Bobo is sitting down. My knees are done.'],[2.6,'RAY','I\'m not with them, man. I don\'t even have a car.'],
+  [5.4,'BOBO','...No car? Then who towed MY car?'],[8,'AUNT RO','Kingsley Prime did, Bobo. They painted your curb red last night. Without a permit.'],
+  [11.2,'BOBO','With Princess\'s bed in the back seat. ...Where are they.'],[14,'JUNEBUG','The Promenade, big man. Ride with us. Or, you know. Take the scooter.']];
+const KQ=[['RAY','Should\'ve stayed in the city.'],['RAY','That\'s one. I think. I wasn\'t counting.'],['RAY','This was supposed to be a quiet neighbourhood.'],['JUNEBUG','Ohh! Cuz! You see that?'],
+  ['JUNEBUG','That\'s a lifetime ban from the food court, buddy.'],['MR. PENNINGTON','Good shot. Mind the hydrangeas.'],['MR. PENNINGTON','Clean. Like my edging.'],
+  ['AUNT RO','That is a VIOLATION of the CC&Rs.'],['AUNT RO','And STAY off the grass.'],['AUNT RO','Write him up, Ray.']],
+  KQA=[['JUNEBUG','I got one! Did anybody see? Nobody saw.'],['MR. PENNINGTON','Got him. Off my lawn.'],['JUNEBUG','That one\'s going on the kiosk flyer.']],
+  CKPT=[['AUNT RO','Back on your feet, Ray. We are not done.'],['AUNT RO','From the top. And stay out of the flower beds this time.'],['JUNEBUG','Okay, cuz. Again. But cooler this time.'],['MR. PENNINGTON','Deep breath, son. Again.']];
+const MS={knocks:0,fading:false,knockT:0,chaser:null,chaseL:[],chasePos:null,parkS:null,stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null,
+  boss:null,bossDown:false,talkT:0,npc:null,q:[],clock:0,kqT:0};
 const OBJ={text:'',sub:'',prog:0,x:0,z:0,y:1.8,show:false};
-const TIPS=isTouch?['Tap AIM to look down the sights. CROUCH behind cars and sandbags; hostiles do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','NADE throws a grenade. USE swaps your weapon for one on the ground. Red barrels and fuel pumps explode.']
-  :['Hold the right mouse button to aim down the sights. Crouch with C behind cars and sandbags; hostiles do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','G throws a grenade. F swaps your weapon for one on the ground. Red barrels and fuel pumps explode.'];
+const TIPS=isTouch?['Tap AIM to look down the sights. CROUCH behind cars and block walls; the security guards do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','NADE throws a grenade. USE swaps your weapon for one on the ground. Red barrels and fuel pumps explode.']
+  :['Hold the right mouse button to aim down the sights. Crouch with C behind cars and block walls; the security guards do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','G throws a grenade. F swaps your weapon for one on the ground. Red barrels and fuel pumps explode.'];
+// radio lines on a timer: [seconds from now, who, line]
+function sayLater(L){if(!L)return;for(const l of L)MS.q.push({t:MS.clock+l[0],who:l[1],text:l[2]});}
+function updTalk(dt){MS.clock+=dt;for(let k=0;k<MS.q.length;k++){const q=MS.q[k];if(q.t<=MS.clock){MS.q.splice(k,1);k--;radio(q.who,q.text);}}}
+// now and then someone has something to say about a kill
+function killQuip(byPlayer){if(G.mode!=='mission'&&G.mode!=='survival')return;if(MS.clock<MS.kqT||R()>(byPlayer?.35:.25))return;MS.kqT=MS.clock+22;const q=RP(byPlayer?KQ:KQA);radio(q[0],q[1]);}
+const squadOK=()=>!(MP.on&&(mpMode().vs||MP.players.size>1)); // with other players there is no AI squad
+const plantPrompt=()=>'Hold <b>'+(isTouch?'USE':'F')+'</b> to overload the generator',PLANT_AWAY='Get clear of the generator';
 const waveQ=[];
 function aliveFoes(tag){let n=0;for(let k=0;k<foes.length;k++)if(foes[k].alive&&(!tag||foes[k].tag===tag))n++;return n;}
 function foesNear(x,z,r){let n=0;for(let k=0;k<foes.length;k++){const s=foes[k];if(s.alive&&s.y0<.5&&Math.hypot(s.x-x,s.z-z)<r)n++;}return n;}
@@ -48,104 +118,161 @@ function spawnWave(n,kinds,tx,tz,dir,tag){n=Math.min(Math.round(n*coScale()),foe
   for(let k=0;k<n;k++){const p=spotNear(best[0],best[1],6,12)||best;waveQ.push({t:k*.35,kind:kinds[Math.floor(R()*kinds.length)],x:p[0],z:p[1],tag});}
   if(G.lkp.age>10){G.lkp.x=tx;G.lkp.z=tz;G.lkp.age=6;}return n;}
 function updWaves(dt){for(let k=waveQ.length-1;k>=0;k--){const w=waveQ[k];w.t-=dt;if(w.t<=0){waveQ.splice(k,1);const s=addSoldier(1,w.kind,w.x,w.z,{aware:true,tag:w.tag});s.lkx=G.lkp.x;s.lkz=G.lkp.z;}}}
-// the jammer truck (objective prop): cab, equipment shelter, mast and dish
+// Kingsley's command post (the objective of the 'plant' stage): a generator trailer with its control panel and light mast, a canopy
+// and a folding table. The names makeJammer/removeJammer stay: the co-op code calls them.
 let jamGeo=null;
-function jammerGeo(){if(jamGeo)return jamGeo;const b=new GB(),ol=0x5b6140,ol2=0x4a5034,dk=0x24231f;
-  b.add(GEO.box,0,.5,0,0,0,0,1.9,.3,5.8,dk);for(const z of [-2,.9,2.05])for(const s of [-1,1])b.add(GEO.wheel,s*.92,.5,z,0,0,0,.34,.5,.5,0x1b1a19);
-  b.add(profile([[1.25,.8],[1.25,2.05],[1.95,2.05],[2.45,1.55],[2.9,1.45],[2.9,.8]],2.05,.06),0,0,0,0,0,0,1,1,1,ol);
-  b.add(GEO.box,0,1.52,-2.2,-.72,0,0,1.8,.62,.04,0x1c2830);for(const s of [-1,1])b.add(GEO.box,s*1.035,1.5,-1.62,0,0,0,.02,.42,.5,0x1c2830);
-  b.add(GEO.box,0,.8,.95,0,0,0,2.2,1.95,3.7,ol);b.add(GEO.box,0,2.75,.95,0,0,0,2.3,.08,3.8,ol2);for(const z of [-.2,.9,2])for(const s of [-1,1])b.add(GEO.box,s*1.11,1,z,0,0,0,.02,1.5,.06,ol2);
-  b.add(GEO.box,-1.11,1.2,1.6,0,0,0,.03,1.2,.8,ol2);b.add(GEO.tube6,0,2.8,1.9,0,0,0,.06,4.6,.06,0x8c9396);b.add(GEO.cap,0,7.5,1.9,1.1,.4,0,.85,.3,.85,0xb3b9bb);b.add(GEO.tube6,0,7.5,1.9,1.1,.4,0,.03,.6,.03,0x8c9396);
-  for(const q of [[.8,-.4],[-.8,.2]])b.add(GEO.rod,q[0],2.8,q[1],0,0,q[0]*.1,.018,2.6,.018,dk);b.add(GEO.box,.6,2.83,.2,0,0,0,.6,.35,.5,ol2);
+function jammerGeo(){if(jamGeo)return jamGeo;const b=new GB(),blk=0x1d1f23,dk=0x2a2b2e,gold=KPS_GOLD;
+  b.add(GEO.box,0,.38,0,0,0,0,1.6,.14,3.3,dk);for(const s of [-1,1])b.add(GEO.wheel,s*.86,.38,.35,0,0,0,.3,.38,.38,0x1b1a19);b.add(GEO.box,0,.4,-2.25,0,0,0,.12,.1,1.3,dk);
+  b.add(GEO.box,0,.52,.1,0,0,0,1.5,1.25,2.7,blk);b.add(GEO.box,0,1.42,.1,0,0,0,1.52,.12,2.72,gold);b.add(GEO.box,0,1.77,.1,0,0,0,1.4,.06,2.5,dk);
+  for(const z of [-.7,-.3,.1,.5,.9])b.add(GEO.box,-.76,.75,z,0,0,0,.02,.55,.2,0x15161a);                                   // vents
+  b.add(GEO.box,.77,.75,-.75,0,0,0,.06,.6,.75,0x8a8f94);b.add(GEO.ball,.82,1.22,-.5,0,0,0,.06,.06,.06,0xd8412f);b.add(GEO.box,.84,.85,-.95,0,0,.4,.05,.3,.06,0xd8412f); // the panel, its lamp and lever
+  b.add(GEO.cyl8,-.4,1.83,.95,0,0,0,.08,.55,.08,0x3a3b3e);b.add(GEO.rod,.45,1.83,1.15,0,0,0,.045,3.3,.045,0x8c9396);b.add(GEO.box,.45,5.1,1.15,0,0,0,.7,.32,.22,0xf2efe2);
+  const cx=-3.6;for(const q of [[-1.45,-1.45],[1.45,-1.45],[-1.45,1.45],[1.45,1.45]])b.add(GEO.rod,cx+q[0],0,q[1],0,0,0,.035,2.4,.035,0x8c9396);
+  b.add(GEO.box,cx,2.4,0,0,0,0,3.1,.08,3.1,blk);b.add(GEO.box,cx,2.2,-1.56,0,0,0,3.1,.22,.02,gold);b.add(GEO.box,cx,2.2,1.56,0,0,0,3.1,.22,.02,gold);
+  b.add(GEO.box,cx,.72,0,0,0,0,1.8,.05,.75,0xdcdcd6);for(const q of [[-.8,-.3],[.8,-.3],[-.8,.3],[.8,.3]])b.add(GEO.rod,cx+q[0],0,q[1],0,0,0,.02,.72,.02,0x55575a);
+  b.add(GEO.box,cx-.3,.77,0,0,0,0,.42,.03,.3,0x23252a);b.add(GEO.box,cx-.3,.8,.14,-.3,0,0,.42,.28,.02,0x23252a);b.add(GEO.box,cx+.45,.77,-.1,0,0,0,.18,.28,.12,0x2c2f33);
   return jamGeo=b.build();}
-function makeJammer(){removeJammer(false);const x=44,z=-478.5,g=new T.Mesh(jammerGeo(),vcMat);g.position.set(x,0,z);g.rotation.y=PI/2;g.castShadow=true;
-  scene.add(g);const c=solid(x,z,5.9,2.3,2.8);binAdd(c);blockCollider(c);MS.jam={g,c,x,z};}
+const plantSt=()=>ST.find(t=>t.type==='plant');
+function makeJammer(){removeJammer(false);const st=plantSt(),x=st.x,z=st.z,g=new T.Mesh(jammerGeo(),vcMat);g.position.set(x,0,z);g.castShadow=true;
+  scene.add(g);const c=solid(x,z,1.7,3.4,1.9);binAdd(c);blockCollider(c);MS.jam={g,c,x,z};}
 function removeJammer(boom,rep){const j=MS.jam;if(!j)return;scene.remove(j.g);j.c.off=true;MS.jam=null;
-  if(boom){if(MP.on&&MP.host&&!rep)mpEvent('jam',0,[]);explode(j.x,1.2,j.z,9.5,200,true,rep,0);const w=new T.Mesh(jammerGeo(),char);w.position.set(j.x,-.12,j.z);w.rotation.y=PI/2;w.scale.set(1,.72,1);scene.add(w);fires.push({x:j.x,y:1.2,z:j.z,t:16,n:0});}}
-// extraction helicopter
-const heli={g:null,rot:null,tail:null,on:false,landed:false,x:0,y:0,z:0};
-function makeHeli(){if(heli.g)return;const g=new T.Group(),b=new GB(),ol=0x4b5239,ol2=0x3c4230,gl=0x1c2830,dk=0x24231f;
-  b.add(GEO.sph,0,1.95,-.3,0,0,0,1.15,1.05,2.7,ol);b.add(GEO.sph,0,1.72,-2.25,0,0,0,.98,.82,1.15,ol);b.add(GEO.sph,0,2.02,-2.5,0,0,0,.84,.6,.86,gl);
-  for(const s of [-1,1]){b.add(GEO.sph,s*.93,2.12,-1.5,0,0,0,.2,.42,.55,gl);b.add(GEO.box,s*1.1,1.3,.25,0,0,0,.06,1.15,1.5,dk);b.add(GEO.tube6,s*1.15,.1,-2.3,PI/2,0,0,.06,4.6,.06,dk);b.add(GEO.tube6,s*1.15,.1,-2.3,2.5,0,0,.06,.5,.06,dk);
-    for(const z of [-1.3,1.2])b.add(GEO.rod,s*1.15,.1,z,0,0,s*.32,.045,1.05,.045,dk);b.add(GEO.box,s*1.0,1.8,3.2,0,0,0,.05,.35,.5,0xe9e5da);}
-  b.add(GEO.taper,0,2.3,1.9,PI/2,0,0,.44,5.3,.44,ol);b.add(GEO.box,0,2.3,6.4,-.5,0,0,.12,1.9,.85,ol);b.add(GEO.box,0,2.35,5.5,0,0,0,1.7,.06,.5,ol);
-  b.add(GEO.sph,0,3.0,.35,0,0,0,.72,.42,1.35,ol2);b.add(GEO.tube6,0,2.95,1.4,PI/2,0,0,.2,.6,.2,dk);b.add(GEO.cyl8,0,3.2,0,0,0,0,.09,.42,.09,dk);b.add(GEO.cyl8,0,3.56,0,0,0,0,.22,.1,.22,dk);
-  const body=new T.Mesh(b.build(),vcMat);body.castShadow=true;g.add(body);
-  heli.rot=new T.Group();heli.rot.position.set(0,3.68,0);g.add(heli.rot);const bl=new T.Mesh(new T.BoxGeometry(11.6,.05,.36),M.dark);heli.rot.add(bl);const bl2=new T.Mesh(new T.BoxGeometry(.3,.05,1.6),M.dark);heli.rot.add(bl2);
-  const disc=new T.Mesh(new T.CircleGeometry(5.8,24),new T.MeshBasicMaterial({color:0x15110c,transparent:true,opacity:.1,depthWrite:false,side:T.DoubleSide}));disc.rotation.x=-PI/2;heli.rot.add(disc);
-  heli.tail=new T.Mesh(new T.BoxGeometry(.06,1.8,.18),M.dark);heli.tail.position.set(.22,3.15,6.75);g.add(heli.tail);heli.g=g;g.visible=false;scene.add(g);}
-function updHeli(dt,p){if(!heli.g||!heli.on)return;const lx=256,lz=-600,e=clamp(p/.86,0,1),k=e*e*(3-2*e);
-  heli.x=lerp(lx+520,lx,k);heli.z=lerp(lz-160,lz,k);heli.y=p<.86?lerp(70,26,k):lerp(26,.1,clamp((p-.86)/.14,0,1));
-  heli.g.position.set(heli.x,heli.y,heli.z);heli.g.rotation.y=p<.86?-PI/2+.2:lerp(-PI/2+.2,0,clamp((p-.86)/.1,0,1));heli.g.rotation.z=p<.86?-.12*(1-k):0;
-  heli.rot.rotation.y+=dt*26;heli.tail.rotation.x+=dt*40;heliSound(true,heli.x,heli.z);
-  if(heli.y<14&&R()<.5){const a=R()*TAU;puff(heli.x+Math.cos(a)*5,.3,heli.z+Math.sin(a)*5,0xd9c39a,1,4,.9,.5,Math.cos(a)*6,.6,Math.sin(a)*6,false,true);}}
-function hideHeli(){heli.on=false;if(heli.g)heli.g.visible=false;heliSound(false);}
-
-function stageStart(i){MS.i=i;const st=ST[i];MS.st=st;MS.prog=0;MS.t=0;MS.stall=0;MS.tip=0;MS.lastN=-1;MS.hinted=false;MS.phase='';MS.reinfDone=false;MS.waveK=0;MS.done=false;MS.plantT=0;MS.defT=0;G.stage=i;
+  if(boom){if(MP.on&&MP.host&&!rep)mpEvent('jam',0,[]);explode(j.x,1.2,j.z,9.5,200,true,rep,0);const w=new T.Mesh(jammerGeo(),char);w.position.set(j.x,-.12,j.z);w.scale.set(1,.72,1);scene.add(w);fires.push({x:j.x,y:1.2,z:j.z,t:16,n:0});}}
+// THURSDAY has no helicopter. These stay for the co-op code, which shows one on stages marked 'heli' (there are none).
+const heli={g:null,on:false,landed:false,x:0,y:0,z:0};
+function makeHeli(){}function updHeli(){}function hideHeli(){heli.on=false;}
+// warping to a far stage: fade to black as the last stage ends, set everyone down at the new spawn, fade back in
+function fadeCut(){const f=el.fade;if(!f)return;f.style.transition='none';f.style.opacity='1';void f.offsetWidth;f.style.transition='opacity 1.4s ease-in .5s';f.style.opacity='0';}
+function warpOut(nx){if(MS.fading)return;MS.fading=true;const f=el.fade;if(f){f.style.transition='opacity .7s ease-in';f.style.opacity='1';}if(nx.warpLine)radio(nx.warpLine[0],nx.warpLine[1]);}
+const farFrom=sp=>humans().some(h=>Math.hypot(h.x-sp[0],h.z-sp[1])>150);
+function safeSpot(sp){return freeSpot(sp[0],sp[1])?[sp[0],sp[1]]:(spotNear(sp[0],sp[1],12,60)||[sp[0],sp[1]]);}
+function warpTo(st,i){const p=safeSpot(st.spawn);P.x=p[0];P.z=p[1];P.y=0;P.yaw=st.spawn[2];P.vx=P.vz=P.vy=0;fadeCut();
+  for(const a of allies){const q=spotNear(P.x,P.z,6,30)||p;a.x=q[0];a.z=q[1];a.g.position.set(a.x,0,a.z);}
+  if(st.warpBan)banner(st.warpBan[0],st.warpBan[1]);if(MP.on&&MP.host)mpEvent('ckpt',0,[i]);} // in co-op the guests are set down at the spawn as well
+// ---------- the trail. The bikes are the bike module's (spawnBike, mountBike, dismountBike, bikeMesh); every call is guarded so the game runs without it.
+let scootG=null;
+function scooterGeo(){if(scootG)return scootG;const b=new GB(),mint=0x9ad8c4,dk=0x2a2b2e; // sized to look tiny under Bobo, who is scaled 1.35
+  b.add(GEO.box,0,.1,-.02,0,0,0,.26,.05,.62,mint);b.add(GEO.box,0,.1,.16,0,0,0,.28,.24,.34,mint);b.add(GEO.box,0,.34,.2,0,0,0,.22,.06,.3,0x3a2a20);
+  b.add(GEO.box,0,.1,-.34,-.15,0,0,.26,.42,.05,mint);b.add(GEO.cyl8,0,.18,-.37,-.2,0,0,.022,.46,.022,0x8c9396);b.add(GEO.box,0,.62,-.44,0,0,0,.42,.03,.03,dk);
+  b.add(GEO.ball,0,.5,-.4,0,0,0,.05,.05,.03,0xf6efd2);for(const z of [-.36,.3])b.add(GEO.wheel,0,.1,z,0,0,0,.06,.1,.1,0x1b1a19);return scootG=b.build();}
+function scooterMesh(){const m=new T.Mesh(scooterGeo(),vcMat);m.castShadow=true;return m;}
+const bikeApi=()=>typeof spawnBike==='function'&&typeof mountBike==='function';
+function offBike(){if(P.bike&&typeof dismountBike==='function'){try{dismountBike();}catch(e){}}}
+function chaseStart(st){const back=st.chase+15*Math.min(3,MS.knocks),sx=st.spawn[0]+Math.sin(st.spawn[2])*back,sz=st.spawn[1]+Math.cos(st.spawn[2])*back,p=safeSpot([sx,sz]);MS.chaseL=[];
+  const b=addSoldier(1,'bobo',p[0],p[1],{list:MS.chaseL,yaw:st.spawn[2],aware:true});boboPrep(b);boboSet(b,'scoot');b.scoot=scooterMesh();b.g.add(b.scoot);b.swingCD=3;b.whiff=0;MS.chaser=b; // not a hostile: bullets do not stop him
+  if(bikeApi()&&!P.bike){try{mountBike(spawnBike(P.x,P.z,P.yaw));}catch(e){}}
+  for(const a of allies){if(a.kind==='june'){a.ride=true;if(typeof bikeMesh==='function'&&!a.bikeM){try{a.bikeM=bikeMesh();a.g.add(a.bikeM);}catch(e){a.bikeM=null;}}}
+    else if(a.kind==='penn'){a.parked=true;a.g.visible=false;a.x=st.x+6;a.z=st.z+4;}}} // Mr. Pennington waits at the park
+function chaseEnd(keep){const b=MS.chaser;if(b){if(keep){MS.chasePos=[b.x,b.z];const m=scooterMesh();m.position.set(b.x,0,b.z);m.rotation.y=b.yaw+.4;m.scale.setScalar(1.35);scene.add(m);MS.parkS=m;}removeSoldier(b);}
+  MS.chaser=null;MS.chaseL=[];MS.knockT=0;scootSound(false);
+  for(const a of allies){if(a.ride){a.ride=false;if(a.bikeM){a.g.remove(a.bikeM);a.bikeM=null;}}if(a.parked){a.parked=false;a.g.visible=true;const q=spotNear(P.x,P.z,6,30)||[P.x,P.z];a.x=q[0];a.z=q[1];a.g.position.set(a.x,0,a.z);}}}
+// Bobo on the scooter: keeps up with whatever speed you go, closes in when you slow down, and swings when he is alongside (the first swing misses;
+// after each knock-off he starts 15 m further back, up to three times)
+function updChase(s,dt){s.bT+=dt;s.swingCD-=dt;s.mx=0;s.mz=0;s.spd=0;const d=Math.hypot(P.x-s.x,P.z-s.z),pv=P.alive?(P.speed||0):0;
+  if(MS.knockT>0){}
+  else if(s.bs==='scoot'||s.bs==='swing'){const sp=s.bs==='swing'?Math.max(pv,6):clamp(d>45?pv+4:d>14?pv+.6:pv-.8,5.5,14);moveToward(s,P.x,P.z,sp,null);face(s,s.x+s.mx*3,s.z+s.mz*3,dt,5);
+    if(s.bs==='scoot'&&d<3.8&&s.swingCD<=0&&P.alive){boboSet(s,'swing');sndBobo('roar',s.x,s.z);if(R()<.6)radio('BOBO',RP(BOBO_LINES.swing));}
+    else if(s.bs==='swing'&&s.bT>=.5){s.swingCD=2.5;if(s.whiff<1||d>3.3){s.whiff++;boboSet(s,'wobble');sndBobo('punch',s.x,s.z);if(R()<.7)radio('BOBO',RP(BOBO_LINES.whiff));}else{boboSet(s,'scoot');knockOff(s);}}}
+  else if(s.bs==='wobble'){s.mx=-Math.sin(s.yaw);s.mz=-Math.cos(s.yaw);s.spd=3;if(s.bT>=1.3)boboSet(s,'scoot');}
+  stepSoldier(s,dt);animSoldier(s,dt);scootSound(true,s.x,s.z,s.spd);}
+function knockOff(s){const kx=P.x-s.x,kz=P.z-s.z,l=Math.hypot(kx,kz)||1;
+  if(MP.on){hurt(45,s.x,s.z);if(P.alive){P.vx=kx/l*9;P.vz=kz/l*9;P.vy=4;P.ground=false;}return;} // with other players nobody goes back for one
+  MS.knocks++;offBike();P.vx=kx/l*9;P.vz=kz/l*9;P.vy=4.5;P.ground=false;sndBobo('thud',P.x,P.z);boboShake(P.x,P.z,1.2);G.vig=1;
+  banner('KNOCKED OFF','BOBO CAUGHT YOU');radio('JUNEBUG','Cuz! He clotheslined you right off the bike!');MS.knockT=2.2;}
+// Junebug rides next to you on the trail
+function updRider(s,dt){s.mx=0;s.mz=0;s.spd=0;const cy=Math.cos(P.yaw),sy=Math.sin(P.yaw),gx=P.x-cy*2.6+sy*1.6,gz=P.z+sy*2.6+cy*1.6,d=Math.hypot(gx-s.x,gz-s.z);
+  if(d>45){const q=spotNear(gx,gz,4,20);if(q){s.x=q[0];s.z=q[1];}}
+  if(d>.8){moveToward(s,gx,gz,Math.min(14,1.5+d*2),null);face(s,s.x+s.mx*3,s.z+s.mz*3,dt,6);}else{s.yaw+=clamp(angDiff(P.yaw,s.yaw),-dt*3,dt*3);s.g.rotation.y=s.yaw;}
+  s.lowered=true;s.crouch=0;stepSoldier(s,dt);animSoldier(s,dt);}
+// Bobo on the squad from the stage after his fight; not before it
+function syncBobo(i){const bi=ST.findIndex(t=>t.type==='boss'),b=allies.find(a=>a.kind==='bobo');
+  if(i<=bi&&b){removeSoldier(b);allies.splice(allies.indexOf(b),1);}
+  else if(i>bi&&!b&&squadOK()){const p=spotNear(P.x,P.z,6,30)||[P.x,P.z],n=addSoldier(0,'bobo',p[0],p[1],{name:'BOBO',aware:true});boboPrep(n);n.yielded=true;n.maxHp=n.hp=n.K.allyHp;boboSet(n,'walk');}}
+function stageStart(i,again){MS.i=i;const st=ST[i];MS.st=st;MS.prog=0;MS.t=0;MS.stall=0;MS.tip=0;MS.lastN=-1;MS.hinted=false;MS.phase='';MS.reinfDone=false;MS.waveK=0;MS.done=false;MS.plantT=0;MS.defT=0;G.stage=i;
+  MS.boss=null;MS.bossDown=false;MS.talkT=0;if(!again)MS.knocks=0;
+  if(st.warp&&farFrom(st.spawn))warpTo(st,i);else if(MS.fading)fadeCut();MS.fading=false;
+  if(MS.chaser||allies.some(a=>a.ride||a.parked))chaseEnd(false);if(st.type!=='chase')offBike();
+  syncBobo(i);
   MS.loadout={slots:P.slots.map(w=>({id:w.id,mag:w.mag,res:w.res})),cur:P.cur,nades:P.nades};saveGame();
   if(st.groups)st.groups.forEach(g=>garrison(g,st.key));
-  if(st.belfry){const bl=belfries.filter(b=>Math.hypot(b.x-st.x,b.z-st.z)<120);if(bl.length)spawnMark(RP(bl),st.key);} // one marksman, in either tower
   for(let k=0;k<(st.marks||0);k++){const r=roofSpot(st.x,st.z,22,62);if(r)spawnMark(r,st.key);}
+  if(st.type==='chase')chaseStart(st);
+  if(st.type==='boss'){const c=MS.chasePos,p=(c&&Math.hypot(c[0]-st.x,c[1]-st.z)<90&&freeSpot(c[0],c[1]))?c:spotNear(st.x,st.z,6,40)||[st.x,st.z],b=addSoldier(1,'bobo',p[0],p[1],{tag:st.key,yaw:Math.atan2(-(P.x-p[0]),-(P.z-p[1]))});boboPrep(b);b.hp=b.maxHp=b.K.hp*coScale();MS.boss=b;}
   MS.init=Math.max(1,aliveFoes(st.key));
-  if(st.key==='jam')makeJammer();
-  if(st.heli){makeHeli();heli.on=true;heli.landed=false;heli.g.visible=true;}
-  OBJ.text=st.title;OBJ.sub='';OBJ.prog=0;OBJ.x=st.x;OBJ.z=st.z;OBJ.show=true;if(st.intro)radio(st.intro[0],st.intro[1]);}
-function stageDone(){const st=MS.st;MS.done=true;MS.nextT=st.type==='reach'?.1:3.2;G.score+=500;sndUi('obj');if(st.type!=='reach')banner('OBJECTIVE COMPLETE',st.title.toUpperCase());
-  if(st.outro)radio(st.outro[0],st.outro[1]);if(st.type!=='reach'&&st.key!=='exfil'){const p=spotNear(st.x,st.z,7,30);if(p)coCrate(p[0],p[1]);}
-  for(const a of allies){if(a.down){a.down=false;a.alive=true;a.up.rotation.z=0;}a.hp=a.maxHp;}}
+  if(st.type==='plant')makeJammer();
+  OBJ.text=st.title;OBJ.sub='';OBJ.prog=0;OBJ.x=st.x;OBJ.z=st.z;OBJ.show=true;
+  if(again){const q=RP(CKPT);radio(q[0],q[1]);}else sayLater(st.talk);}
+function stageDone(){const st=MS.st;MS.done=true;if(st.type==='chase')chaseEnd(true);MS.nextT=st.endT||(st.type==='reach'?.1:3.2);G.score+=500;sndUi('obj');
+  if(st.last)banner('MISSION COMPLETE','KINGSLEY PRIME IS OUT OF RANCHO');else if(st.type!=='reach')banner('OBJECTIVE COMPLETE',st.title.toUpperCase());
+  sayLater(st.outro);if(st.type!=='reach'&&!st.last){const p=spotNear(st.x,st.z,7,30);if(p)coCrate(p[0],p[1]);}
+  for(const a of allies){if(a.down){a.down=false;a.alive=true;a.up.rotation.z=0;if(a.kind==='bobo')boboSet(a,'up');}if(a.kind==='bobo'&&a.bs==='sit')boboSet(a,'up');a.hp=a.maxHp;}
+  if(MS.npc){removeSoldier(MS.npc);MS.npc=null;}}
 function stageUpdate(dt){const st=MS.st;if(!st)return;
-  if(MS.done){MS.nextT-=dt;if(MS.nextT<=0){if(MS.i+1<ST.length)stageStart(MS.i+1);else missionWon();}return;}
+  if(MS.done){MS.nextT-=dt;const nx=ST[MS.i+1];if(nx&&nx.warp&&MS.nextT<.9&&farFrom(nx.spawn))warpOut(nx);if(MS.nextT<=0){if(MS.i+1<ST.length)stageStart(MS.i+1);else missionWon();}return;}
   MS.t+=dt;const dMe=P.alive?Math.hypot(P.x-st.x,P.z-st.z):1e9;let dP=dMe;for(const m of MP.mates)if(m.alive)dP=Math.min(dP,Math.hypot(m.x-st.x,m.z-st.z)); // the nearest player counts
   const inZone=dP<st.r;OBJ.x=st.x;OBJ.z=st.z;OBJ.y=1.8;
-  if(MS.i===0&&!SAVE.tips&&MS.tip<3&&MS.t>5+MS.tip*12){radio('TIP',TIPS[MS.tip++]);if(MS.tip>=3){SAVE.tips=true;saveGame();}}
+  if(MS.i===0&&!SAVE.tips&&MS.tip<3&&MS.t>16+MS.tip*12){radio('TIP',TIPS[MS.tip++]);if(MS.tip>=3){SAVE.tips=true;saveGame();}}
   if(st.reinf&&!MS.reinfDone&&aliveFoes(st.key)<=MS.init*(1-st.reinf.at)){MS.reinfDone=true;spawnWave(st.reinf.n,st.reinf.kinds,st.x,st.z,st.reinf.dir,st.key);}
   if(st.type==='capture'){const near=foesNear(st.x,st.z,st.r+8);
     if(inZone&&near===0)MS.prog+=dt/6;else if(!inZone)MS.prog=Math.max(0,MS.prog-dt/12);
     // if the last defenders are hiding, mark them on the minimap
     if(inZone&&near>0){MS.stall+=dt;if(MS.stall>9)for(const s of foes)if(s.alive&&Math.hypot(s.x-st.x,s.z-st.z)<st.r+8&&s.revealT<1)s.revealT=1;}else MS.stall=0;
-    OBJ.sub=near?'Hostiles in the area: '+near:inZone?'Securing the position':'Move to the marker';if(MS.prog>=1)stageDone();}
+    OBJ.sub=near?'Security guards in the area: '+near:inZone?'Taking it back':'Move to the marker';if(MS.prog>=1)stageDone();}
   else if(st.type==='hold'){if(inZone)MS.prog+=dt/st.time;const el=MS.prog*st.time;
     while(MS.waveK<st.waves.length&&el>=st.waves[MS.waveK].t){const w=st.waves[MS.waveK++];spawnWave(w.n,w.kinds,st.x,st.z,w.dir,st.key);}
-    OBJ.sub=inZone?Math.max(0,Math.ceil(st.time-el))+' s to go':'Get back to the position';if(st.heli)updHeli(dt,MS.prog);if(MS.prog>=1){if(st.heli)heli.landed=true;stageDone();}}
+    OBJ.sub=inZone?Math.max(0,Math.ceil(st.time-el))+' s to go':'Get back to the cul-de-sac';if(MS.prog>=1)stageDone();}
   else if(st.type==='plant'){const j=MS.jam;
-    if(MS.phase===''){OBJ.sub=foesNear(st.x,st.z,26)?'Fight through to the truck':'Plant the charge on the truck';
-      if(j&&dP<st.r){if(dMe<st.r)G.prompt='Hold <b>'+(isTouch?'USE':'F')+'</b> to plant the charge';let planting=dMe<st.r&&IN.useHeld;
+    if(MS.phase===''){OBJ.sub=foesNear(st.x,st.z,26)?'Fight through to the generator':'Overload the generator';
+      if(j&&dP<st.r){if(dMe<st.r)G.prompt=plantPrompt();let planting=dMe<st.r&&IN.useHeld;
         if(!planting)for(const m of MP.mates){const pl=MP.players.get(m.pid);if(m.alive&&pl&&pl.use&&Math.hypot(m.x-st.x,m.z-st.z)<st.r){planting=true;break;}}
-        if(planting){MS.plantT+=dt;OBJ.sub='Planting the charge';MS.prog=MS.plantT/2.2*.3;
-          if(MS.plantT>=2.2){MS.phase='defend';MS.defT=st.defend;sndUi('pin');radio('COMMAND','Charge is set. '+st.defend+' seconds. Keep them off it and stay clear of the truck.');}}
+        if(planting){MS.plantT+=dt;OBJ.sub='Overloading the generator';MS.prog=MS.plantT/2.2*.3;
+          if(MS.plantT>=2.2){MS.phase='defend';MS.defT=st.defend;sndUi('pin');radio('AUNT RO','It is going to blow in '+st.defend+' seconds. Keep them off the panel and get back.');}}
         else MS.plantT=Math.max(0,MS.plantT-dt);}}
     else{MS.defT-=dt;const el=st.defend-MS.defT;while(MS.waveK<st.waves.length&&el>=st.waves[MS.waveK].t){const w=st.waves[MS.waveK++];spawnWave(w.n,w.kinds,st.x,st.z,w.dir,st.key);}
-      MS.prog=.3+.7*el/st.defend;OBJ.sub='Detonation in '+Math.max(0,Math.ceil(MS.defT))+' s. '+(dP<11?'GET CLEAR OF THE TRUCK':'You are clear');if(dMe<11&&MS.defT<8)G.prompt='Move away from the truck';if(MS.defT<=0){removeJammer(true);stageDone();}}}
-  else if(st.type==='eliminate'){const n=aliveFoes(st.key);MS.prog=1-n/MS.init;OBJ.sub='Hostiles remaining: '+n;if(n!==MS.lastN){MS.lastN=n;MS.stall=0;}else MS.stall+=dt;
-    // point at the nearest one left once few remain or the hunt has stalled; a marker up in the air means a rooftop or bell tower
+      MS.prog=.3+.7*el/st.defend;OBJ.sub='Generator blows in '+Math.max(0,Math.ceil(MS.defT))+' s. '+(dP<11?'GET CLEAR':'You are clear');if(dMe<11&&MS.defT<8)G.prompt=PLANT_AWAY;if(MS.defT<=0){removeJammer(true);stageDone();}}}
+  else if(st.type==='eliminate'){const n=aliveFoes(st.key);MS.prog=1-n/MS.init;OBJ.sub='Security guards left: '+n;if(n!==MS.lastN){MS.lastN=n;MS.stall=0;}else MS.stall+=dt;
+    // point at the nearest one left once few remain or the hunt has stalled; a marker up in the air means a rooftop
     if(n>0&&(n<=3||MS.stall>18)){let b=null,bd=1e9,high=0;for(const s of foes)if(s.alive&&s.tag===st.key){if(s.revealT<1)s.revealT=1;if(s.y0>2)high++;const d=Math.hypot(s.x-P.x,s.z-P.z);if(d<bd){bd=d;b=s;}}
-      if(b){OBJ.x=b.x;OBJ.z=b.z;OBJ.y=b.y0+1.8;}if(high===n&&!MS.hinted){MS.hinted=true;radio('LUNA','Marksman up in the bell tower. Back off and aim high.');}}
+      if(b){OBJ.x=b.x;OBJ.z=b.z;OBJ.y=b.y0+1.8;}if(high===n&&!MS.hinted){MS.hinted=true;radio('MR. PENNINGTON','Last one is up on a roof, son. Back off and aim high.');}}
     if(n===0)stageDone();}
-  else if(st.type==='reach'){OBJ.sub='';updHeli(dt,1);if(inZone)stageDone();}
+  else if(st.type==='boss'){const b=MS.boss;
+    if(!MS.bossDown){OBJ.sub=b?'Knock him down. Do not kill him.':'';MS.prog=b?1-b.hp/b.maxHp:0;if(b){OBJ.x=b.x;OBJ.z=b.z;OBJ.y=3.3;}}
+    else{if(MS.talkT===0){sayLater(BOSS_TALK);for(const f of foes)if(f.alive&&f.tag===st.key)f.aware=false;}MS.talkT+=dt;MS.prog=1;OBJ.sub='Bobo is thinking it over';if(b){OBJ.x=b.x;OBJ.z=b.z;OBJ.y=3.3;}
+      if(MS.npc){MS.npc.bT+=dt;animSoldier(MS.npc,dt);}
+      if(MS.talkT>=16.5)stageDone();}}
+  else if(st.type==='chase'){const b=MS.chaser;if(b)updChase(b,dt);
+    if(MS.knockT>0){MS.knockT-=dt;OBJ.sub='Bobo got you';if(MS.knockT<=0){restartCheckpoint();return;}}
+    else{const gap=b?Math.hypot(b.x-P.x,b.z-P.z):99;OBJ.sub=gap<8?'BOBO IS RIGHT BEHIND YOU':'Bobo is '+Math.round(gap)+' m behind';}
+    MS.prog=clamp(1-Math.hypot(P.x-st.x,P.z-st.z)/Math.hypot(st.spawn[0]-st.x,st.spawn[1]-st.z),0,1);if(inZone&&MS.knockT<=0)stageDone();}
+  else if(st.type==='reach'){OBJ.sub='';if(inZone)stageDone();}
   OBJ.prog=clamp(MS.prog,0,1);}
 function resetWorldState(){clearSoldiers();clearPicks();for(const n of nades)scene.remove(n.m);nades.length=0;waveQ.length=0;hideHeli();G.arcs.length=0;G.lkp.age=99;G.vig=0;G.supp=0;
   P.vx=P.vz=P.vy=0;P.hp=100;P.alive=true;P.stam=1;P.crouching=false;P.crouch=0;P.ads=0;P.wantAds=false;P.reloading=false;P.swapT=0;P.swapTo=-1;P.meleeT=0;P.recoil=0;P.pitch=0;P.punch=0;P.roll=0;P.hurtT=9;
-  IN.fire=false;IN.useHeld=false;P.spawnT=0;}
-function placeSquad(){if(MP.on&&(mpMode().vs||MP.players.size>1)){for(const a of allies)removeSoldier(a);allies.length=0;return;} // the other players are the squad
-  const names=['REYES','LUNA'];while(allies.length<2){addSoldier(0,'ally',P.x,P.z,{name:names[allies.length],aware:true});}
-  allies.forEach((a,k)=>{const p=spotNear(P.x+Math.sin(P.yaw)*4,P.z+Math.cos(P.yaw)*4,5,30)||[P.x,P.z];a.x=p[0];a.z=p[1];a.hp=a.maxHp;a.alive=true;a.down=false;a.target=null;a.up.rotation.z=0;a.g.position.set(a.x,0,a.z);a.g.visible=true;});}
-function startMission(stage){G.mode='mission';resetWorldState();removeJammer(false);const st=ST[stage],sp=st.spawn;P.x=sp[0];P.z=sp[1];P.y=0;P.yaw=sp[2];
+  IN.fire=false;IN.useHeld=false;P.spawnT=0;MS.q.length=0;MS.boss=null;MS.bossDown=false;if(MS.npc){removeSoldier(MS.npc);MS.npc=null;}if(el.fade){el.fade.style.transition='none';el.fade.style.opacity='0';}MS.fading=false;
+  chaseEnd(false);offBike();if(MS.parkS){scene.remove(MS.parkS);MS.parkS=null;}MS.chasePos=null;}
+function placeSquad(){if(!squadOK()){for(const a of allies)removeSoldier(a);allies.length=0;return;} // the other players are the squad
+  for(const q of SQUAD)if(!allies.some(a=>a.kind===q[0]))addSoldier(0,q[0],P.x,P.z,{name:q[1],aware:true});
+  allies.forEach((a,k)=>{const p=spotNear(P.x+Math.sin(P.yaw)*4,P.z+Math.cos(P.yaw)*4,5,30)||[P.x,P.z];a.x=p[0];a.z=p[1];a.hp=a.maxHp;a.alive=true;a.down=false;a.target=null;a.up.rotation.z=0;a.g.position.set(a.x,0,a.z);a.g.visible=true;
+    if(a.kind==='bobo')boboSet(a,'walk');});}
+function startMission(stage){G.mode='mission';resetWorldState();removeJammer(false);const st=ST[stage],sp=safeSpot(st.spawn);P.x=sp[0];P.z=sp[1];P.y=0;P.yaw=st.spawn[2];
   giveLoadout();if(stage>0)for(const w of P.slots)w.res=Math.round(WDEF[w.id].max*.72);
   G.score=0;G.stats={kills:0,heads:0,shots:0,hits:0,deaths:0,time:0};placeSquad();stageStart(stage);
-  banner('OPERACIÓN INSURGENTES','CIUDAD INSURGENTES, B.C.S. · FIRETEAM HALCÓN');}
-function restartCheckpoint(){resetWorldState();removeJammer(false);const st=MS.st,sp=st.spawn,L0=MS.loadout;P.x=sp[0];P.z=sp[1];P.y=0;P.yaw=sp[2];
+  banner('THURSDAY',stage?'RANCHO CUCAMONGA · THE DAY BEFORE THE WEEKEND':'RANCHO CUCAMONGA · 7:02 AM');}
+function restartCheckpoint(){resetWorldState();removeJammer(false);const st=MS.st,sp=safeSpot(st.spawn),L0=MS.loadout;P.x=sp[0];P.z=sp[1];P.y=0;P.yaw=st.spawn[2];
   P.slots=L0.slots.map(w=>({id:w.id,mag:WDEF[w.id].mag,res:Math.max(w.res,Math.round(WDEF[w.id].max*.6))}));P.cur=L0.cur;P.nades=Math.max(3,L0.nades);showWeapon();
-  placeSquad();stageStart(MS.i);if(MP.on&&MP.host)mpEvent('ckpt',0,[MS.i]);}
-function startSurvival(){G.mode='survival';resetWorldState();removeJammer(false);MS.st=null;MS.i=-1;P.x=-4;P.z=16;P.y=0;P.yaw=0;giveLoadout();
-  G.score=0;G.stats={kills:0,heads:0,shots:0,hits:0,deaths:0,time:0};placeSquad();MS.surv={wave:0,t:4,live:false,left:0};
-  OBJ.text='Survive at the Glorieta';OBJ.sub='';OBJ.prog=0;OBJ.x=0;OBJ.z=0;OBJ.show=false;banner('SURVIVAL','HOLD THE GLORIETA AS LONG AS YOU CAN');}
+  placeSquad();stageStart(MS.i,true);if(MP.on&&MP.host)mpEvent('ckpt',0,[MS.i]);}
+function startSurvival(){G.mode='survival';resetWorldState();removeJammer(false);MS.st=null;MS.i=-1;const sp=safeSpot(SURV.spawn);P.x=sp[0];P.z=sp[1];P.y=0;P.yaw=SURV.spawn[2];giveLoadout();
+  G.score=0;G.stats={kills:0,heads:0,shots:0,hits:0,deaths:0,time:0};placeSquad();syncBobo(-1);MS.surv={wave:0,t:4,live:false,left:0};
+  OBJ.text='Hold the cul-de-sac';OBJ.sub='';OBJ.prog=0;OBJ.x=SURV.x;OBJ.z=SURV.z;OBJ.show=false;banner('SURVIVAL','HOLD THE CUL-DE-SAC AS LONG AS YOU CAN');
+  sayLater([[1.5,'AUNT RO','They just keep coming, Ray. Hold the cul-de-sac. Nobody parks on my street.']]);}
+const WAVE_LINES=[['AUNT RO','Another wave. I am writing ALL of them up.'],['JUNEBUG','More khakis! Where do they keep coming from?'],['MR. PENNINGTON','Here we go again. Mind the sprinklers.'],['RAY','I could be on a couch right now.']];
 function survivalUpdate(dt){const S=MS.surv;if(!S)return;
-  const H=humans();let cx=0,cz=0;for(const h of H){cx+=h.x/H.length;cz+=h.z/H.length;} // where the players are, or the Glorieta if nobody is standing
+  const H=humans();let cx=0,cz=0;for(const h of H){cx+=h.x/H.length;cz+=h.z/H.length;}if(!H.length){cx=SURV.x;cz=SURV.z;} // where the players are, or the cul-de-sac if nobody is standing
   if(!S.live){S.t-=dt;OBJ.sub='Next wave in '+Math.max(0,Math.ceil(S.t))+' s';if(S.t<=0){S.wave++;S.live=true;S.left=Math.round((4+S.wave*2)*coScale());S.st=0;banner('WAVE '+S.wave,'');
+      if(S.wave>1&&R()<.6){const q=RP(WAVE_LINES);radio(q[0],q[1]);}
       if(S.wave>=4&&S.wave%2===0){const r=roofSpot(cx,cz,25,60);if(r)spawnMark(r,'sv');}}return;}
   S.st-=dt;if(S.left>0&&S.st<=0){S.st=3;const kinds=S.wave<2?['rifle']:S.wave<4?['rifle','rifle','rush']:['rifle','rifle','rush','heavy'];
     S.left-=spawnWave(Math.min(S.left,4),kinds,cx,cz,null,'sv');}
-  const n=aliveFoes()+waveQ.length;OBJ.text='Survive at the Glorieta · Wave '+S.wave;OBJ.sub='Hostiles: '+(n+Math.max(0,S.left));
+  const n=aliveFoes()+waveQ.length;OBJ.text='Hold the cul-de-sac · Wave '+S.wave;OBJ.sub='Security guards: '+(n+Math.max(0,S.left));
   if(S.left<=0&&n===0){S.live=false;S.t=7;G.score+=250*S.wave;sndUi('obj');banner('WAVE '+S.wave+' CLEAR','+'+250*S.wave);if(S.wave%2===0){const p=spotNear(cx,cz,8,30);if(p)coCrate(p[0],p[1]);}
     for(const a of allies){if(a.down){a.down=false;a.alive=true;a.up.rotation.z=0;}a.hp=a.maxHp;}}}
-function missionUpdate(dt){updWaves(dt);if(G.mode==='mission')stageUpdate(dt);else survivalUpdate(dt);}
+function missionUpdate(dt){updTalk(dt);updWaves(dt);if(G.mode==='mission')stageUpdate(dt);else survivalUpdate(dt);}

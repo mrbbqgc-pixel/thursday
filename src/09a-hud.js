@@ -2,7 +2,7 @@
 // 09a HUD: objective panel, compass tape, rotating minimap, waypoint, feeds, tactical map, menus
 // =====================================================================
 const el={};['hud','menu','mapOver','objText','objFill','squad','compass','area','mini','feed','kills','hpFill','stFill','stance','weapon','mag','res','nades','cross','hit','dmg','nade','vig','scope','flash',
-  'wp','wpD','prompt','banner','banT','banS','stick','knob','menuTitle','menuMsg','menuStats','btnStart','btnSurvival','btnMapMenu','btnQuit','btnUse','bigmap','optSens','optSnd','optShadow','btnAds','btnCrouch','controls','opts']
+  'wp','wpD','prompt','banner','banT','banS','fade','boss','bossFill','stick','knob','menuTitle','menuMsg','menuStats','btnStart','btnSurvival','btnMapMenu','btnQuit','btnUse','bigmap','optSens','optSnd','optShadow','btnAds','btnCrouch','controls','opts']
   .forEach(k=>el[k]=$(k));
 const COL={bone:'#f3e8d3',sun:'#ffb23e',blood:'#d8412f',sky:'#8ec1e6',ink:'#15110c',agave:'#86c2a2'};
 function setT(e,v){if(e._v!==v){e._v=v;e.textContent=v;}}
@@ -81,6 +81,9 @@ function hud(dt){const w=curW(),D=WDEF[w.id];hudK++;
   for(const t of G.toasts)killFeed('',t.t);G.toasts.length=0;
   for(let k=killL.length-1;k>=0;k--){const f=killL[k];f.t-=dt;if(f.t<=0){el.kills.removeChild(f.p);killL.splice(k,1);}else if(f.t<.6)f.p.style.opacity=(f.t/.6).toFixed(2);}
   if(bannerT>0){bannerT-=dt;if(bannerT<=0)el.banner.classList.remove('on');}
+  // Bobo's health bar while he is the fight (on the machine that runs him)
+  {const B=MS.boss&&!MS.bossDown&&G.mode==='mission'&&MS.st&&MS.st.type==='boss'?MS.boss:null,on=!!B&&B.aware;if(el.boss._on!==on){el.boss._on=on;el.boss.hidden=!on;}
+    if(on){const v=Math.round(clamp(B.hp/B.maxHp,0,1)*100);if(el.bossFill._v!==v){el.bossFill._v=v;el.bossFill.style.width=v+'%';}}}
   if(MP.on)mpHud(dt);drawWaypoint();if(hudK%2===0)drawMini();if(hudK%3===0)drawCompass();
   if(hudK%20===0){const ll=latlon(P.x,P.z);setT(el.area,colonia(P.x,P.z)+' · '+ll[0].toFixed(4)+'°N '+ll[1].toFixed(4)+'°W');}}
 // ---------- tactical map
@@ -107,7 +110,7 @@ function drawBigMap(){if(el.bigmap.width!==MAPW){el.bigmap.width=MAPW;el.bigmap.
     g.save();g.translate(X(P.x),Z(P.z));g.rotate(-P.yaw);g.fillStyle='#fff';g.strokeStyle=COL.ink;g.lineWidth=3;g.beginPath();g.moveTo(0,-16);g.lineTo(11,12);g.lineTo(0,6);g.lineTo(-11,12);g.closePath();g.fill();g.stroke();g.restore();}}
 // ---------- menus
 let menuMode='main';
-function showMenu(mode,title,msg,stats){menuMode=mode;el.menuTitle.textContent=title;el.menuMsg.textContent=msg;el.menuStats.hidden=!stats;el.menuStats.textContent='';
+function showMenu(mode,title,msg,stats){menuMode=mode;$('tagline').hidden=mode!=='main';el.menuTitle.textContent=title;el.menuMsg.textContent=msg;el.menuStats.hidden=!stats;el.menuStats.textContent='';
   if(stats)stats.forEach(s=>{const d=document.createElement('div'),a=document.createElement('dt'),b=document.createElement('dd');a.textContent=s[0];b.textContent=s[1];d.append(a,b);el.menuStats.append(d);});
   const mission=G.mode==='mission',mp=MP.on&&mode!=='main';mpClose();
   el.btnStart.textContent=mode==='main'?(SAVE.stage>0?'Continue mission':'Start mission'):mode==='pause'?'Resume':mode==='dead'?(mission?'Retry from checkpoint':'Try again'):mode==='mpend'?'Back to lobby':'Play again';

@@ -26,7 +26,7 @@ function combat(s,t,dt,vis){const dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz)||.01
     if(vis&&canFire&&d<K.range)tryShoot(s,t,dt,d,s.spd>0);}
   // a rifleman lobs a grenade at a player who stays put behind cover
   s.nadeT-=dt;if(t===P&&s.nadeT<=0&&G.nadeCD<=0&&P.stillT>5&&d>12&&d<36&&s.y0<.5&&s.flinch<=0){s.nadeT=R2(14,22);G.nadeCD=12;const Tm=1.35,ex=R2(-1.6,1.6),ez=R2(-1.6,1.6);
-    const gn=spawnNade(s.x,1.5,s.z,(P.x+ex-s.x)/Tm,(P.y-1.5+.5*14*Tm*Tm)/Tm,(P.z+ez-s.z)/Tm,2.9,false);if(MP.on)mpNade(gn);if(allies.some(a=>a.alive))radio(allies.find(a=>a.alive).name,'Grenade! Move!');}}
+    const gn=spawnNade(s.x,1.5,s.z,(P.x+ex-s.x)/Tm,(P.y-1.5+.5*14*Tm*Tm)/Tm,(P.z+ez-s.z)/Tm,2.9,false);if(MP.on)mpNade(gn);const al=allies.find(a=>a.alive&&a.kind!=='bobo');if(al)radio(al.name,vox(al,'nade'));}}
 function hunt(s,dt){s.wantCrouch=false;s.lowered=false;s.aimP=0;const shared=G.lkp.age<22,gx=shared?G.lkp.x:s.lkx,gz=shared?G.lkp.z:s.lkz,d=Math.hypot(gx-s.x,gz-s.z);
   if(s.goal){const dd=moveToward(s,s.goal.x,s.goal.z,s.K.spd*.7,null);s.goalT-=dt;if(dd<1.5||s.goalT<=0)s.goal=null;else face(s,s.x+s.mx*3,s.z+s.mz*3,dt,5);}
   else if(d>9){moveToward(s,gx,gz,s.K.spd*(s.kind==='rush'?1:.85),(shared&&FE.n>0)?FE:null);face(s,s.x+s.mx*3,s.z+s.mz*3,dt,5);}
@@ -57,10 +57,10 @@ function updMark(s,dt){if(s.flinch>0)s.flinch-=dt;if(s.revealT>0)s.revealT-=dt;s
   else{s.aimT=Math.max(0,s.aimT-dt*2);if(s.laser)s.laser.visible=false;s.wantCrouch=s.aware&&s.seeT>1.5;s.aimP=0;if(!s.aware||s.seeT>4){s.yaw+=Math.sin(G.time*.4+s.ph)*dt*.5;s.g.rotation.y=s.yaw;}
     else face(s,s.lkx,s.lkz,dt,2);}
   s.crouch+=clamp((s.wantCrouch?1:0)-s.crouch,-dt*4.5,dt*4.5);s.moveAmt=0;animSoldier(s,dt);}
-function updAlly(s,dt,idx){
+function updAlly(s,dt,idx){if(s.kind==='bobo'){updBoboAlly(s,dt);return;}if(s.parked){s.g.visible=false;return;}
   if(s.down){s.downT-=dt*(Math.hypot(P.x-s.x,P.z-s.z)<3.5?3:1);s.crouch=Math.min(1,s.crouch+dt*4);s.lowered=true;s.moveAmt=0;s.up.rotation.z=.5;animSoldier(s,dt);
-    if(s.downT<=0){s.down=false;s.alive=true;s.hp=s.maxHp*.6;s.up.rotation.z=0;radio(s.name,'Back in the fight.');}return;}
-  if(s.flinch>0)s.flinch-=dt;if(s.hp<s.maxHp)s.hp=Math.min(s.maxHp,s.hp+5*dt);
+    if(s.downT<=0){s.down=false;s.alive=true;s.hp=s.maxHp*.6;s.up.rotation.z=0;radio(s.name,vox(s,'up'));}return;}
+  if(s.flinch>0)s.flinch-=dt;if(s.hp<s.maxHp)s.hp=Math.min(s.maxHp,s.hp+5*dt);if(s.ride){updRider(s,dt);return;}
   s.percT-=dt;if(s.percT<=0){s.percT=.25;percAlly(s,.25);}
   s.mx=0;s.mz=0;s.spd=0;const t=s.target,vis=t&&t.alive&&s.seeT<.35,pd=Math.hypot(P.x-s.x,P.z-s.z);
   if(pd>95){const bx=P.x+Math.sin(P.yaw)*9+R2(-3,3),bz=P.z+Math.cos(P.yaw)*9+R2(-3,3);if(freeSpot(bx,bz)){s.x=bx;s.z=bz;}}
@@ -81,5 +81,67 @@ function updAI(dt){G.budget=2;G.lkp.age+=dt;if(G.nadeCD>0)G.nadeCD-=dt;if(G.call
   faT-=dt;if(faT<=0&&allies.length){faT=.5;flow(FA,P.x,P.z,60);}
   for(let k=foes.length-1;k>=0;k--){const s=foes[k];
     if(!s.alive){if(!updCorpse(s,dt)){foes.splice(k,1);corpses.push(s);if(corpses.length>10)removeSoldier(corpses.shift());}continue;}
-    if(s.isStatic)updMark(s,dt);else updFoe(s,dt);}
+    if(s.isStatic)updMark(s,dt);else if(s.kind==='bobo')updBobo(s,dt);else updFoe(s,dt);}
   for(let k=0;k<allies.length;k++)updAlly(allies[k],dt,k);}
+// ---------- Bobo. Against you: walks up, charges after a wind-up (head down, a foot scraping dust), slams the ground, and grabs and
+// throws a player who stays in reach. He never dies: with no health left he sits down, and in single player he joins the squad.
+function boboSet(s,st){s.bs=st;s.bT=0;}
+function boboPrep(s){s.bs='idle';s.bT=0;s.slamCD=0;s.chargeCD=2;s.nearT=0;s.sayT=0;s.punchCD=0;s.stunT=1;s.said={};}
+function boboSay(s,k,force){if(!force&&(s.sayT>G.time||R()<.35))return;const L=BOBO_LINES[k];if(!L)return;s.sayT=G.time+6;radio('BOBO',RP(L));}
+function boboHurt(h,dmg,s,kx,kz,up){if(h===P){hurt(dmg,s.x,s.z);if(P.alive){P.vx=kx;P.vz=kz;P.vy=up;P.ground=false;}}else if(h.remote)mpHurtMate(h,dmg,s.x,s.z);}
+function boboDust(x,z,n,sp){for(let k=0;k<n;k++){const a=k/n*TAU+R()*.3;puff(x+Math.cos(a)*.6,.25,z+Math.sin(a)*.6,0xd9c39a,.7,3.4,.9,.6,Math.cos(a)*sp,.7,Math.sin(a)*sp,false,true);}}
+function boboShake(x,z,k){const d=Math.hypot(x-P.x,z-P.z);shake=Math.max(shake,clamp(k-d/24,0,1));}
+function updBobo(s,dt){if(s.flinch>0)s.flinch-=dt;s.bT+=dt;s.mx=0;s.mz=0;s.spd=0;s.slamCD-=dt;s.chargeCD-=dt;s.revealT=Math.max(s.revealT,.6);
+  let t=null,d=1e9;for(const h of humans()){const q=Math.hypot(h.x-s.x,h.z-s.z);if(q<d){d=q;t=h;}}
+  const rage=s.hp<s.maxHp*.4?1.3:1,ox=s.x,oz=s.z,fx=-Math.sin(s.yaw),fz=-Math.cos(s.yaw);
+  if(!s.said.a&&s.hp<s.maxHp*.7){s.said.a=1;boboSay(s,'hurt1',true);}if(!s.said.b&&s.hp<s.maxHp*.4){s.said.b=1;boboSay(s,'hurt2',true);sayLater([[2.2,'AUNT RO','He is getting angrier, Ray. That is normal for Bobo.']]);}
+  if(s.bs==='idle'){if(t&&d<40){s.aware=true;boboSet(s,'walk');s.chargeCD=2.5;boboSay(s,'spot',true);sayLater([[2.6,'RAY','I told you, man. I don\'t even have a car.']]);}
+    else{s.yaw+=Math.sin(G.time*.5)*dt*.3;s.g.rotation.y=s.yaw;}}
+  else if(!t){if(s.bs!=='stun')boboSet(s,'stun');s.stunT=1;}
+  else if(s.bs==='walk'){face(s,t.x,t.z,dt,2.6);moveToward(s,t.x,t.z,s.K.spd*rage,null);
+    if(t===P&&d<2.5){s.nearT+=dt;if(s.nearT>1.1){s.nearT=0;boboSet(s,'grab');sndBobo('roar',s.x,s.z);boboSay(s,'grab');}}else s.nearT=Math.max(0,s.nearT-dt*.5);
+    if(s.bs==='walk'&&d<5.5&&s.slamCD<=0){boboSet(s,'slamUp');sndBobo('roar',s.x,s.z);}
+    else if(s.bs==='walk'&&d>8&&d<42&&s.chargeCD<=0&&los(s.x,eyeY(s),s.z,t.x,(t===P?P.y:t.y0)+1.2,t.z)){boboSet(s,'wind');sndBobo('roar',s.x,s.z);boboSay(s,'charge');}}
+  else if(s.bs==='wind'){face(s,t.x,t.z,dt,4);if(R()<dt*14)boboDust(s.x+fx*.4+R2(-.5,.5),s.z+fz*.4+R2(-.5,.5),1,1.2);
+    if(s.bT>=(rage>1?.75:1.05)){const dx=t.x-s.x,dz=t.z-s.z,l=Math.hypot(dx,dz)||1;s.cx=dx/l;s.cz=dz/l;s.chD=0;s.hitSet=[];boboSet(s,'charge');sndBobo('thud',s.x,s.z);}}
+  else if(s.bs==='charge'){s.mx=s.cx;s.mz=s.cz;s.spd=11.5;s.yaw=Math.atan2(-s.cx,-s.cz);s.g.rotation.y=s.yaw;}
+  else if(s.bs==='stun'){if(s.bT>=s.stunT)boboSet(s,'walk');}
+  else if(s.bs==='slamUp'){face(s,t.x,t.z,dt,2);if(s.bT>=.6){boboSet(s,'slam');const ix=s.x+fx*1.3,iz=s.z+fz*1.3;
+      for(const h of humans()){const dx=h.x-ix,dz=h.z-iz,q=Math.hypot(dx,dz)||.1;if(q<6.5){const k=1-q/6.5;boboHurt(h,10+26*k,s,dx/q*(5+8*k),dz/q*(5+8*k),3+3*k);}}
+      boboDust(ix,iz,16,7);sndBobo('slam',ix,iz);boboShake(ix,iz,1.3);s.slamCD=R2(3.5,5.5)/rage;}}
+  else if(s.bs==='slam'){if(s.bT>=.8)boboSet(s,'walk');}
+  else if(s.bs==='grab'){if(t!==P||!P.alive){boboSet(s,'walk');}else{face(s,P.x,P.z,dt,3);P.x=s.x+fx*1.3;P.z=s.z+fz*1.3;P.y=Math.min(1.1,s.bT*2.5);P.vx=P.vz=P.vy=0;
+      if(s.bT>=1.1){boboSet(s,'throw');const a=s.yaw+1.2;boboHurt(P,20,s,-Math.sin(a)*13,-Math.cos(a)*13,6.5);sndBobo('thud',s.x,s.z);boboShake(s.x,s.z,.8);}}}
+  else if(s.bs==='throw'){if(s.bT>=.7){boboSet(s,'stun');s.stunT=.8;s.slamCD=Math.max(s.slamCD,2);}}
+  s.crouch=0;stepSoldier(s,dt);
+  if(s.bs==='charge'){const mv=Math.hypot(s.x-ox,s.z-oz);s.chD+=mv;
+    for(const h of humans())if(s.hitSet.indexOf(h)<0&&Math.hypot(h.x-s.x,h.z-s.z)<2.1){s.hitSet.push(h);const sd=((h.x-s.x)*-s.cz+(h.z-s.z)*s.cx)<0?-1:1;
+      boboHurt(h,32,s,s.cx*11-s.cz*sd*5,s.cz*11+s.cx*sd*5,5);sndBobo('thud',s.x,s.z);boboShake(s.x,s.z,1);}
+    if(s.bT>.15&&mv<11.5*dt*.35){boboSet(s,'stun');s.stunT=2.4;sndBobo('slam',s.x,s.z);boboDust(s.x+s.cx,s.z+s.cz,10,4);boboShake(s.x,s.z,1.1);boboSay(s,'wall');s.chargeCD=R2(4,6.5)/rage;} // ran into a wall: dazed
+    else if(s.bT>1.7||s.chD>24){boboSet(s,'stun');s.stunT=1.1;s.chargeCD=R2(4,6.5)/rage;}
+    else if(R()<dt*20)boboDust(s.x,s.z,1,1);}
+  animSoldier(s,dt);}
+// knocked down: he sits, the fight is over, and he is no longer a hostile
+function boboGiveUp(s){s.hp=1;s.flinch=0;s.target=null;s.revealT=0;s.team=0;s.yielded=true;s.moveAmt=0;boboSet(s,'sit');
+  const i=foes.indexOf(s);if(i>=0)foes.splice(i,1);G.score+=1000;killFeed('+1000','Bobo sits down');sndUi('kill');G.hitT=.3;G.hitKill=true;
+  if(MP.on)MS.npc=s;else{s.maxHp=s.K.allyHp;s.hp=s.maxHp;s.name='BOBO';s.down=false;allies.push(s);addMark(s);}
+  if(MS.st&&MS.st.type==='boss')MS.bossDown=true;}
+// on your side: follows Ray, walks up to the nearest hostile and punches it, sits down for a breather now and then
+function updBoboAlly(s,dt){s.bT+=dt;if(s.flinch>0)s.flinch-=dt;s.mx=0;s.mz=0;s.spd=0;s.punchCD-=dt;
+  if(s.down){s.downT-=dt*(Math.hypot(P.x-s.x,P.z-s.z)<4?3:1);if(s.downT<=0){s.down=false;s.alive=true;s.hp=s.maxHp*.6;boboSet(s,'up');radio('BOBO',vox(s,'up'));}animSoldier(s,dt);return;}
+  if(s.bs==='sit'){animSoldier(s,dt);return;} // the mission says when he gets up
+  if(s.bs==='up'){if(s.bT>=.9)boboSet(s,'walk');animSoldier(s,dt);return;}
+  if(s.hp<s.maxHp)s.hp=Math.min(s.maxHp,s.hp+(s.bs==='stun'?60:12)*dt);
+  if(s.bs==='stun'){if(s.bT>=4||s.hp>s.maxHp*.8)boboSet(s,'walk');animSoldier(s,dt);return;} // catching his breath
+  if(s.hp<s.maxHp*.3&&s.restCD<=G.time){s.restCD=G.time+40;boboSet(s,'stun');radio('BOBO','Bobo needs a minute. Bobo is not young.');animSoldier(s,dt);return;}
+  const pd=Math.hypot(P.x-s.x,P.z-s.z);
+  if(pd>95){const bx=P.x+Math.sin(P.yaw)*9+R2(-3,3),bz=P.z+Math.cos(P.yaw)*9+R2(-3,3);if(freeSpot(bx,bz)){s.x=bx;s.z=bz;}}
+  s.percT-=dt;if(s.percT<=0){s.percT=.3;let b=null,bd=28;for(const f of foes){if(!f.alive||f.y0>1)continue;const q=Math.hypot(f.x-s.x,f.z-s.z);if(q<bd&&(q<8||los(s.x,eyeY(s),s.z,f.x,chestY(f),f.z))){bd=q;b=f;}}
+    if(b&&!s.target&&G.calloutT<=0){G.calloutT=10;radio('BOBO',vox(s,'contact').replace(/\{d\}/g,windName(b.x-P.x,b.z-P.z)));}s.target=b;}
+  const t=s.target&&s.target.alive&&pd<60?s.target:null;
+  if(s.bs==='punch'){if(t)face(s,t.x,t.z,dt,6);if(!s.punched&&s.bT>.17){s.punched=true;if(t&&Math.hypot(t.x-s.x,t.z-s.z)<2.7){damageSoldier(t,80,1,s.x,s.z,false,false,null);sndBobo('punch',t.x,t.z);dust(t.x,1.3,t.z,3);}}
+    if(s.bT>=.55){s.punched=false;boboSet(s,'walk');}}
+  else if(t){const q=Math.hypot(t.x-s.x,t.z-s.z);face(s,t.x,t.z,dt,5);if(q>1.9)moveToward(s,t.x,t.z,5.6,null);else if(s.punchCD<=0){boboSet(s,'punch');s.punchCD=.9;}}
+  else{const cy=Math.cos(P.yaw),sy=Math.sin(P.yaw),gx=P.x+sy*5.5-cy*2.5,gz=P.z+cy*5.5+sy*2.5,q=Math.hypot(gx-s.x,gz-s.z);
+    if(q>2.4){moveToward(s,gx,gz,q>14?7.6:q>6?5.2:3,(q>9&&FA.n>0)?FA:null);face(s,s.x+s.mx*3,s.z+s.mz*3,dt,5);}else{s.yaw+=clamp(angDiff(P.yaw,s.yaw),-dt*2,dt*2);s.g.rotation.y=s.yaw;}}
+  s.crouch=0;stepSoldier(s,dt);animSoldier(s,dt);}

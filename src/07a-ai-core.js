@@ -20,7 +20,7 @@ function seeTarget(s,t,range){const dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz);if
 function percFoe(s,tick){let best=null,bd=1e9,bv=0;
   if(P.alive){const v=seeTarget(s,P,s.aware?s.K.range+40:75);if(v){best=P;bd=Math.hypot(P.x-s.x,P.z-s.z);bv=v;}}
   for(let k=0;k<MP.mates.length;k++){const a=MP.mates[k];if(!a.alive)continue;const d=Math.hypot(a.x-s.x,a.z-s.z);if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+40:75);if(v){best=a;bd=d;bv=v;}}} // the other players
-  for(let k=0;k<allies.length;k++){const a=allies[k];if(!a.alive)continue;const d=Math.hypot(a.x-s.x,a.z-s.z)*1.25;if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+20:60);if(v){best=a;bd=d;bv=v;}}}
+  for(let k=0;k<allies.length;k++){const a=allies[k];if(!a.alive||a.parked)continue;const d=Math.hypot(a.x-s.x,a.z-s.z)*1.25;if(d<bd){const v=seeTarget(s,a,s.aware?s.K.range+20:60);if(v){best=a;bd=d;bv=v;}}}
   if(best){const hum=best===P||!!best.remote,hc=best===P?P.crouch:best.crouch,hs=best===P?P.speed:(best.speed||0);
     if(!s.aware){s.spot+=tick*(bd<14?5:bd<40?1.7:.85)*((hum&&hc>.5)?.55:1)*((hum&&hs>4)?1.3:1);
       if(s.spot<1){s.target=null;return;}s.aware=true;s.lowered=false;s.reactT=R2(.35,.8);alertNear(s,45);}
@@ -30,7 +30,7 @@ function percFoe(s,tick){let best=null,bd=1e9,bv=0;
     if(s.cover&&s.phase==='hide'&&Math.hypot(s.cover.x-s.x,s.cover.z-s.z)<1.3){const ty=best===P?P.y+lerp(1.6,1.02,P.crouch):eyeY(best);if(los(best.x,ty,best.z,s.x,s.y0+.85,s.z))s.flanked=true;}}
   else{s.seeT+=tick;s.vis=0;if(!s.aware)s.spot=Math.max(0,s.spot-tick*.4);}}
 function percAlly(s,tick){let best=null,bd=1e9;for(let k=0;k<foes.length;k++){const f=foes[k];if(!f.alive)continue;const d=Math.hypot(f.x-s.x,f.z-s.z);if(d<bd&&d<85&&los(s.x,eyeY(s),s.z,f.x,chestY(f),f.z)){best=f;bd=d;}}
-  if(best){if(!s.target&&G.calloutT<=0&&P.alive){G.calloutT=10;radio(s.name,'Contact, '+windName(best.x-P.x,best.z-P.z)+'!');}s.target=best;s.seeT=0;s.vis=2;best.revealT=Math.max(best.revealT,1.5);}
+  if(best){if(!s.target&&G.calloutT<=0&&P.alive){G.calloutT=10;radio(s.name,vox(s,'contact').replace(/\{d\}/g,windName(best.x-P.x,best.z-P.z)));}s.target=best;s.seeT=0;s.vis=2;best.revealT=Math.max(best.revealT,1.5);}
   else{s.seeT+=tick;if(s.seeT>1.5)s.target=null;}}
 function dropCover(s){if(s.cover){coverTaken.delete(s.cover.n);s.cover=null;}s.flanked=false;}
 function damageSoldier(s,dmg,zone,fx,fz,byPlayer,explosive,D){if(!s.alive)return;
@@ -38,22 +38,23 @@ function damageSoldier(s,dmg,zone,fx,fz,byPlayer,explosive,D){if(!s.alive)return
   if(s.remote){if(s.team===1){if(byPlayer)mpHitPlayer(s,dmg,zone,D,explosive);}else if(!byPlayer)mpHurtMate(s,dmg,fx,fz);return;}
   if(s.net){if(byPlayer)mpFoeHit(s,dmg,zone,D,explosive,fx,fz);return;}
   if(s.team===0&&byPlayer&&!explosive)return;
-  let m=1;if(!explosive){if(zone===0)m=s.kind==='heavy'?1.5:(D?D.head:3);else if(zone===2)m=.75;}if(s.team===0&&byPlayer)m*=.3;
+  let m=1;if(!explosive){if(zone===0)m=s.K.headK||(D?D.head:3);else if(zone===2)m=.75;}if(s.team===0&&byPlayer)m*=.3;
+  if(s.kind==='bobo'){if(s.team===0)m*=.5;else if(!byPlayer&&!MP.hitBy&&!explosive)m*=.35;} // Bobo is the player's fight; on your side he is hard to put down
   s.hp-=dmg*m;s.flinch=.22;
   if(s.team===1){if(!s.aware){s.aware=true;s.lowered=false;s.reactT=.3;alertNear(s,30);}if(s.seeT>.5){s.lkx=fx;s.lkz=fz;}
     if(byPlayer){G.hitT=.14;G.hitKill=s.hp<=0;if(s.hp>0)sndUi('hit');}}
-  if(s.hp<=0){if(s.team===0)downAlly(s);else killFoe(s,fx,fz,byPlayer,zone===0&&!explosive);}}
+  if(s.hp<=0){if(s.kind==='bobo'&&s.team===1){boboGiveUp(s);return;}if(s.team===0)downAlly(s);else killFoe(s,fx,fz,byPlayer,zone===0&&!explosive);}}
 function killFoe(s,fx,fz,byPlayer,head){s.alive=false;s.deadT=0;dropCover(s);const hx=s.x-fx,hz=s.z-fz;s.fall=(hx*-Math.sin(s.yaw)+hz*-Math.cos(s.yaw))<0?1:-1;s.wp.scale.setScalar(.001);
   if(s.laser){scene.remove(s.laser);s.laser=null;}
   foeLoot(s);const pts=(head?150:100)+(s.kind==='heavy'?100:s.kind==='mark'?50:0);
   if(byPlayer){G.stats.kills++;if(head)G.stats.heads++;G.score+=pts;killFeed('+'+pts,head?'Headshot':s.K.label);sndUi('kill');}
   else if(!MP.hitBy)G.stats.allyKills=(G.stats.allyKills||0)+1;
   if(MP.on&&MP.host)coFoeKilled(s,byPlayer?MP.me:MP.hitBy,head,pts);
-  alertNear(s,28);if(G.onKill)G.onKill(s);}
+  alertNear(s,28);killQuip(byPlayer);if(G.onKill)G.onKill(s);}
 // what a fallen hostile leaves behind (in multiplayer every player finds his own)
 function foeLoot(s){if(s.y0>=.5)return;const K=s.K;if(R()<.62)addPick('w',s.x+R2(-.5,.5),s.z+R2(-.5,.5),{id:K.drop,mag:Math.round(R2(.3,1)*WDEF[K.drop].mag),res:Math.round(R2(0,1)*WDEF[K.drop].mag)});
   const r=R();if(r<.1)addPick('med',s.x+R2(-.8,.8),s.z+R2(-.8,.8));else if(r<.18)addPick('nade',s.x+R2(-.8,.8),s.z+R2(-.8,.8));else if(r<.42)addPick('ammo',s.x+R2(-.8,.8),s.z+R2(-.8,.8));}
-function downAlly(s){s.alive=false;s.down=true;s.downT=16;s.hp=0;s.target=null;dropCover(s);radio('COMMAND',s.name+' is hit. Cover him until he is back up.');}
+function downAlly(s){s.alive=false;s.down=true;s.downT=s.kind==='bobo'?10:16;s.hp=0;s.target=null;dropCover(s);if(s.kind==='bobo')boboSet(s,'sit');radio('AUNT RO',vox(s,'down'));}
 function face(s,tx,tz,dt,rate){const want=Math.atan2(-(tx-s.x),-(tz-s.z)),d=angDiff(want,s.yaw);s.yaw+=clamp(d,-rate*dt,rate*dt);s.g.rotation.y=s.yaw;return Math.abs(d);}
 function moveToward(s,tx,tz,speed,F){const dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);if(d<.45){s.mx=0;s.mz=0;s.spd=0;return d;}
   if(F){const f=flowDir(F,s.x,s.z);s.mx=f.x;s.mz=f.z;}else{s.mx=dx/d;s.mz=dz/d;}s.spd=speed;return d;}
@@ -62,7 +63,7 @@ function stepSoldier(s,dt){let mx=s.mx,mz=s.mz;const sp=s.spd||0;
   const lst=s.team?foes:allies;for(let k=0;k<lst.length;k++){const o=lst[k];if(o===s||!o.alive)continue;const ax=s.x-o.x,az=s.z-o.z,a2=ax*ax+az*az;if(a2<1.1&&a2>1e-4){const a=Math.sqrt(a2);mx+=ax/a*.7;mz+=az/a*.7;}}
   let px=0,pz=0;if(s.team===0){const ax=s.x-P.x,az=s.z-P.z,a2=ax*ax+az*az;if(a2<1.3&&a2>1e-4){const a=Math.sqrt(a2);px=ax/a*2.4;pz=az/a*2.4;}}
   const ox=s.x,oz=s.z;if(sp>0&&(mx||mz)){s.x+=mx*sp*dt;s.z+=mz*sp*dt;}if(px||pz){s.x+=px*dt;s.z+=pz*dt;}
-  if(s.x!==ox||s.z!==oz){if(s.y0<.5)pushOut(s,.38,0);s.x=clamp(s.x,BOUND.x0,BOUND.x1);s.z=clamp(s.z,BOUND.z0,BOUND.z1);}
+  if(s.x!==ox||s.z!==oz){if(s.y0<.5)pushOut(s,.38*s.sc,0);s.x=clamp(s.x,BOUND.x0,BOUND.x1);s.z=clamp(s.z,BOUND.z0,BOUND.z1);}
   const moved=Math.hypot(s.x-ox,s.z-oz);if(s.team===1&&moved>0){s.stepD+=moved;if(s.stepD>2.5){s.stepD=0;sndStepAt(s.x,s.z);}}s.moveAmt=lerp(s.moveAmt,clamp(moved/Math.max(dt,1e-4)/3,0,1),Math.min(1,dt*10));s.run=sp>4.6;if(moved>0)s.ph+=moved*(s.run?2.1:2.6);
   if(sp>0&&Math.hypot(s.mx,s.mz)>.5){s.stuckT+=dt;if(s.stuckT>1){if(Math.hypot(s.x-s.lastX,s.z-s.lastZ)<.5){s.unstick=.6;const a=R()*TAU;s.ux=Math.cos(a);s.uz=Math.sin(a);s.stuckN=(s.stuckN||0)+1;}else s.stuckN=0;
       s.stuckT=0;s.lastX=s.x;s.lastZ=s.z;}}else s.stuckT=0;

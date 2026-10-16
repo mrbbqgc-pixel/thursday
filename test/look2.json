@@ -1,0 +1,7 @@
+[
+ {"click":"#btnStart"},{"wait":500},
+ {"eval":"(()=>{const g=window.__game;g.clearSoldiers();g.sim(2,1/30);g.G.state='pause';const P=g.P,x0=P.x,z0=P.z;window.__lk=[];const K=['rifle','rush','heavy','mark','june','penn','bobo'];K.forEach((k,i)=>{const s=g.addSoldier(1,k,x0-4.5+i*1.5,z0-5,{yaw:Math.PI,aware:false,list:[]});s.lowered=false;s.moveAmt=0;g.animSoldier(s,.1);window.__lk.push(s);});g.cam(x0,1.5,z0-1.6,x0,1.2,z0-5);document.getElementById('hud').hidden=true;return 1})()"},
+ {"wait":600},{"shot":"look-lineup"},
+ {"eval":"(()=>{const g=window.__game,P=g.P;g.cam(P.x-1,1.6,P.z-3.4,P.x-1.5,1.3,P.z-5);return 1})()"},{"wait":400},{"shot":"look-squad"},
+ {"eval":"(()=>{const g=window.__game,P=g.P;g.cam(P.x+4.5,2.1,P.z-1.8,P.x+4.5,1.8,P.z-5);return 1})()"},{"wait":400},{"shot":"look-bobo"}
+]

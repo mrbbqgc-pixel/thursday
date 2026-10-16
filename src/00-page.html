@@ -1,4 +1,4 @@
-<title>Operación Insurgentes</title>
+<title>THURSDAY</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Saira+Condensed:wght@400;600;700&display=swap">
 <style>
 /* Layout: full-bleed 3D view of the town; HUD pinned to the corners; the menu is a left-aligned briefing card over a live flyover. Single committed look (desert daylight, dark HUD). */
@@ -24,11 +24,14 @@ button{font-family:var(--ui);color:var(--bone)}
 #objBar{height:5px;background:rgba(243,232,211,.16)}#objFill{display:block;height:100%;width:0;background:var(--sun)}
 #squad{display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--rule);padding-top:5px}
 .sq{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em}
-.sq span{flex:0 0 52px}.sq div{flex:1;height:4px;background:rgba(243,232,211,.16)}.sq i{display:block;height:100%;background:var(--sky)}
+.sq span{flex:0 0 76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sq div{flex:1;height:4px;background:rgba(243,232,211,.16)}.sq i{display:block;height:100%;background:var(--sky)}
 .sq.down{opacity:.55}.sq.down i{background:var(--blood)}
 #topc{position:absolute;left:50%;top:calc(10px + var(--st));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
 #compass{width:min(340px,36vw);height:26px;background:var(--panel)}
 #area{font-size:12px;letter-spacing:.12em;background:var(--panel);padding:1px 8px;white-space:nowrap}
+#boss{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:6px;width:min(440px,56vw);background:var(--panel);padding:5px 10px 7px;border-bottom:3px solid var(--blood)}
+#boss b{font:400 22px/1 var(--display);letter-spacing:.14em;color:var(--sun)}#bossBar{width:100%;height:9px;background:rgba(243,232,211,.16)}#bossFill{display:block;height:100%;width:100%;background:var(--blood);transition:width .15s}
+#fade{position:absolute;inset:0;background:#0d0a07;opacity:0}
 #tr{position:absolute;right:calc(16px + var(--sr));top:calc(12px + var(--st));display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 #mini{width:118px;height:118px;border-radius:50%;border:2px solid var(--rule);background:var(--panel)}
 .hb{pointer-events:auto;font:700 13px var(--ui);letter-spacing:.12em;background:var(--panel);border:1px solid var(--rule);padding:5px 10px;cursor:pointer}
@@ -98,6 +101,8 @@ body.touch #bc{bottom:calc(6px + var(--sb))}
 #menu{align-items:center;justify-content:flex-start;background:linear-gradient(90deg,rgba(21,17,12,.86) 0%,rgba(21,17,12,.55) 55%,rgba(21,17,12,.1) 100%)}
 #card{max-width:480px;min-width:0;margin-left:clamp(0px,5vw,64px);display:flex;flex-direction:column;gap:13px;align-items:flex-start;margin-block:auto}
 .eyebrow{margin:0;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--sun)}
+#tagline{margin:-6px 0 0;font-size:15px;letter-spacing:.06em;color:var(--sun);font-style:italic}#card.mp>#tagline{display:none}
+@media (max-height:440px){#tagline{font-size:13px;margin-top:-4px}}@media (max-height:350px){#tagline{margin-top:-6px}#card{gap:7px}}
 h1{margin:0;font:400 clamp(36px,8.6vw,64px)/.95 var(--display);letter-spacing:.02em;text-wrap:balance;text-transform:uppercase}
 #menuMsg{margin:0;font-size:17px;line-height:1.4;max-width:44ch}
 #menuStats{margin:0;display:flex;gap:20px;flex-wrap:wrap}
@@ -159,12 +164,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   #mpHome{flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:8px 12px}#mpHome .fine{flex:none;width:100%;max-width:100%}}
 @media (max-height:440px){#card{max-width:640px}#btns{gap:8px}.alt{padding:9px 12px}}
 @media (max-width:560px){#kills{top:36%}#leftCol{width:min(210px,50vw)}#compass{width:30vw}#area{display:none}}
-@media (max-height:440px){#mini{width:92px;height:92px}#objText{font-size:14px}#feed p{font-size:13px}}
+@media (max-height:440px){#boss{margin-top:2px;padding:3px 8px 5px}#boss b{font-size:16px}#mini{width:92px;height:92px}#objText{font-size:14px}#feed p{font-size:13px}}
 </style>
 <canvas id="view"></canvas>
 <div id="hud" hidden>
   <div id="leftCol"><div id="objPanel"><span class="lbl">Objective</span><div id="objText"></div><div id="objBar"><i id="objFill"></i></div><div id="squad"></div><div id="mpBoard" hidden></div></div><div id="feed"></div></div>
-  <div id="topc"><canvas id="compass" width="680" height="52"></canvas><div id="area"></div></div>
+  <div id="fade"></div>
+  <div id="topc"><canvas id="compass" width="680" height="52"></canvas><div id="area"></div><div id="boss" hidden><b>BOBO</b><div id="bossBar"><i id="bossFill"></i></div></div></div>
   <div id="tr"><canvas id="mini" width="236" height="236"></canvas><div id="trb"><button class="hb" id="btnMap" type="button">MAP</button><button class="hb" id="btnPause" type="button">PAUSE</button></div></div>
   <div id="kills"></div>
   <div id="bc">
@@ -183,15 +189,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   <button class="tb" id="btnSwap" type="button">SWAP</button><button class="tb" id="btnUse" type="button" hidden>USE</button>
 </div>
 <div id="mapOver" class="over" hidden>
-  <div id="mapHead"><h2>Ciudad Insurgentes</h2><button class="alt" id="btnMapClose" type="button">Close map</button></div>
+  <div id="mapHead"><h2>Rancho Cucamonga</h2><button class="alt" id="btnMapClose" type="button">Close map</button></div>
   <div id="mapWrap"><canvas id="bigmap" width="16" height="16"></canvas></div>
-  <p id="mapNote">Drawn at about 60% of real size. Up is north-northwest, the direction Blvd. Benito Juárez runs. Street lines and names follow the real grid; named landmarks sit on their real blocks. The stadium, the water tower and the cotton gin are placed by guess, and houses and shops are generated.</p>
+  <p id="mapNote">Distances between places are about 30% of real; buildings, cars and people are real size. Up is north, toward the San Gabriel Mountains. Main streets follow the real grid; landmarks carry made-up names, and houses and shops are generated.</p>
 </div>
 <div id="menu" class="over">
   <div id="card">
-    <p class="eyebrow">Ciudad Insurgentes · Comondú · Baja California Sur</p>
-    <h1 id="menuTitle">Operación Insurgentes</h1>
-    <p id="menuMsg">A mercenary force has seized the town and the crossroads where Highway 1 turns east for Loreto. Lead fireteam Halcón up Blvd. Benito Juárez, take the Glorieta, and clear the Plaza Principal.</p>
+    <p class="eyebrow">Rancho Cucamonga · Inland Empire · around 2000</p>
+    <h1 id="menuTitle">THURSDAY</h1>
+    <p id="tagline">The day before the weekend. Nobody told the private army.</p>
+    <p id="menuMsg">Ray left the city for a quiet fresh start at Aunt Ro's. By breakfast, Kingsley Prime's private security had taken the tract for a luxury "lifestyle district". The HOA is furious. Ray just wants to make it to Friday.</p>
     <dl id="menuStats" hidden></dl>
     <div id="btns"><button class="cta" id="btnStart" type="button" disabled>Building the town…</button><button class="alt" id="btnSurvival" type="button" hidden>Survival</button><button class="alt" id="btnMp" type="button" hidden>Multiplayer</button><button class="alt" id="btnMapMenu" type="button" hidden>Town map</button><button class="alt" id="btnQuit" type="button" hidden>Quit to menu</button></div>
     <div id="mpUi" hidden>
@@ -228,7 +235,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       <div><h2>Keyboard and mouse</h2><p>WASD move, Shift sprint, C crouch, Space jump. Left click fire, right click aim. R reload, Q swap, G grenade, V knife, F pick up or use, M map, Esc pause.</p></div>
       <div><h2>Phone or tablet</h2><p>Left thumb moves, right thumb aims. Push the stick all the way forward to sprint. FIRE can be dragged to keep aiming, and it fires by itself when your sights are on a hostile. Turn the phone sideways.</p></div>
     </div>
-    <p class="fine">The street grid, street names and landmarks follow the real town at about 60% scale: Blvd. Benito Juárez, the Glorieta, the Plaza Principal, the parish, schools, clinics, churches and the Panteón Municipal sit on their real blocks (place data: Google Maps). Houses and shops are generated. The enemy force is fictional.</p>
+    <p class="fine">Inspired by Southern California suburbs. All characters and businesses are fictional. Main streets follow the real Rancho Cucamonga grid at about 30% of real distances; landmarks carry made-up names, and houses and shops are generated (place data: Google Maps).</p>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

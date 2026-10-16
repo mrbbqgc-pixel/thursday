@@ -1,0 +1,8 @@
+[
+ {"click":"#btnStart"},{"wait":400},
+ {"eval":"(()=>{const g=window.__game,P=g.P;g.startMission(4);g.sim(2,1/30);g.G.state='pause';const b=g.MS.chaser;P.yaw=-Math.PI/2;b.x=P.x-9;b.z=P.z+1.5;b.yaw=-Math.PI/2;b.g.position.set(b.x,0,b.z);b.g.rotation.y=b.yaw;b.moveAmt=1;g.animSoldier(b,.03);const j=g.allies.find(a=>a.kind==='june');j.x=P.x-3;j.z=P.z-2.6;j.g.position.set(j.x,0,j.z);g.cam(P.x-4,1.8,P.z-6.5,P.x-8.5,1.1,P.z+1);document.getElementById('hud').hidden=true;return [g.MS.st.key,b.bs]})()","log":"pose"},
+ {"wait":500},{"shot":"bobo-scooter"},
+ {"eval":"(()=>{const g=window.__game,b=g.MS.chaser;g.boboSet(b,'swing');b.bT=.45;g.animSoldier(b,.03);g.cam(b.x+2.5,1.9,b.z-5,b.x,1.2,b.z);return 1})()"},{"wait":400},{"shot":"bobo-scooter-swing"},
+ {"eval":"(()=>{const g=window.__game,P=g.P,st=g.MS.st;g.G.state='play';P.x=st.x;P.z=st.z-12;const b=g.MS.chaser;b.x=P.x-10;b.z=P.z;g.sim(4,1/30);const done=g.MS.done,pos=g.MS.chasePos;g.sim(110,1/30);const B=g.MS.boss;g.G.state='pause';return {done,pos:pos&&pos.map(Math.round),stage:g.MS.i,type:g.MS.st.type,boss:B&&[Math.round(B.x),Math.round(B.z),B.bs],parked:!!g.MS.parkS,penn:g.allies.find(a=>a.kind==='penn').parked,feed:Array.from(document.querySelectorAll('#feed p')).map(p=>p.textContent).slice(-3)}})()","log":"reach the park: the boss stage"},
+ {"eval":"(()=>{const g=window.__game,B=g.MS.boss;g.cam(B.x+5,2.2,B.z+6,B.x,1.2,B.z);return 1})()"},{"wait":500},{"shot":"bobo-park"}
+]
