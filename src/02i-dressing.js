@@ -44,8 +44,8 @@ isoR(()=>{for(const i of ISEC){if(!inB(i.x,i.z,-20)||rnd()>.3)continue;if(i.x>-2
 // ---------- worn arterials: cracks along the lanes, sealed cracks and dark patches (inside the playing area)
 isoR(()=>{const wear=(x,z,ry)=>{const k=rnd();if(k<.5)cutF(x,z,.034,rr(2.6,5),rr(.5,.9),ry+rr(-.25,.25),CUT.crack,0xffffff);else if(k<.75)cutF(x,z,.034,rr(2,3.2),rr(1.8,2.8),ry+rr(-.2,.2),CUT.tar,0xffffff);
     else{const w=rr(1.6,3.4),d=rr(1.2,2.6),y=.036;quadC(M.shade,[x-w/2,y,z+d/2],[x+w/2,y,z+d/2],[x+w/2,y,z-d/2],[x-w/2,y,z-d/2],0,1,0,0,.62,.14,.9,.14);}};
-  for(const a of NSA)for(let z=Math.max(a.z0,BOUND.z0);z<Math.min(a.z1,BOUND.z1);z+=rr(14,30)){if(ISEC.some(i=>i.a===a&&Math.abs(i.z-z)<i.b.hw+5))continue;const o=rr(1,a.hw-1)*(rnd()<.5?-1:1);if(a.med&&Math.abs(o)<a.med/2+.5)continue;wear(a.x+o,z,PI/2);}
-  for(const b of EWA)for(let x=Math.max(b.x0,BOUND.x0);x<Math.min(b.x1,BOUND.x1,fwEdge(b.z)-8);x+=rr(14,30)){if(ISEC.some(i=>i.b===b&&Math.abs(i.x-x)<i.a.hw+5))continue;const o=rr(1,b.hw-1)*(rnd()<.5?-1:1);if(b.med&&Math.abs(o)<b.med/2+.5)continue;wear(x,b.z+o,0);}});
+  for(const a of NSA)for(let z=Math.max(a.z0,BOUND.z0);z<Math.min(a.z1,BOUND.z1);z+=rr(18,38)){if(ISEC.some(i=>i.a===a&&Math.abs(i.z-z)<i.b.hw+5))continue;const o=rr(1,a.hw-1)*(rnd()<.5?-1:1);if(a.med&&Math.abs(o)<a.med/2+.5)continue;wear(a.x+o,z,PI/2);}
+  for(const b of EWA)for(let x=Math.max(b.x0,BOUND.x0);x<Math.min(b.x1,BOUND.x1,fwEdge(b.z)-8);x+=rr(18,38)){if(ISEC.some(i=>i.b===b&&Math.abs(i.x-x)<i.a.hw+5))continue;const o=rr(1,b.hw-1)*(rnd()<.5?-1:1);if(b.med&&Math.abs(o)<b.med/2+.5)continue;wear(x,b.z+o,0);}});
 // ---------- spawn points: intersections, tract streets and trail stops were added on the way; plus the big lots
 for(const q of [[-150,40],[190,-60],[600,90],[650,1000],[520,1100],[1120,-120],[900,60],[440,420],[60,250]])SPN.push(q);
 for(let k=SPN.length-1;k>=0;k--)if(!inB(SPN[k][0],SPN[k][1],-4))SPN.splice(k,1);

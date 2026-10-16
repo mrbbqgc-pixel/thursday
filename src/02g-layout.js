@@ -224,6 +224,7 @@ function yardTree(t){const k=rnd();if(k<.3)t[3]=7;else if(k<.42)t[3]=1;if(t[3]==
 function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.TK,old=tk.old,u0=l.u-l.w/2,u1=l.u+l.w/2,curb=r.v+sg*HWL,vF=l.vF,
     park=l.pk&&!l.aunt,v0=vF+sg*(park?1.25:0),gf=Math.max(0,H.gar[1]-H.door[1]),vm=l.vf+sg*gf,dside=gU>l.u?-1:1,
     rect=(mat,ua,ub,va,vb,y)=>T.flatL(mat,ua,Math.min(va,vb),ub,Math.max(va,vb),y,6);
+  {const c=P(l.u,l.vf);if(c[0]<BOUND.x0||c[0]>BOUND.x1||c[1]<BOUND.z0||c[1]>BOUND.z1)return;} // lots beyond the playing area keep only their house's look
   // a boat on its trailer on a concrete pad beside the driveway
   let boatIv=null;if(!l.car&&rnd()<.04){const bu=gU+dside*1.35;boatIv=1;const p=P(bu,l.vf-sg*3.4);boatSpots.push([p[0],p[1],ry+(rnd()<.5?0:PI)]);solid(p[0],p[1],T.sw?6.8:2.3,T.sw?2.3:6.8,2.2,0,0);
     if(rnd()<.5){const q=P(gU-dside*1.35,l.vf-sg*2.75);car(q[0],q[1],T.sw,undefined,undefined,2);}}
@@ -261,10 +262,9 @@ function backPoles(P,sw,rv,a,b,coll){const c=P((a+b)/2,rv);if(c[0]<BOUND.x0||c[0
   for(let u=a+12;u<b-8;u+=48){if(coll.some(uc=>Math.abs(u-uc)<HWC+SWC+5))continue;const p=P(u,rv+.55);poles.push([p[0],p[1],sw?1:0,1]);}}
 // cracks, tar-sealed cracks and dark utility patches on the tract streets, cracks across the sidewalks (local road boxes, see tract)
 function streetWear(roads,P,sw,park){for(const r of roads){const alongU=!r.c,a=alongU?r.u0:r.v0,b=alongU?r.u1:r.v1,c=alongU?(r.v0+r.v1)/2:(r.u0+r.u1)/2,hw=alongU?(r.v1-r.v0)/2:(r.u1-r.u0)/2,
-    m=P(alongU?(a+b)/2:c,alongU?c:(a+b)/2);if(m[0]<BOUND.x0-30||m[0]>BOUND.x1+30||m[1]<BOUND.z0-30||m[1]>BOUND.z1+30)continue;if(m[0]>-249&&m[0]<0&&m[1]>-504&&m[1]<-260)continue;
+    m=P(alongU?(a+b)/2:c,alongU?c:(a+b)/2);if(m[0]<BOUND.x0||m[0]>BOUND.x1||m[1]<BOUND.z0||m[1]>BOUND.z1)continue;if(m[0]>-249&&m[0]<0&&m[1]>-504&&m[1]<-260)continue;
   const ry0=(alongU!==sw)?0:PI/2,at=(t,o)=>alongU?P(t,c+o):P(c+o,t);
-  for(const s of [-1,1]){const g0=at(a,s*hw),g1=at(b,s*(hw-.45));flat(M.concO,Math.min(g0[0],g1[0]),Math.min(g0[1],g1[1]),Math.max(g0[0],g1[0]),Math.max(g0[1],g1[1]),.033,4);}
-  for(let t=a+rr(2,8);t<b-2;t+=rr(7,15)){const k=rnd(),o=rr(-hw+.8,hw-.8),p=at(t,o);
+  for(let t=a+rr(2,8);t<b-2;t+=rr(9,19)){const k=rnd(),o=rr(-hw+.8,hw-.8),p=at(t,o);
     if(k<.42)cutF(p[0],p[1],.034,rr(2.2,4.2),rr(.5,.9),ry0+rr(-.35,.35),CUT.crack,0xffffff);
     else if(k<.55)cutF(p[0],p[1],.034,rr(1.8,3),rr(1.6,2.6),ry0+rr(-.2,.2),CUT.tar,0xffffff);
     else if(k<.63){const w=rr(1.2,3),d=rr(1,2.2),y=.036;quadC(M.shade,[p[0]-w/2,y,p[1]+d/2],[p[0]+w/2,y,p[1]+d/2],[p[0]+w/2,y,p[1]-d/2],[p[0]-w/2,y,p[1]-d/2],0,1,0,0,.62,.14,.9,.14);}}
