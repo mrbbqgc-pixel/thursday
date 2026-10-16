@@ -1,6 +1,7 @@
 window.__bot=function(seconds,opts){opts=opts||{};const g=window.__game,P=g.P,F=g.makeField(true);let t=0,ft=0;const log=[],dt=1/30,cl=(v,a,b)=>v<a?a:v>b?b:v,ad=(a,b)=>{let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;};
-// (merge) a bot that has stood at the objective for 15 s with nobody in sight goes to look for the nearest hostile for 20 s
-  g.BOT.on=true;let idle=0,hunt=0,lastStage=g.MS.i,deaths=0,cur=null,acq=0,ey=0,ep=0,et=0,dmgT=0,lastHp=P.hp;const H=opts.human;
+// (merge) a bot that has stood at the objective for 15 s with nobody in sight goes to look for the nearest hostile for 20 s;
+// one that has not moved for 2 s while walking side-steps for 1.2 s (posts and wall ends)
+  g.BOT.on=true;let idle=0,hunt=0,stT=0,stX=0,stZ=0,side=0,lastStage=g.MS.i,deaths=0,cur=null,acq=0,ey=0,ep=0,et=0,dmgT=0,lastHp=P.hp;const H=opts.human;
   while(t<seconds){
     if(g.G.state==='dead'){deaths++;log.push(['DEAD',Math.floor(t),g.MS.i,Math.round(P.x),Math.round(P.z),g.OBJ.sub]);if(!opts.retry)break;g.restartCheckpoint();g.G.state='play';lastHp=100;}
     if(g.G.state!=='play')break;
@@ -15,7 +16,7 @@ window.__bot=function(seconds,opts){opts=opts||{};const g=window.__game,P=g.P,F=
       P.yaw+=cl(ad(wy2,P.yaw),-3*dt,3*dt);P.pitch*=.9;g.BOT.f=1;g.BOT.s=0;g.BOT.sprint=!P.bike;g.IN.useHeld=!!bk&&bdd<3;}
     else{g.IN.fire=false;P.wantAds=false;if(P.crouching)if(!P.bike)g.IN.crouchT=true;const away=g.MS.phase==='defend',aw=(g.MS.st&&g.MS.st.away)||[0,26],hi=g.OBJ.y>3&&!(g.MS.st&&g.MS.st.type==='boss'),gx=away?g.MS.st.x+aw[0]:hi?g.OBJ.x+6:g.OBJ.x,gz=away?g.MS.st.z+aw[1]:hi?g.OBJ.z+34:g.OBJ.z;idle=Math.hypot(gx-P.x,gz-P.z)<6&&!chase?idle+dt:0;if(idle>15){idle=0;hunt=20;}let hx=gx,hz=gz;if(hunt>0){hunt-=dt;let bf=null,bd2=1e9;for(const f of g.foes)if(f.alive){const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<bd2){bd2=d;bf=f;}}if(bf){hx=bf.x;hz=bf.z;}else hunt=0;}ft-=dt;if(ft<=0){ft=.5;g.flow(F,hx,hz,1400);}
       const dO=Math.hypot(hx-P.x,hz-P.z),fd=g.flowDir(F,P.x,P.z),wy=Math.atan2(-fd.x,-fd.z);P.yaw+=cl(ad(wy,P.yaw),-5*dt,5*dt);P.pitch*=.9;
-      g.BOT.f=dO>2.5?1:0;g.BOT.s=0;g.BOT.sprint=dO>40;g.IN.useHeld=!P.bike&&!!g.G.prompt&&/plant|overload/.test(g.G.prompt);if(g.G.prompt&&/swap/.test(g.G.prompt)&&opts.pick)if(!P.bike)g.IN.use=true;
+      g.BOT.f=dO>2.5?1:0;stT+=dt;if(stT>2){stT=0;if(g.BOT.f&&Math.hypot(P.x-stX,P.z-stZ)<.4)side=1.2*(Math.random()<.5?-1:1);stX=P.x;stZ=P.z;}if(side>0)side=Math.max(0,side-dt);else if(side<0)side=Math.min(0,side+dt);g.BOT.s=side>0?1:side<0?-1:0;g.BOT.sprint=dO>40;g.IN.useHeld=!P.bike&&!!g.G.prompt&&/plant|overload/.test(g.G.prompt);if(g.G.prompt&&/swap/.test(g.G.prompt)&&opts.pick)if(!P.bike)g.IN.use=true;
       if(g.P.slots[g.P.cur].mag===0&&g.P.slots[g.P.cur].res===0)if(!P.bike)g.IN.swap=true;}
     g.sim(1,dt);t+=dt;if(P.hp<lastHp)dmgT+=lastHp-P.hp;lastHp=P.hp;
     if(g.MS.i!==lastStage){log.push(['STAGE',Math.floor(t),g.MS.i,g.OBJ.text,'score '+g.G.score,'kills '+g.G.stats.kills]);lastStage=g.MS.i;}

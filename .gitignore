@@ -13,3 +13,4 @@ test/mp-*.png
 .claude/
 test/diag/*.png
 test/node_modules
+test/life/
