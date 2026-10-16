@@ -24,7 +24,7 @@ const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 if(isTouch)document.body.classList.add('touch');
 const Q={shadows:!isTouch,pr:Math.min(window.devicePixelRatio||1,isTouch?1.5:2),maxFoes:isTouch?10:14,far:isTouch?430:560};
 // distance detail (03c cullChunks): beyond DET_D[t] metres (nearest edge of a chunk) objects smaller than DET_R[t] (bounding radius) are not drawn
-const DET_D=[150,280],DET_R=[.7,1.6];
+const DET_D=[150,260],DET_R=[.7,2];
 renderer.setPixelRatio(Q.pr);
 if(Q.shadows){renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;}
 // ---------- light and colour

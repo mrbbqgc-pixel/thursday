@@ -11,9 +11,11 @@ function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat
     else g.setAttribute('color',new T.Float32BufferAttribute(b.c,3));}
   g.setIndex(b.i);
   // far versions of the index without the small objects (see detMark): one per distance tier
-  if(b.det&&b.det.length){const L=[g.index];for(let t=0;t<DET_R.length;t++){const keep=new Uint8Array(b.i.length/3+1).fill(1),d=b.det;let n=0;for(let q=0;q<d.length;q+=3)if(d[q]<DET_R[t])for(let k=d[q+1]/3;k<d[q+2]/3;k++)keep[k]=0;
-      const out=[];for(let k=0;k<b.i.length;k+=3)if(keep[k/3])out.push(b.i[k],b.i[k+1],b.i[k+2]);if(out.length===b.i.length){L.push(L[L.length-1]);continue;}
-      const A=new (b.p.length/3>65535?Uint32Array:Uint16Array)(out),at=new T.BufferAttribute(A,1);at.onUpload(freeArr);L.push(at);}
+  if(b.det&&b.det.length){const nT=b.i.length/3,drop=new Uint8Array(nT),d=b.det,NT=DET_R.length;   // drop[k]: first tier without triangle k (0 = never)
+    for(let q=0;q<d.length;q+=3){let t=0;while(t<NT&&d[q]>=DET_R[t])t++;if(t<NT)drop.fill(t+1,d[q+1]/3,d[q+2]/3);}
+    const L=[g.index],I=b.i,big=b.p.length/3>65535;for(let t=1;t<=NT;t++){let n=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t)n++;
+      if(n===nT){L.push(L[t-1]);continue;}const A=big?new Uint32Array(n*3):new Uint16Array(n*3);let o=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t){A[o++]=I[3*k];A[o++]=I[3*k+1];A[o++]=I[3*k+2];}
+      const at=new T.BufferAttribute(A,1);at.onUpload(freeArr);L.push(at);}
     if(L.some(a=>a!==L[0])){g.userData.lod=L;g.userData.tier=0;}}
   b.p=b.n=b.u=b.c=b.i=null;if(mat!==M.paint)for(const k in g.attributes)g.attributes[k].onUpload(freeArr);const m=new T.Mesh(g,mat);m.matrixAutoUpdate=false;return m;}
 globals.forEach((b,mat)=>{const m=mkMesh(b,mat);m.receiveShadow=true;m.frustumCulled=false;scene.add(m);});

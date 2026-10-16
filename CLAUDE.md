@@ -67,9 +67,11 @@ reachable through the session proxy; Pages was switched on by pushing the `gh-pa
   replacing the link and the script with inlined copies. Saves use `localStorage` key `thursday1`, always inside try/catch.
 - **Test hooks:** `window.__game` (state, `sim(n,dt)`, bot inputs) is used by every scenario.
 - **Phone budget:** about 120k to 185k triangles and 100 to 155 draw calls in play, up to about 265k triangles in the menu flyover
-  (view distance 430, no shadows). The whole town is about 1.28M vertices in about 850 chunk meshes: static geometry and props are
-  baked into 128 m chunks, and there is one skinned mesh per soldier. The script that builds the town runs in under a second in the
-  headless test (`static3.js` prints the per-module times).
+  (view distance 430, no shadows). The whole town is about 1.40M vertices in about 820 chunk meshes: static geometry and props are
+  baked into 128 m chunks, and there is one skinned mesh per soldier, civilian and moving car. Far chunks draw a cheaper index without
+  their small objects (`DET_D`, `DET_R` in `01-core.js`, `detMark`; switched in `cullChunks`), and contact shadows stop at 230 m.
+  The script that builds the town runs in about 1.2 to 1.6 s in the headless test (`static3.js` prints the per-module times).
+  `__game.menuAt(t)` sets the flyover angle for measuring the menu view.
 - **Map:** origin (0,0) = Haven Ave × Foothill Blvd; x east, z south; real distances compressed to 30% (x = (lon+117.5759)·27654,
   z = −(lat−34.1063)·33285), buildings at real size. Main streets come from US Census TIGER data (`data/tiger-major.txt`); residential
   streets are generic and made up, except the friend's block (`02j`, x −249…0, z −504…−260), which is at 1:1 scale with
