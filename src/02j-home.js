@@ -178,11 +178,11 @@ function contours(F,lev){NXT.fill(-1);for(let o=0;o<FN;o++)UP[o]=F[o]>=lev?1:0;
     if(en1<0){NXT[E(en0,i,j)]=E(ex0,i,j);continue;}
     const ctr=(F[o]+F[o+1]+F[o+FNX+1]+F[o+FNX])/4>=lev;
     for(const a of [en0,en1]){let b=-1;for(let s=1;s<4&&b<0;s++){const e=ctr?(a+4-s)&3:(a+s)&3;if(e===ex0||e===ex1)b=e;}NXT[E(a,i,j)]=E(b,i,j);}}
-  const loops=[];for(let id=0;id<2*FN;id++){if(NXT[id]<0)continue;const L0=[];let c=id;while(c>=0&&NXT[c]>=0){L0.push([EX[c],EZ[c]]);const n=NXT[c];NXT[c]=-1;c=n;}if(L0.length>3)loops.push(simp(L0,.035));}
+  const loops=[];for(let id=0;id<2*FN;id++){if(NXT[id]<0)continue;const L0=[];let c=id;while(c>=0&&NXT[c]>=0){L0.push([EX[c],EZ[c]]);const n=NXT[c];NXT[c]=-1;c=n;}if(L0.length>3)loops.push(simp(L0,.06));}
   return loops;}
 // drop points that stay within eps of the chord (closed loop)
 function simp(P,eps){const o=[P[0]];let a=0;
-  for(let i=1;i<P.length;i++){const b=(i+1)%P.length,A=P[a],Bp=P[b],dx=Bp[0]-A[0],dz=Bp[1]-A[1],l=Math.hypot(dx,dz)||1;let ok=l<6;
+  for(let i=1;i<P.length;i++){const b=(i+1)%P.length,A=P[a],Bp=P[b],dx=Bp[0]-A[0],dz=Bp[1]-A[1],l=Math.hypot(dx,dz)||1;let ok=l<9;
     if(ok)for(let j=a+1;j<=i;j++){if(Math.abs((P[j][0]-A[0])*dz-(P[j][1]-A[1])*dx)/l>eps){ok=false;break;}}
     if(!ok){o.push(P[i]);a=i;}}return o;}
 const area=P=>{let s=0;for(let i=0,j=P.length-1;i<P.length;j=i++)s+=(P[j][0]-P[i][0])*(P[j][1]+P[i][1]);return s/2;};
@@ -385,7 +385,7 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
  cyp(-2.5,.85,4.1);cyp(-.55,.8,3.9);
  const birch=(x,z,s)=>{const p=P2(x,z);anchor(p[0],p[1],()=>{for(let k=0;k<3;k++){const a=k*2.1+rr(-.3,.3),lean=rr(.08,.16),h=rr(6,7.4)*s;put(M.flat,GEO.tube6,p[0]+Math.sin(a)*.18,PADY,p[1]+Math.cos(a)*.18,a,.075*s,h,.075*s,0xe9e5dc,lean,0);
       for(let q=0;q<4;q++){const y=rr(1,h*.8),bx=p[0]+Math.sin(a)*(.18+lean*y),bz=p[1]+Math.cos(a)*(.18+lean*y);put(M.flat,GEO.box,bx,y,bz,a,.16*s,.05,.16*s,0x3b3832);}
-      for(let q=0;q<7;q++){const y=h*rr(.5,.98),r=rr(.35,.62)*s,bx=p[0]+Math.sin(a)*(.18+lean*y)+rr(-.5,.5),bz=p[1]+Math.cos(a)*(.18+lean*y)+rr(-.5,.5);put(M.flat,GEO.sphLo,bx+rr(-.6,.6),y,bz+rr(-.6,.6),rnd()*3,r,r*.6,r,pick([0xa3ad5f,0x93a356,0xb5b56a,0x8f9a52]));}}});solid(p[0],p[1],.5,.5,6,0,0);};
+      for(let q=0;q<7;q++){const y=h*rr(.5,.98),r=rr(.35,.62)*s,bx=p[0]+Math.sin(a)*(.18+lean*y)+rr(-.5,.5),bz=p[1]+Math.cos(a)*(.18+lean*y)+rr(-.5,.5);put(M.flat,GEO.sphLo,bx+rr(-.6,.6),y,bz+rr(-.6,.6),rnd()*3,r,r*rr(.75,1.05),r*rr(.8,1.1),pick([0xa3ad5f,0x93a356,0xb5b56a,0x8f9a52]));}}});solid(p[0],p[1],.5,.5,6,0,0);};
  birch(-9.6,5.3,1);birch(-10,1.6,.9);
  for(const q of [[-5.8,1.1,.9],[-4.6,1.0,.75],[-6.6,-.6,.8],[-6.9,-2.6,.7],[6.9,-.8,.7]]){const p=P2(q[0],q[1]);shrubs.push([p[0],p[1],q[2]]);}
  {const A=[loc(l,l.F0),loc(l,l.R0)],Bq=[loc(l,l.F1),loc(l,l.R1)];for(let v=.9;v<SET+1;v+=1.15){const u=Math.max(uAt(A,v),uAt(Bq,v))-1.1,p=wor(l,u,v);shrubs.push([p[0],p[1],rr(.55,.8)]);const r=wor(l,u-.9,v+.4);boulder(r[0],r[1],rr(.35,.55));}}
@@ -396,10 +396,12 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
  HOOD.spawn=(()=>{const p=P2(2.9,6.6);return[p[0],p[1],Math.atan2(l.nx,l.nz)];})();} // the mission's stage 1 spawn (08-mission.js) is this point
 for(const g of GATES){if(rnd()<.72)anyWall(g[0],g[1],g[2],g[3],1.8,0xb59a78,'barn',.12);else ironFence(g[0],g[1],g[2],g[3],1.6);}
 for(const w of WALLS)anyWall(w[0],w[1],w[2],w[3],1.85,w[4]==='rear'?C.greyWall:pick([C.greyWall,C.blockWall]),'wall8');
+// label bounding boxes grown by 14 m (quick reject for distance tests)
+const LBOX={};for(const o of LAB){const b=BULB.find(q=>q.k===o),P=b?[b.c]:S[o].p,g=b?RB+14:14;let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p[0]);z0=Math.min(z0,p[1]);x1=Math.max(x1,p[0]);z1=Math.max(z1,p[1]);}LBOX[o]=[x0-g,z0-g,x1+g,z1+g];}
 // ---------- the arterial edges: block wall with pilasters (gaps where the streets come out), street trees in the parkway
 for(const e of [[B.x0+AWI,B.z0+AWI,B.x0+AWI,B.z1-AWI],[B.x1-AWI,B.z0+AWI,B.x1-AWI,B.z1-AWI],[B.x0+AWI,B.z0+AWI,B.x1-AWI,B.z0+AWI],[B.x0+AWI,B.z1-AWI,B.x1-AWI,B.z1-AWI]]){
   const L0=Math.hypot(e[2]-e[0],e[3]-e[1]);let a=-1;
-  const clear=(x,z)=>{for(const o of LAB)if(dLab(o,x,z)<WR+4.2)return false;return true;};
+  const clear=(x,z)=>{for(const o of LAB){const b=LBOX[o];if(x<b[0]||x>b[2]||z<b[1]||z>b[3])continue;if(dLab(o,x,z)<WR+4.2)return false;}return true;};
   for(let t=0;t<=L0+.01;t+=.5){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0),ok=clear(x,z);
     if(ok&&a<0)a=t;if((!ok||t+.5>L0)&&a>=0){const b=ok?t:t-.5;if(b-a>.8)wallLine(lerp(e[0],e[2],a/L0),lerp(e[1],e[3],a/L0),lerp(e[0],e[2],b/L0),lerp(e[1],e[3],b/L0),1.85,C.blockWall,12);a=-1;}}
   for(let t=10;t<L0-6;t+=rr(17,24)){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0);if(!clear(x,z))continue;const ox=e[0]===e[2]?(e[0]<-100?-1:1):0,oz=e[0]===e[2]?0:(e[1]<-400?-1:1),px=x+ox*(AWI-1.45),pz=z+oz*(AWI-1.45);
