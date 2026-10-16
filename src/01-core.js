@@ -51,7 +51,7 @@ function hazeRGB(dx,dy,dz){const k=hazeK(dx,dy,dz);return[lerp(FOG_A[0],FOG_S[0]
  // a sun-bleached grade: the filmic curve gives back a little less saturation than it takes in
  S.tonemapping_pars_fragment=S.tonemapping_pars_fragment.replace('color = ACESOutputMat * color;\n\treturn saturate( color );','color = saturate( ACESOutputMat * color );\n\treturn mix( vec3( dot( color, vec3( .2126, .7152, .0722 ) ) ), color, .84 );');
  S.fog_pars_vertex='#ifdef USE_FOG\n\tvarying float fogDepth;\n\tvarying vec3 fogTint;\n\tuniform vec3 fogColor;\n#endif';
- S.fog_vertex='#ifdef USE_FOG\n\tfogDepth = - mvPosition.z;\n\tfloat fogS = max( dot( normalize( ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz ), '+v3([SUN.x,SUN.y,SUN.z])+' ), 0.0 );\n\tfogTint = mix( fogColor, '+v3(FOG_S)+', fogS * fogS * fogS );\n#endif';
+ S.fog_vertex='#ifdef USE_FOG\n\tfogDepth = - mvPosition.z;\n\tvec3 fogW = ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz;\n\tfloat fogS = max( dot( fogW, '+v3([SUN.x,SUN.y,SUN.z])+' ) / max( length( fogW ), 1e-4 ), 0.0 );\n\tfogTint = mix( fogColor, '+v3(FOG_S)+', fogS * fogS * fogS );\n#endif';
  S.fog_pars_fragment='#ifdef USE_FOG\n\tvarying float fogDepth;\n\tvarying vec3 fogTint;\n\tuniform float fogNear;\n\tuniform float fogFar;\n#endif';
  S.fog_fragment='#ifdef USE_FOG\n\tfloat fogFactor = 1.0 - ( 1.0 - smoothstep( fogNear, fogFar, fogDepth ) ) * exp( - fogDepth * .00045 );\n\tgl_FragColor.rgb = mix( gl_FragColor.rgb, fogTint, fogFactor );\n#endif';}
 const scene=new T.Scene();
@@ -61,7 +61,7 @@ camera.rotation.order='YXZ';
 scene.add(camera);
 // skylight from a clear blue sky, warm bounce from sun-baked ground: shade falls cool blue-grey, sunlit faces warm
 const hemi=new T.HemisphereLight(0xa5c3ea,0x8f8270,0.75);scene.add(hemi);
-const sun=new T.DirectionalLight(0xffdcb4,2.6);scene.add(sun);scene.add(sun.target);
+const sun=new T.DirectionalLight(0xffdcb4,2.4);scene.add(sun);scene.add(sun.target);
 // desktop shadows: a 2048 map over 160 m, a little ahead of the camera (crisp edges; the low sun makes them long)
 if(Q.shadows){sun.castShadow=true;const s=sun.shadow;s.mapSize.set(2048,2048);s.camera.left=-80;s.camera.right=80;s.camera.top=80;s.camera.bottom=-80;
   s.camera.near=20;s.camera.far=520;s.bias=-0.0004;s.normalBias=0.4;}
