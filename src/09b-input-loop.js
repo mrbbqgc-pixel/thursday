@@ -42,7 +42,7 @@ el.btnSurvival.addEventListener('click',ev=>{initAudio();clearFeeds();if(menuMod
 el.btnQuit.addEventListener('click',ev=>{if(menuMode==='main'){initAudio();clearFeeds();SAVE.stage=0;startMission(0);enterPlay(ev);}else{if(MP.on)mpLeave();toMain();}});
 function openMap(){const inGame=G.state==='play'||G.state==='pause';if(G.state==='play')pause();drawBigMap();el.mapOver.hidden=false;
   // start the scroll on the player (or on Aunt Ro's street from the main menu)
-  const w=$('mapWrap'),cw=el.bigmap.clientWidth,ch=el.bigmap.clientHeight,tx=inGame?P.x:-230,tz=inGame?P.z:-300;w.scrollLeft=(tx-MX0)/MAPW*cw-w.clientWidth/2;w.scrollTop=(tz-MZ0)/MAPH*ch-w.clientHeight/2;}
+  const w=$('mapWrap'),cw=el.bigmap.clientWidth,ch=el.bigmap.clientHeight,tx=inGame?P.x:-54,tz=inGame?P.z:-371;w.scrollLeft=(tx-MX0)/MAPW*cw-w.clientWidth/2;w.scrollTop=(tz-MZ0)/MAPH*ch-w.clientHeight/2;}
 el.btnMapMenu.addEventListener('click',openMap);$('btnMapClose').addEventListener('click',()=>{el.mapOver.hidden=true;});
 
 // ---------- keyboard and mouse

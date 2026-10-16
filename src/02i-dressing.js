@@ -22,11 +22,12 @@ for(const q of [[-300,STR.FH.z+STR.FH.hw+1.2,0],[260,STR.FH.z-STR.FH.hw-1.2,PI],
 // ---------- wooden power poles along Arrow, Jersey and 6th, wires between them
 for(const b of [STR.AR,STR.JE,STR.SIX])for(let x=Math.max(b.x0,-700);x<Math.min(b.x1,fwEdge(b.z)-6);x+=42){if(ISEC.some(i=>i.b===b&&Math.abs(i.x-x)<i.a.hw+5))continue;poles.push([x,b.z+b.hw+3.2,0]);}
 // ---------- tract monuments at the Terra Linda entries
-for(const q of [[-120,zS('BL')+SWA+1.2,0],[-120,zN('CH')-SWA-1.2,PI]])for(const s of [-1,1]){const x=q[0]+s*(HWC+SWC+4.5),z=q[1];anchor(x,z,()=>{boxE(CE,x,0,z,5.2,1.3,.7,0xffffff,cuv(CI.stone));boxC(M.flat,x,1.3,z,5.4,.12,.8,0xb5583a);
+// 02j-home hook (next line): the monuments stand at the real entries (Marine Ave on Base Line, Mesada St on Church St), on the lawn strip in front of the wall
+for(const q of [[-167.7,zS('BL')+4.3,0],[-66.6,zN('CH')-4.3,PI]])for(const s of [-1,1]){const x=q[0]+s*15.8,z=q[1];anchor(x,z,()=>{boxE(CE,x,0,z,5.2,1.3,.7,0xffffff,cuv(CI.stone));boxC(M.flat,x,1.3,z,5.4,.12,.8,0xb5583a);
     boardQ(strip('tl','TERRA LINDA','#e9e1cc','#5b3a22','bold 36px Georgia,serif'),x,.35,z+(q[2]?-.36:.36),q[2],3.6,.8,false);});solid(x,z,5.2,.7,1.4,0,5);lowCover.push([x,z]);}
 // ---------- Kingsley Prime's barricades round the places they hold, and the command post in the outlet mall's south-west court
 const KTAN=0xd6c08a;
-for(const b of [[-150,64,1],[-118,64,1],[-86,64,1],[-60,70,0],[1150,-126,1],[1144,-198,1],[1156,-198,1],[30,152,1],[52,152,1],[-232,-318,0],[-224,-334,1]])barrier(b[0],b[1],!!b[2],KTAN);
+for(const b of [[-150,64,1],[-118,64,1],[-86,64,1],[-60,70,0],[1150,-126,1],[1144,-198,1],[1156,-198,1],[30,152,1],[52,152,1],[-98,-412,0],[-79,-392,1],[-68.5,-347,1],[-63,-450,1]])barrier(b[0],b[1],!!b[2],KTAN); // 02j-home hook: the last four stand on the real streets of the start block (the old cul-de-sac is gone)
 for(const s of [[1150,-142,4,1],[1136,-160,4,0],[-140,72,4.5,1],[46,166,4,1]])sandbags(s[0],s[1],s[2],!!s[3]);
 {const cx=OUT.court[0],cz=OUT.court[1];
  for(const t of [[cx-8,cz+6,6,4],[cx+4,cz+12,5,4]]){anchor(t[0],t[1],()=>{boxC(M.flat,t[0],0,t[1],t[2],2.2,t[3],0x5f5a48);put(M.flat,GEO.cone4,t[0],2.2,t[1],PI/4,t[2]*.72,1.2,t[3]*.72,0x6a6450);blob(t[0],t[1],t[2]/2+.6,t[3]/2+.6,PADY);});solid(t[0],t[1],t[2],t[3],2.6,0,1);}
