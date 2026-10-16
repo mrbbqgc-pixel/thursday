@@ -49,7 +49,7 @@ function avPaint(){const g=avCv.getContext('2d'),A=AVATAR,st=A.shirtStyle||'tee'
   else if(st==='jersey'){g.fillStyle='rgba(0,0,0,.08)';for(let y=0;y<128;y+=3)for(let x=(y%6?0:1.5);x<128;x+=3)g.fillRect(x,y,1.2,1.2);
     const tr=((S>>16&255)+(S>>8&255)+(S&255))>380?'#1d3f7a':'#f2efe6',num=String(A.number===undefined?4:A.number);
     for(const u of [0,.5,1]){const [x,y]=avXY(1,u,.86);g.fillStyle=tr;g.beginPath();g.ellipse(x,y,15,44,0,0,TAU);g.fill();g.fillStyle=css(A.skin);g.beginPath();g.ellipse(x,y,12,41,0,0,TAU);g.fill();} // arm holes with trim
-    g.fillStyle=tr;g.font='bold 40px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';let [x,y]=avXY(1,.25,.45);g.fillText(num,x,y);g.font='bold 20px Arial,sans-serif';[x,y]=avXY(1,.75,.6);g.fillText(num,x,y);}
+    g.fillStyle=tr;g.textAlign='center';g.textBaseline='middle';const txt=(u,v,px)=>{const [x,y]=avXY(1,u,v);g.save();g.translate(x,y);g.scale(-1,1);g.font='bold '+px+'px Arial,sans-serif';g.fillText(num,0,0);g.restore();};txt(.25,.45,40);txt(.75,.6,20);} // the cell runs right to left round the body
   else{g.fillStyle='rgba(0,0,0,.03)';for(let y=0;y<128;y+=2)g.fillRect(0,y,128,1);}
   for(let k=0;k<700;k++){g.fillStyle=R()<.5?'rgba(255,255,255,.14)':'rgba(0,0,0,.05)';g.fillRect(R()*128,R()*128,1+R()*2,1);}       // weave
   g.strokeStyle='rgba(0,0,0,.09)';g.lineWidth=2;for(let k=0;k<9;k++){const y=18+k*9+R()*4,x=R()*128;g.beginPath();g.moveTo(x-18,y+4);g.quadraticCurveTo(x,y-2,x+20,y+3);g.stroke();} // folds round the waist and back

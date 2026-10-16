@@ -192,7 +192,7 @@ function figParts(L,X){const o={},sk=L.skin||0xc68e64,Wd=L.w||1,BL=L.belly||0,kp
     if(sho){const e=cut==='cutoff'?-.2:-.25,r=[.1*lw,.103*lw].map(v=>v*1.06);tb(b,[TH[0],TH[1],[e,r[0]*.92,r[1]*.92,0,.003]],8,{c:Pn,mode:4});
       tb(b,[[e,r[0]*.92,r[1]*.92,0,.003],[e+.003,r[0]*.92-.016,r[1]*.92-.016,0,.003]],8,{c:cut==='cutoff'?mixc(Pn,0xffffff,.45):shade(Pn,.65),inn:[0,e+.06,0]});
       tb(b,[[e+.03,.082*lw,.085*lw,0,.003],[-.32,.07*lw,.072*lw,0,0],[-.42,.062*lw,.065*lw,0,-.004],[-.47,.059*lw,.062*lw,0,-.004]],8,{c:sk});}
-    else tb(b,TH,8,{c:Pn,mode:4});
+    else tb(b,TH,X.hq?8:7,{c:Pn,mode:4});
     o[s<0?'thighL':'thighR']=b.build();
     b=new GB();
     if(sho){tb(b,[[.04,.058*lw,.06*lw],[-.04,.059*lw,.064*lw,0,.006],[-.12,.058*lw,.066*lw,0,.012],[-.24,.045*lw,.048*lw,0,.002],[-.33,.036*lw,.038*lw],[-.37,.035*lw,.037*lw]],8,{c:sk});
@@ -247,7 +247,7 @@ function figParts(L,X){const o={},sk=L.skin||0xc68e64,Wd=L.w||1,BL=L.belly||0,kp
   if(L.shades)bx(b,0,0,.714,-.105,0,0,0,.155,.028,.016,0x0f0f11);
   if(L.glasses)for(const s of [-1,1])bx(b,0,s*.034,.716,-.106,0,0,0,.05,.028,.006,0x3a3a3a);
   if(L.stache)bx(b,0,0,.655,-.102,.15,0,0,.05,.016,.012,L.stache);
-  if(L.beard)fgPatch(b,3,6,(i,j,q)=>{const a=(7/12-.03+j*(1/3+.06)/6)*TAU;fgHead([.6,.632,.668][i],a,i===2?.004:.008,q);return q;},{col:X.vc(3,L.beard),inn:[0,.66,0],uv:(u,v,x,y,z,q)=>X.uv(3,u,v,q)});
+  if(L.beard)fgPatch(b,3,4,(i,j,q)=>{const a=(7/12-.03+j*(1/3+.06)/4)*TAU;fgHead([.6,.632,.668][i],a,i===2?.004:.008,q);return q;},{col:X.vc(3,L.beard),inn:[0,.66,0],uv:(u,v,x,y,z,q)=>X.uv(3,u,v,q)});
   if(L.headset){bx(b,0,.083,.68,-.015,0,0,0,.02,.05,.045,0x15151a);fgSeg(b,X,0,GEO.rod,.08,.69,-.04,.03,.66,-.11,.005,.005,0x15151a);}
   if(L.headK){const k=L.headK;for(let i=0;i<b.p.length;i+=3){b.p[i]*=k;b.p[i+1]=.5+(b.p[i+1]-.5)*k;b.p[i+2]*=k;}} // a bigger head (round the base of the neck)
   o.head=b.build();return o;}
