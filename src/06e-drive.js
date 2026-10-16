@@ -89,6 +89,8 @@ function exitSpot(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx,
     pr.x=x;pr.z=z;pushOut(pr,.5,0);if(Math.hypot(pr.x-x,pr.z-z)>.02||floorAt(x,z,0)>.3)continue;if(strict&&!freeSpot(x,z))continue;
     if(rayWorld(k.x,1,k.z,x-k.x,0,z-k.z,1)<.98)continue; // (rayWorld takes a direction; this one is unnormalised, so t is a fraction of the way)
     DRV.exitFree=strict;return[x,z];}
+  for(let r=3.5;r<8;r+=1.5)for(let q=0;q<16;q++){const x=k.x+Math.cos(q/16*TAU)*r,z=k.z+Math.sin(q/16*TAU)*r;pr.x=x;pr.z=z;pushOut(pr,.5,0); // a wider ring, as a last resort
+    if(Math.hypot(pr.x-x,pr.z-z)<.02&&floorAt(x,z,0)<.3&&x>BOUND.x0+1&&x<BOUND.x1-1&&z>BOUND.z0+1&&z<BOUND.z1-1){DRV.exitFree=freeSpot(x,z);return[x,z];}}
   return null;}
 // damage inside a car: reduced; a hit that would kill throws you out first, so you go down on the street
 function carHurt(dmg){dmg*=.6;if(P.alive&&G.state==='play'&&P.hp-dmg*G.dmgK<=0&&!(MP.on&&P.spawnT>0)){const k=P.car;if(!carExit(1)&&P.car)carExit(2);if(k)P.yaw=k.yaw;}return dmg;}
