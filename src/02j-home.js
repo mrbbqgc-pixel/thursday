@@ -25,10 +25,11 @@ function resample(p,step){const s=cum(p),L=s[s.length-1],n=Math.max(1,Math.round
 // a street: points every ~2 m with arc length, unit tangent and normal n = (-tz, tx); side +1 is the n side
 function mkStreet(k,pts){const p=resample(chaikin(pts,3),2),s=cum(p),t=[],n=[];
   for(let i=0;i<p.length;i++){const a=p[Math.max(0,i-1)],b=p[Math.min(p.length-1,i+1)],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1;t.push([(b[0]-a[0])/l,(b[1]-a[1])/l]);n.push([-(b[1]-a[1])/l,(b[0]-a[0])/l]);}
-  return{k,p,s,t,n,L:s[s.length-1]};}
+  const cp=p.filter((q,i)=>i%3===0||i===p.length-1),cn=cp.map((q,i)=>{const a=cp[Math.max(0,i-1)],b=cp[Math.min(cp.length-1,i+1)],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1;return[-(b[1]-a[1])/l,(b[0]-a[0])/l];});
+  return{k,p,s,t,n,L:s[s.length-1],C:{p:cp,s:cum(cp),n:cn}};}
 const S={};for(const k in RAW)S[k]=mkStreet(k,RAW[k]);
 // nearest point on a street: distance, arc length, side, foot point
-function near(st,x,z){const p=st.p;let bd=1e18,bi=0,bt=0;
+function near(st,x,z,c){if(c)st=st.C;const p=st.p;let bd=1e18,bi=0,bt=0;
   for(let i=0;i<p.length-1;i++){const ax=p[i][0],az=p[i][1],dx=p[i+1][0]-ax,dz=p[i+1][1]-az,l2=dx*dx+dz*dz||1;let t=((x-ax)*dx+(z-az)*dz)/l2;t=t<0?0:t>1?1:t;const ex=ax+dx*t-x,ez=az+dz*t-z,d=ex*ex+ez*ez;if(d<bd){bd=d;bi=i;bt=t;}}
   const fx=lerp(p[bi][0],p[bi+1][0],bt),fz=lerp(p[bi][1],p[bi+1][1],bt),n=st.n[bi];return{d:Math.sqrt(bd),s:lerp(st.s[bi],st.s[bi+1],bt),side:((x-fx)*n[0]+(z-fz)*n[1])>=0?1:-1,fx,fz};}
 // position, tangent and normal at arc length s
@@ -40,7 +41,7 @@ function at(st,s){s=clamp(s,0,st.L);let i=0;while(i<st.p.length-2&&st.s[i+1]<s)i
 const BULB=[{k:'SGb',st:'SG',c:S.SG.p[S.SG.p.length-1],end:1},{k:'MSb',st:'MS',c:S.MS.p[0],end:0}];
 // "distance" to each label: streets by their centre line, bulbs by their centre less (RB-HW), so the curb line is at HW for every one
 const LAB=['IW','MN','SG','MS','SGb','MSb'];
-function dLab(k,x,z){const b=BULB.find(q=>q.k===k);if(b)return Math.hypot(x-b.c[0],z-b.c[1])-(RB-HW);return near(S[k],x,z).d;}
+function dLab(k,x,z){const b=BULB.find(q=>q.k===k);if(b)return Math.hypot(x-b.c[0],z-b.c[1])-(RB-HW);return near(S[k],x,z,1).d;}
 const inset=(x,z)=>Math.min(x-B.x0,B.x1-x,z-B.z0,B.z1-z); // >0 inside the block (from the arterial curb lines)
 // ---------- lots. The frontage (back of the sidewalk) along both sides of the through street and of Marine Ave south is cut into lots;
 // round each bulb, pie slices. A lot side line is a ray along the street normal that ends at the arterial wall, where another street (or
@@ -49,11 +50,11 @@ const inset=(x,z)=>Math.min(x-B.x0,B.x1-x,z-B.z0,B.z1-z); // >0 inside the block
 const LOTS=[],POLY=[];
 const pip=(P,x,z)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
 function rayEnd(k,x,z,dx,dz,s0,max,ign){
-  const ok=(px,pz)=>{if(inset(px,pz)<AWI+.3)return false;const own=k.length>2?{d:dLab(k,px,pz),s:s0}:near(S[k],px,pz);if(k.length<=2&&Math.abs(own.s-s0)>4)return false;
+  const ok=(px,pz)=>{if(inset(px,pz)<AWI+.3)return false;const own=k.length>2?{d:dLab(k,px,pz),s:s0}:near(S[k],px,pz,1);if(k.length<=2&&Math.abs(own.s-s0)>4)return false;
     for(const o of LAB){if(o===k)continue;const d=dLab(o,px,pz);if(d<WR+1)return false;if(!(ign&&ign.indexOf(o)>=0)&&d<own.d-.01)return false;}
     for(const P of POLY)if(pip(P,px,pz))return false;return true;};
-  let t=1,lx=x,lz=z;for(;t<=max;t+=1){const px=x+dx*t,pz=z+dz*t;if(!ok(px,pz))break;lx=px;lz=pz;}
-  if(t<=max){let a=t-1,b=t;for(let q=0;q<4;q++){const m=(a+b)/2;if(ok(x+dx*m,z+dz*m))a=m;else b=m;}return[x+dx*a,z+dz*a,a];}
+  let t=2,lx=x,lz=z;for(;t<=max;t+=2){const px=x+dx*t,pz=z+dz*t;if(!ok(px,pz))break;lx=px;lz=pz;}
+  if(t<=max){let a=t-2,b=t;for(let q=0;q<4;q++){const m=(a+b)/2;if(ok(x+dx*m,z+dz*m))a=m;else b=m;}return[x+dx*a,z+dz*a,a];}
   return[lx,lz,max];}
 // frontage test: true, or the label that is in the way
 function frontOK(k,side,s){const st=S[k],q=at(st,s),fx=q.x+q.nx*side*WR,fz=q.z+q.nz*side*WR;if(inset(fx,fz)<AWI+4)return'art';
@@ -128,7 +129,7 @@ const artPt=p=>{const d=[p[0]-B.x0,B.x1-p[0],p[1]-B.z0,B.z1-p[1]],i=d.indexOf(Ma
 function endWall(F,R,d){const w=segOn(F,R,d);if(!w)return;if(inset(F[0],F[1])<AWI+4.6&&inset(R[0],R[1])<AWI+4.6){const q=artPt([w[0],w[1]]);WALLS.push([w[0],w[1],q[0],q[1],'end']);}else WALLS.push(w.concat('end'));}
 {let prev=null;for(const l of LOTS){const same=prev&&prev.k===l.k&&prev.side===l.side&&Math.abs(prev.s1-l.s0)<.01;
    if(!same){if(prev)endWall(prev.F1,prev.R1,gateD(prev));endWall(l.F0,l.R0,gateD(l));}
-   else{const w=segOn(l.F0,l.R0,Math.max(gateD(prev),gateD(l)));if(w)WALLS.push(w.concat('side'));}
+   else{const w=segOn(l.F0,l.R0,Math.min(gateD(prev),gateD(l)));if(w)WALLS.push(w.concat('side'));}
    prev=l;}
  if(prev)endWall(prev.F1,prev.R1,gateD(prev));}
 // rear lines (skipped along the arterial wall, and where a neighbour's rear line already runs)
@@ -153,7 +154,7 @@ M.hoodRoad=L({polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,ma
 M.gravel=ground('#b6a283',5200,.13,(g,w,h)=>{for(let k=0;k<160;k++){const r=rr(1,3.2);g.fillStyle=pick(['#cfc3ad','#8f7f68','#a8977c','#d9cfbd','#7d6e5b']);g.beginPath();g.ellipse(rnd()*w,rnd()*h,r,r*.8,rnd()*3,0,7);g.fill();}},256);
 // ---------- the street surfaces from one smooth distance field D: D = HW on the curb line. Bands: asphalt (D<HW), rolled curb, parkway,
 // sidewalk, lawn. Streets, bulbs and the four arterial edges are blended with a smooth minimum, which rounds every corner.
-const FH=.5,FX0=B.x0-1.25,FZ0=B.z0-1.25,FNX=Math.round((B.x1-B.x0+2.5)/FH)+1,FNZ=Math.round((B.z1-B.z0+2.5)/FH)+1,FN=FNX*FNZ;
+const FH=1,FX0=B.x0-1.5,FZ0=B.z0-1.5,FNX=Math.round((B.x1-B.x0+3)/FH)+1,FNZ=Math.round((B.z1-B.z0+3)/FH)+1,FN=FNX*FNZ;
 const smin=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25;};
 const DF=new Float32Array(FN).fill(99),TMP=new Float32Array(FN);
 {const RM=17;
@@ -168,16 +169,17 @@ const DF=new Float32Array(FN).fill(99),TMP=new Float32Array(FN);
  for(let j=0;j<FNZ;j++)for(let i=0;i<FNX;i++){const o=j*FNX+i;DF[o]=smin(DF[o],HW+inset(FX0+i*FH,FZ0+j*FH),8);}}
 // marching squares: closed loops round {F >= lev}; adjacent cells share edge points, saddles follow the cell centre
 const NXT=new Int32Array(2*FN),EX=new Float32Array(2*FN),EZ=new Float32Array(2*FN);
-function contours(F,lev){NXT.fill(-1);
+const UP=new Uint8Array(FN);
+function contours(F,lev){NXT.fill(-1);for(let o=0;o<FN;o++)UP[o]=F[o]>=lev?1:0;
   const ptH=(i,j)=>{const id=j*FNX+i,a=F[id],b=F[id+1],t=(lev-a)/(b-a);EX[id]=FX0+(i+t)*FH;EZ[id]=FZ0+j*FH;return id;},
-    ptV=(i,j)=>{const id=FN+j*FNX+i,a=F[j*FNX+i],b=F[(j+1)*FNX+i],t=(lev-a)/(b-a);EX[id]=FX0+i*FH;EZ[id]=FZ0+(j+t)*FH;return id;};
-  for(let j=0;j<FNZ-1;j++)for(let i=0;i<FNX-1;i++){const o=j*FNX+i,cr=[F[o]>=lev,F[o+1]>=lev,F[o+FNX+1]>=lev,F[o+FNX]>=lev];
-    if(cr[0]===cr[1]&&cr[1]===cr[2]&&cr[2]===cr[3])continue;
-    const E=e=>e===0?ptH(i,j):e===1?ptV(i+1,j):e===2?ptH(i,j+1):ptV(i,j),en=[],ex=[];
-    for(let e=0;e<4;e++){const p=cr[e],q=cr[(e+1)%4];if(p!==q)(p?ex:en).push(e);}
-    if(en.length===1)NXT[E(en[0])]=E(ex[0]);
-    else{const ctr=(F[o]+F[o+1]+F[o+FNX+1]+F[o+FNX])/4>=lev;
-      for(const a of en){let b=-1;if(!ctr){for(let s=1;s<4;s++)if(ex.indexOf((a+s)%4)>=0){b=(a+s)%4;break;}}else{for(let s=1;s<4;s++)if(ex.indexOf((a+4-s)%4)>=0){b=(a+4-s)%4;break;}}NXT[E(a)]=E(b);}}}
+    ptV=(i,j)=>{const id=FN+j*FNX+i,a=F[j*FNX+i],b=F[(j+1)*FNX+i],t=(lev-a)/(b-a);EX[id]=FX0+i*FH;EZ[id]=FZ0+(j+t)*FH;return id;},
+    E=(e,i,j)=>e===0?ptH(i,j):e===1?ptV(i+1,j):e===2?ptH(i,j+1):ptV(i,j);
+  for(let j=0;j<FNZ-1;j++)for(let i=0;i<FNX-1;i++){const o=j*FNX+i,code=UP[o]|UP[o+1]<<1|UP[o+FNX+1]<<2|UP[o+FNX]<<3;if(code===0||code===15)continue;
+    // walk the cell a,b,c,d: an edge whose start corner is outside and end corner inside is an entry, the reverse an exit
+    let en0=-1,en1=-1,ex0=-1,ex1=-1;for(let e=0;e<4;e++){const p=code>>e&1,q=code>>((e+1)&3)&1;if(p!==q){if(p){if(ex0<0)ex0=e;else ex1=e;}else{if(en0<0)en0=e;else en1=e;}}}
+    if(en1<0){NXT[E(en0,i,j)]=E(ex0,i,j);continue;}
+    const ctr=(F[o]+F[o+1]+F[o+FNX+1]+F[o+FNX])/4>=lev;
+    for(const a of [en0,en1]){let b=-1;for(let s=1;s<4&&b<0;s++){const e=ctr?(a+4-s)&3:(a+s)&3;if(e===ex0||e===ex1)b=e;}NXT[E(a,i,j)]=E(b,i,j);}}
   const loops=[];for(let id=0;id<2*FN;id++){if(NXT[id]<0)continue;const L0=[];let c=id;while(c>=0&&NXT[c]>=0){L0.push([EX[c],EZ[c]]);const n=NXT[c];NXT[c]=-1;c=n;}if(L0.length>3)loops.push(simp(L0,.035));}
   return loops;}
 // drop points that stay within eps of the chord (closed loop)
@@ -194,16 +196,15 @@ function region(outer,inner){const out=[];for(const A of outer){if(Math.abs(area
 function emitG(mat,R,y,rep){const Bt=bat(mat,0,0);for(const r of R){const k0=Bt.p.length/3;for(const p of r.V){Bt.p.push(p[0],y,p[1]);Bt.n.push(0,1,0);Bt.u.push(p[0]/rep,p[1]/rep);}for(const t of r.tris)Bt.i.push(k0+t[0],k0+t[1],k0+t[2]);}}
 {const ND=new Float32Array(FN);for(let j=0;j<FNZ;j++)for(let i=0;i<FNX;i++){const o=j*FNX+i,x=FX0+i*FH,z=FZ0+j*FH;ND[o]=inset(x,z)>0?-DF[o]:-99;}
  const asph=contours(ND,-HW),L1=contours(DF,HW),L2=contours(DF,HW+CB),L3=contours(DF,HW+CB+PKW),L4=contours(DF,WR);
- emitG(M.hoodRoad,region(asph,[]),YR,19);
- emitG(M.grass,region(L2,L3),PADY,8);emitG(M.walk,region(L3,L4),PADY,6);emitG(M.grass,region(L4,[]),PADY,8);
- // rolled curb: from the gutter (street level) up to the parkway, light concrete with a dirty gutter line; baked per chunk
+ emitG(M.hoodRoad,region(asph,[]),YR,19); emitG(M.grass,region(L2,L3),PADY,8);emitG(M.walk,region(L3,L4),PADY,6);emitG(M.grass,region(L4,[]),PADY,8); // rolled curb: from the gutter (street level) up to the parkway, light concrete with a dirty gutter line; baked per chunk
  for(const r of region(L1,L2)){const V=r.V;for(const t of r.tris){const P=t.map(q=>V[q]),hi=t.map(q=>q>=r.nA),cx=(P[0][0]+P[1][0]+P[2][0])/3,cz=(P[0][1]+P[1][1]+P[2][1])/3,Bt=bat(M.flat,cx,cz),k=Bt.p.length/3;
    for(let q=0;q<3;q++){Bt.p.push(P[q][0],hi[q]?PADY+.004:YR+.002,P[q][1]);Bt.n.push(0,1,0);const c=hi[q]?0xc9c4b9:0x8f8a80;Bt.c.push((c>>16&255)/255,(c>>8&255)/255,(c&255)/255);Bt.u.push(WU,WV);}Bt.i.push(k,k+1,k+2);}}
- HOOD.asph=asph;HOOD.walk=[L3,L4];}
-// ---------- things at any angle. strips(): cover a convex polygon (world x,z) with axis-aligned boxes 'step' wide across its longer side
+ HOOD.asph=asph;HOOD.walk=[L3,L4];}// ---------- things at any angle. strips(): cover a convex polygon (world x,z) with axis-aligned boxes 'step' wide across its longer side
 function strips(P,h,kind,step,y0){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}
-  const ax=x1-x0>=z1-z0,a0=ax?x0:z0,a1=ax?x1:z1,n=Math.max(1,Math.round((a1-a0)/step)),out=[];
-  for(let k=0;k<n;k++){const a=lerp(a0,a1,k/n),b=lerp(a0,a1,(k+1)/n),m=(a+b)/2;let lo=1e9,hi=-1e9;
+  // pieces are at least 'step' long: the nav grid only routes round colliders of 1.6 m or more, so walls use step 1.6
+  const ax=x1-x0>=z1-z0;let a0=ax?x0:z0,a1=ax?x1:z1;if(a1-a0<step){const m=(a0+a1)/2;a0=m-step/2-.01;a1=m+step/2+.01;}const n=Math.max(1,Math.floor((a1-a0)/step+1e-6)),out=[];
+  const pa0=ax?x0:z0,pa1=ax?x1:z1;
+  for(let k=0;k<n;k++){const a=lerp(a0,a1,k/n),b=lerp(a0,a1,(k+1)/n),m=clamp((a+b)/2,pa0+1e-4,pa1-1e-4);let lo=1e9,hi=-1e9;
     for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length],pa=ax?p[0]:p[1],qa=ax?q[0]:q[1];if((pa-m)*(qa-m)>0||pa===qa)continue;const v=lerp(ax?p[1]:p[0],ax?q[1]:q[0],(m-pa)/(qa-pa));lo=Math.min(lo,v);hi=Math.max(hi,v);}
     if(hi-lo<.02)continue;out.push(ax?solid(m,(lo+hi)/2,b-a,hi-lo,h,y0||0,kind):solid((lo+hi)/2,m,hi-lo,b-a,h,y0||0,kind));}
   return out;}
@@ -397,12 +398,12 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
 for(const g of GATES){if(rnd()<.72)anyWall(g[0],g[1],g[2],g[3],1.8,0xb59a78,'barn',.12);else ironFence(g[0],g[1],g[2],g[3],1.6);}
 for(const w of WALLS)anyWall(w[0],w[1],w[2],w[3],1.85,w[4]==='rear'?C.greyWall:pick([C.greyWall,C.blockWall]),'wall8');
 // ---------- the arterial edges: block wall with pilasters (gaps where the streets come out), street trees in the parkway
-const DAT=(x,z)=>{const i=clamp(Math.round((x-FX0)/FH),0,FNX-1),j=clamp(Math.round((z-FZ0)/FH),0,FNZ-1);return DF[j*FNX+i];};
 for(const e of [[B.x0+AWI,B.z0+AWI,B.x0+AWI,B.z1-AWI],[B.x1-AWI,B.z0+AWI,B.x1-AWI,B.z1-AWI],[B.x0+AWI,B.z0+AWI,B.x1-AWI,B.z0+AWI],[B.x0+AWI,B.z1-AWI,B.x1-AWI,B.z1-AWI]]){
   const L0=Math.hypot(e[2]-e[0],e[3]-e[1]);let a=-1;
-  for(let t=0;t<=L0+.01;t+=.5){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0),ok=DAT(x,z)>WR+1.2;
+  const clear=(x,z)=>{for(const o of LAB)if(dLab(o,x,z)<WR+4.2)return false;return true;};
+  for(let t=0;t<=L0+.01;t+=.5){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0),ok=clear(x,z);
     if(ok&&a<0)a=t;if((!ok||t+.5>L0)&&a>=0){const b=ok?t:t-.5;if(b-a>.8)wallLine(lerp(e[0],e[2],a/L0),lerp(e[1],e[3],a/L0),lerp(e[0],e[2],b/L0),lerp(e[1],e[3],b/L0),1.85,C.blockWall,12);a=-1;}}
-  for(let t=10;t<L0-6;t+=rr(17,24)){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0);if(DAT(x,z)<WR+4)continue;const ox=e[0]===e[2]?(e[0]<-100?-1:1):0,oz=e[0]===e[2]?0:(e[1]<-400?-1:1),px=x+ox*(AWI-1.45),pz=z+oz*(AWI-1.45);
+  for(let t=10;t<L0-6;t+=rr(17,24)){const x=lerp(e[0],e[2],t/L0),z=lerp(e[1],e[3],t/L0);if(!clear(x,z))continue;const ox=e[0]===e[2]?(e[0]<-100?-1:1):0,oz=e[0]===e[2]?0:(e[1]<-400?-1:1),px=x+ox*(AWI-1.45),pz=z+oz*(AWI-1.45);
     if(rnd()<.5)youngTree(px,pz,rr(1,1.25));else trees.push([x+ox*.75,z+oz*.75,rr(.85,1.1),pick([0,2,5,0])]);}}
 // ---------- street lights (cobra heads on concrete poles, in the parkway) and spawn points along the streets
 for(const k of ['IW','MN','SG','MS']){const st=S[k];let side=1;
@@ -420,6 +421,7 @@ for(const l of LOTS)if(l.house&&l.house.foot)HOOD.foot.push(...l.house.foot);
 // the Aunt Ro's street area name now belongs on Mesada, round the start house
 {const i=AREAS.findIndex(a=>a[4]==='Aunt Ro\'s Street');if(i>=0)AREAS.splice(i,1);AREAS.unshift([-112,-425,-15,-330,'Aunt Ro\'s Street']);}
 }
+window.__hood=HOOD; // test hook: the start block's layout (lots, streets, the start house)
 // 03c hook: the block's streets and houses on the map image
 function hoodMap(g,X,Z){g.fillStyle='#77736c';for(const P of HOOD.asph){g.beginPath();P.forEach((p,k)=>k?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.closePath();g.fill();}
   g.fillStyle='#8a7a66';for(const P of HOOD.foot){g.beginPath();P.forEach((p,k)=>k?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.closePath();g.fill();}}
