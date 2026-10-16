@@ -56,6 +56,7 @@ window.addEventListener('keydown',e=>{if(e.repeat){if(G.state==='play'&&(e.code=
   if(G.state!=='play'||G.menuUp)return;const c=e.code;
   if(c==='Space'){IN.jump=true;e.preventDefault();}else if(c==='KeyR')IN.reload=true;else if(c==='KeyQ'||c==='Digit1'||c==='Digit2'){if(c==='KeyQ'||(c==='Digit1')!==(P.cur===0))IN.swap=true;}
   else if(c==='KeyC'||c==='ControlLeft')IN.crouchT=true;else if(c==='KeyG')IN.nade=true;else if(c==='KeyV')IN.melee=true;else if(c==='KeyF'||c==='KeyE'){IN.use=true;IN.useHeld=true;}
+  else if(c==='KeyT')toggleView(); // (mech) third/first person
   else if(c==='KeyP'){unlock();pause();}else if(c==='Escape'&&!locked)pause();else if(c.indexOf('Arrow')===0||c==='Tab')e.preventDefault();});
 window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyF'||e.code==='KeyE')IN.useHeld=false;});
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;IN.fire=false;IN.useHeld=false;P.wantAds=false;});
@@ -83,6 +84,7 @@ function tap(id,fn,up){const b=$(id);b.addEventListener('touchstart',e=>{e.preve
 tap('btnReload',()=>{IN.reload=true;});tap('btnSwap',()=>{IN.swap=true;});tap('btnJump',()=>{IN.jump=true;});tap('btnCrouch',()=>{IN.crouchT=true;});tap('btnNade',()=>{IN.nade=true;});
 tap('btnAds',()=>{P.wantAds=!P.wantAds;});tap('btnUse',()=>{IN.use=true;IN.useHeld=true;},()=>{IN.useHeld=false;});
 tap('btnPause',()=>{unlock();pause();});tap('btnMap',()=>{unlock();openMap();});
+tap('btnView',toggleView); // (mech) VIEW: third/first person
 
 // ---------- frame loop
 function resize(){const w=window.innerWidth||640,h=window.innerHeight||360;renderer.setSize(w,h,false);camera.aspect=w/h;P.baseFov=w<h?88:74;if(G.state!=='play'){camera.fov=P.baseFov;}camera.updateProjectionMatrix();}
@@ -111,9 +113,11 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
   else if(G.state==='dead'){P.deadT+=raw;G.time+=dt;camera.position.y+=(P.y+.35-camera.position.y)*Math.min(1,dt*3);camera.rotation.z+=(.9-camera.rotation.z)*Math.min(1,dt*2.5);gunRoot.visible=false;
     updAI(dt);updNades(dt);updProps(dt);if(P.deadT>1.7&&el.menu.hidden){el.hud.hidden=true;
       showMenu('dead','You are down',G.mode==='mission'?'Halcón, regroup. You restart at the last checkpoint with your squad.':'You held the Glorieta through wave '+(MS.surv?MS.surv.wave:0)+'.',statList());}}
+  avatarFrame(dt); // (mech) the player's figure outside play, and when down in third person
   fxUpdate(dt);sky.position.copy(camera.position);sierra.position.set(camera.position.x,0,camera.position.z);sunSprite.position.copy(camera.position).addScaledVector(SUN,2000);if(Q.shadows)sunFollow(camera.position.x,camera.position.z);
   cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);}
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);}};
+Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests
 el.btnStart.disabled=false;el.btnMapMenu.hidden=false;toMain();mpAuto();requestAnimationFrame(tick);
 })();

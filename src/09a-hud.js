@@ -60,10 +60,10 @@ function hud(dt){const w=curW(),D=WDEF[w.id];hudK++;
   for(const a of allies){if(!a.row)continue;const v=Math.round(clamp(a.hp/a.maxHp,0,1)*100);if(a.bar._v!==v){a.bar._v=v;a.bar.style.width=v+'%';}const dn=!!a.down;if(a.row._d!==dn){a.row._d=dn;a.row.classList.toggle('down',dn);}}
   const hp=Math.max(0,Math.ceil(P.hp));if(el.hpFill._v!==hp){el.hpFill._v=hp;el.hpFill.style.width=hp+'%';el.hpFill.classList.toggle('low',hp<35);}
   const st=Math.round(P.stam*100);if(el.stFill._v!==st){el.stFill._v=st;el.stFill.style.width=st+'%';}
-  setT(el.stance,P.sprinting?'SPRINTING':P.crouch>.5?'CROUCHED':'STANDING');setT(el.weapon,D.name+(P.reloading?' · RELOADING':''));setT(el.mag,String(w.mag));
+  setT(el.stance,P.bike?'RIDING':P.sprinting?'SPRINTING':P.crouch>.5?'CROUCHED':'STANDING');setT(el.weapon,D.name+(P.reloading?' · RELOADING':''));setT(el.mag,String(w.mag));
   const low=w.mag<=D.mag*.25;if(el.mag._l!==low){el.mag._l=low;el.mag.classList.toggle('low',low);}setT(el.res,'/ '+w.res);setT(el.nades,'GRENADES '+P.nades);
-  // crosshair follows the real spread
-  const scoped=D.scope&&P.ads>.9,showX=!scoped&&P.ads<.6&&!P.sprinting&&P.alive,showC=!scoped&&P.alive&&!P.sprinting;if(el.cross._s!==showC){el.cross._s=showC;el.cross.hidden=!showC;}
+  // crosshair follows the real spread ((mech) in third person the lines stay up while aiming: there are no sights)
+  const scoped=D.scope&&P.ads>.9,showX=!scoped&&(P.ads<.6||VIEW.on)&&!P.sprinting&&P.alive,showC=!scoped&&P.alive&&!P.sprinting;if(el.cross._s!==showC){el.cross._s=showC;el.cross.hidden=!showC;}
   if(el.cross._t!==showX){el.cross._t=showX;for(let k=0;k<4;k++)el.cross.children[k].hidden=!showX;}if(el.scope._s!==scoped){el.scope._s=scoped;el.scope.hidden=!scoped;}
   if(showX){const gap=Math.round(clamp(curSpread(D)*window.innerHeight/(camera.fov*PI/180),4,60));if(el.cross._g!==gap){el.cross._g=gap;const c=el.cross.children;
       c[0].style.top=(-gap-8)+'px';c[1].style.top=gap+'px';c[2].style.left=(-gap-8)+'px';c[3].style.left=gap+'px';}}
