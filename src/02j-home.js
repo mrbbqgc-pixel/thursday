@@ -234,11 +234,12 @@ function ironFence(ax,az,bx,bz,h,col){const L0=Math.hypot(bx-ax,bz-az);if(L0<.2)
 // a 02a house template at any angle; on lots that are nearly on the grid the 02a builder itself places it
 const stuccoW=[0xf3ece0,0xf1e7d4,0xeee3cb,0xeadfcc,0xe9d9c1,0xefdcc0,0xe6d4b2,0xf4efe6,0xdcc8a6,0xe8c6a4],roofRO=[0xb5583a,0xb0533c,0xb86a48,0xa14a33,0x9c5a40,0xa86650,0xb06040,0x94786a];
 const toW=(h,lx,lz)=>{const c=Math.cos(h.ry),s=Math.sin(h.ry);return[h.x+lx*c+lz*s,h.z-lx*s+lz*c];};
-function anyHouse(h,tint,roof){const H=HT[h.k],q=h.ry/(PI/2),r=Math.round(q);
+// a neighbour's house: the town's house templates in their six styles (02a), turned to any angle along the curved streets; chimneys in brick
+function anyHouse(h,tint,roof,o){o=Object.assign({bch:1},o);const H=o.s?HV[h.k][o.s]:HT[h.k],q=h.ry/(PI/2),r=Math.round(q);
   const snap=Math.abs(q-r)<.045;if(snap)h.ry=r*PI/2;
   h.foot=H.boxes.map(b=>[toW(h,b[0]-b[2]/2,b[1]-b[3]/2),toW(h,b[0]+b[2]/2,b[1]-b[3]/2),toW(h,b[0]+b[2]/2,b[1]+b[3]/2),toW(h,b[0]-b[2]/2,b[1]+b[3]/2)]);
-  if(snap){house(h.x,h.z,((r%4)+4)%4,h.k,tint,roof);return;}
-  put(M.wall,H.wall,h.x,0,h.z,h.ry,1,1,1,tint);put(M.wall,H.roof,h.x,0,h.z,h.ry,1,1,1,roof);
+  if(snap){house(h.x,h.z,((r%4)+4)%4,h.k,tint,roof,o);return;}
+  houseParts(H,h.x,h.z,h.ry,tint,roof,o);for(const p of H.posts){const w=toW(h,p[0],p[1]);solid(w[0],w[1],.3,.3,2.4,0,0);}
   H.boxes.forEach((b,i)=>strips(h.foot[i],b[4],0,1));anchor(h.x,h.z,()=>shadePoly(h.foot[0],PADY,1));
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of h.foot[0]){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}
   buildings.push({x:(x0+x1)/2,z:(z0+z1)/2,w:x1-x0,d:z1-z0,h:H.st*2.85,flat:false});}
@@ -268,7 +269,7 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
   if(!h){// a corner lot without a house: lawn, a couple of big trees, shrubs along its walls
     const c=W((sideU(6)[0]+sideU(6)[1])/2,Math.min(12,(l.d0+l.d1)/4));trees.push([c[0],c[1],rr(1.05,1.3),pick([0,2,3,0,4])]);for(let k=0;k<4;k++){const p=W(rr(sideU(4)[0]+2,sideU(4)[1]-2),rr(3,8));shrubs.push([p[0],p[1],rr(.6,1)]);}
     if(rnd()<.6){const p=W(rr(sideU(3)[0]+2,sideU(3)[1]-2),-2.15);youngTree(p[0],p[1]);}continue;}
-  const H=HT[h.k];anyHouse(h,pick(stuccoW),pick(roofRO));
+  const H=HT[h.k],t0=pick(stuccoW),r0=pick(roofRO),hl=isoR(()=>houseLook(t0,r0,rnd()<.25));anyHouse(h,hl.t,hl.r,hl); // the look from a side stream: the block's layout stays as it was
   const ug=h.uc+H.gar[0],vg=h.vc-H.gar[1],ud=h.uc+H.door[0],vd=h.vc-H.door[1];
   const d0=W(ug-2.9,vg),d1=W(ug+2.9,vg),f0=W(ug-2.9,0),f1=W(ug+2.9,0),c0=curbHit(l,W(ug-3.7,0)),c1=curbHit(l,W(ug+3.7,0));
   groundPoly(M.walkO,[d0,d1,f1,f0],PADY+.003,6);if(c0&&c1){groundPoly(M.walkO,[f0,f1,c1,c0],PADY+.003,6);DRIVE.push([(c0[0]+c1[0])/2,(c0[1]+c1[1])/2,ug,l]);}

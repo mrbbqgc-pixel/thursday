@@ -114,8 +114,10 @@ function mkHouse(mw,md,st,g,gf,fc,uc,chim,S){S=S||HSTY[0];const mp=c=>S.m[c]||c,
     if(gab)top=gableRoofE(E2,mcx,mcz,mw,md,hm,.78,0xffffff,.5,q[1],'trimT',0xffffff,true,E2===R?A:false);else top=hipRoofE(E2,mcx,mcz,mw,md,hm,pm,0xffffff,.5,trim,tk,8,q[1]);
     hipRoofE(E2,gcx,gcz,GW,GD,H1,.33,0xffffff,.45,false,0,8,q[1]);}
   if(gab){const u=swUV(tk);for(const s of [-1,1]){const zz=mcz+s*(md/2+.02),a0=s>0?mx0:mx1,a1=s>0?mx1:mx0;A.q([a0,hm-.12,zz],[a1,hm-.12,zz],[a1,hm+.1,zz],[a0,hm+.1,zz],0,0,s,0xffffff,u);}}
-  const ch=chim||S.chim;if(ch){const cx=g>0?mx0+.1:mx1-.1,cz=mcz-md*.15,cu=cuv(CI[S.brick?'brick':'stucco']),cv=S.brick?[cu[0],cu[1],cu[0]+(cu[2]-cu[0])*.3,cu[1]+(cu[3]-cu[1])*.9]:[cu[0],cu[1],cu[2],cu[1]+.02];
-    boxE(A,cx,0,cz,1.1,top+.7,1.5,0xffffff,cv);boxE(A,cx,top+.7,cz,1.3,.18,1.7,0xffffff,swUV(S.brick?SWN.conc:SWN.dbrown));}
+  // the chimney is a part of its own (painted with the walls, or, in the friend's block, always brick in brick colour)
+  const ch=chim||S.chim;let CHG=null,CHB=null;if(ch){const cx=g>0?mx0+.1:mx1-.1,cz=mcz-md*.15;
+    for(const bk of [!!S.brick,true]){const E3=new TB(),cu=cuv(CI[bk?'brick':'stucco']),cv=bk?[cu[0],cu[1],cu[0]+(cu[2]-cu[0])*.3,cu[1]+(cu[3]-cu[1])*.9]:[cu[0],cu[1],cu[2],cu[1]+.02];
+      boxE(E3,cx,0,cz,1.1,top+.7,1.5,0xffffff,cv);boxE(E3,cx,top+.7,cz,1.3,.18,1.7,0xffffff,swUV(bk?SWN.conc:SWN.dbrown));if(CHG)CHB=E3.geo();else CHG=E3.geo();}}
   // a step and a little porch slab at the door
   let di=fc.indexOf('hdoor');if(di<0)di=0;const dx=mx0+(di+.5)*mw/fc.length;boxE(A,dx,0,zf+.6,2,.16,1.2,0xffffff,swUV(SWN.conc));
   // stone wainscot along the front (not across the door) and round the garage corners
@@ -130,7 +132,7 @@ function mkHouse(mw,md,st,g,gf,fc,uc,chim,S){S=S||HSTY[0];const mp=c=>S.m[c]||c,
   const G2=new TB(),gu=cuv(CI.garageO),gz=zf+gf+.015;G2.q([gcx-GW/2,0,gz],[gcx+GW/2,0,gz],[gcx+GW/2,H1,gz],[gcx-GW/2,H1,gz],0,0,1,0xffffff,[gu[0],gu[1],gu[2],gu[1]+(gu[3]-gu[1])*H1/4]);
   let tarp=null;if(!gab){const TP=new TB(),Z1=md/2+.5,ty=zz=>hm+(Z1-(zz-mcz))*pm+.05,za=mcz+md/2-.3,zb=za-2,xa=mcx-1.2+(g>0?.3:-.3),xb=xa+2.4,nl=Math.hypot(1,pm);
     TP.q([xa,ty(za),za],[xb,ty(za),za],[xb,ty(zb),zb],[xa,ty(zb),zb],0,1/nl,pm/nl,0xffffff,DUV.tarp);tarp=TP.geo();}
-  return{wall:A.geo(),roof:R.geo(),roofF:RF.geo(),W,D:zmax-zmin,st,boxes:[[mcx,mcz,mw,md,hm+1.6],[gcx,gcz,GW,GD,H1+1.1]],gar:[gcx,zf+gf],door:[dx,zf],posts,open:G2.geo(),tarp};}
+  return{wall:A.geo(),chim:CHG,chimB:CHB,roof:R.geo(),roofF:RF.geo(),W,D:zmax-zmin,st,boxes:[[mcx,mcz,mw,md,hm+1.6],[gcx,gcz,GW,GD,H1+1.1]],gar:[gcx,zf+gf],door:[dx,zf],posts,open:G2.geo(),tarp};}
 {const V=[[9.6,10.4,2,1,1.2,['hwinW','hwin','hdoor'],['hwin','hwinA','hwin'],0],[12,9.6,1,-1,2.4,['hdoor','hwinW','hwin'],null,1],[11,10,2,-1,0,['hdoor','hwinW','hwin'],['hwin','hwin','hwinA'],0],
    [10.4,10.8,1,1,3.2,['hwin','hwinW','hdoor'],null,1],[8.4,11.2,2,1,2,['hwinA','hdoor'],['hwin','hwin'],0],[12.8,10,2,-1,.6,['hdoor','hwinW','hwinA','hwin'],['hwin','hwinA','hwinA','hwin'],1]];
  for(const v of V)for(const m of [1,-1]){const a=[v[0],v[1],v[2],v[3]*m,v[4],m>0?v[5]:v[5].slice().reverse(),v[6]&&(m>0?v[6]:v[6].slice().reverse()),v[7]];
@@ -138,9 +140,11 @@ function mkHouse(mw,md,st,g,gf,fc,uc,chim,S){S=S||HSTY[0];const mp=c=>S.m[c]||c,
 // local (lx,lz) of a template turned r quarter turns (r=0 faces south, 1 east, 2 north, 3 west) -> world
 const rotP=(x,z,r,lx,lz)=>r===0?[x+lx,z+lz]:r===1?[x+lz,z-lx]:r===2?[x-lx,z-lz]:[x-lz,z+lx];
 const rotB=(x,z,r,b)=>{const p=rotP(x,z,r,b[0],b[1]);return r%2?[p[0],p[1],b[3],b[2]]:[p[0],p[1],b[2],b[3]];};
-// o (optional): {s: style 0..5, f: flat concrete tile, open: garage door up, tarp: tarp on the roof}
-function house(x,z,r,k,tint,roof,o){o=o||{};const H=o.s?HV[k][o.s]:HT[k],ry=r*PI/2;put(M.wall,H.wall,x,0,z,ry,1,1,1,tint);put(M.wall,o.f?H.roofF:H.roof,x,0,z,ry,1,1,1,roof);
-  if(o.open)put(M.wall,H.open,x,0,z,ry,1,1,1,tint);if(o.tarp&&H.tarp)put(M.wall,H.tarp,x,0,z,ry,1,1,1,0xffffff);
+// o (optional): {s: style 0..5, f: flat concrete tile, open: garage door up, tarp: tarp on the roof, bch: chimney in brick colour (any style)}
+function houseParts(H,x,z,ry,tint,roof,o){put(M.wall,H.wall,x,0,z,ry,1,1,1,tint);put(M.wall,o.f?H.roofF:H.roof,x,0,z,ry,1,1,1,roof);
+  if(H.chim)put(M.wall,o.bch?H.chimB:H.chim,x,0,z,ry,1,1,1,o.bch?0xd9b8a4:tint);
+  if(o.open)put(M.wall,H.open,x,0,z,ry,1,1,1,tint);if(o.tarp&&H.tarp)put(M.wall,H.tarp,x,0,z,ry,1,1,1,0xffffff);}
+function house(x,z,r,k,tint,roof,o){o=o||{};const H=o.s?HV[k][o.s]:HT[k],ry=r*PI/2;houseParts(H,x,z,ry,tint,roof,o);
   for(const b of H.boxes){const q=rotB(x,z,r,b);solid(q[0],q[1],q[2],q[3],b[4],0,1);}for(const p of H.posts){const q=rotP(x,z,r,p[0],p[1]);solid(q[0],q[1],.3,.3,2.4,0,0);}
   const m=rotB(x,z,r,H.boxes[0]);anchor(x,z,()=>shadeRect(m[0],m[1],m[2],m[3],PADY,1));buildings.push({x:m[0],z:m[1],w:m[2],d:m[3],h:H.st*2.85,flat:false});
   return{gar:rotP(x,z,r,H.gar[0],H.gar[1]),door:rotP(x,z,r,H.door[0],H.door[1])};}
