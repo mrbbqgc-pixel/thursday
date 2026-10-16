@@ -1,0 +1,10 @@
+[
+ {"click":"#btnStart"},{"wait":500},
+ {"eval":"(()=>{const g=window.__game,F=g.freeSpot;return g.ST.map((s,i)=>({i,key:s.key,type:s.type,title:s.title,x:s.x,z:s.z,r:s.r,spawn:s.spawn,zoneFree:F(s.x,s.z),spawnFree:s.spawn?F(s.spawn[0],s.spawn[1]):null}))})()","log":"stages"},
+ {"eval":"(()=>{const g=window.__game;g.G.state='pause';document.getElementById('menu').hidden=true;g.gunRoot.visible=false;document.getElementById('hud').hidden=true;g.cam(-228,95,-300,-228,0,-301);return 1})()"},{"wait":600},{"shot":"diag/top-aunt"},
+ {"eval":"(()=>{const g=window.__game;g.cam(-120,110,40,-120,0,39);return 1})()"},{"wait":500},{"shot":"diag/top-strip"},
+ {"eval":"(()=>{const g=window.__game;g.cam(40,90,190,40,0,189);return 1})()"},{"wait":500},{"shot":"diag/top-market"},
+ {"eval":"(()=>{const g=window.__game;g.cam(420,110,-560,420,0,-559);return 1})()"},{"wait":500},{"shot":"diag/top-park"},
+ {"eval":"(()=>{const g=window.__game;g.cam(1150,110,-140,1150,0,-139);return 1})()"},{"wait":500},{"shot":"diag/top-prom"},
+ {"eval":"(()=>{const g=window.__game;g.cam(560,170,1110,560,0,1109);return 1})()"},{"wait":500},{"shot":"diag/top-outlets"}
+]

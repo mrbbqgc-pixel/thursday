@@ -6,13 +6,13 @@
 // warp: a far stage. When the stage before it is done the screen fades to black on warpLine, and everyone is set down at its spawn (banner warpBan).
 // chase: the trail. Bobo follows on his scooter, chase metres behind the start; the bikes come from the bike module when it is there.
 const ST=[
- {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-230,z:-280,r:40,type:'eliminate',spawn:[-230,-285,PI],
-  groups:[{x:-230,z:-250,r:12,units:{rifle:2}},{x:-198,z:-262,r:12,units:{rifle:1,rush:1}},{x:-262,z:-258,r:12,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[0,1]},
+ {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-180,z:-319,r:48,type:'eliminate',spawn:[-221,-309,-PI/2],
+  groups:[{x:-196,z:-321,r:10,units:{rifle:2}},{x:-165,z:-314,r:10,units:{rifle:1,rush:1}},{x:-138,z:-324,r:10,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[1,0]},
   talk:[[0,'AUNT RO','Ray. Wake up. There are men in khakis on my street, and they are standing on the Hendersons\' lawn.'],[4,'RAY','It\'s seven in the morning.'],
    [7.5,'AUNT RO','It\'s Thursday. Get them off my street. Junebug, Mr. Pennington, go with him.'],[11.5,'JUNEBUG','Cuz! Welcome to the suburbs! It\'s not usually like this. Usually it\'s leaf blowers.']],
   outro:[[0,'AUNT RO','Street is clear. Now the cul-de-sac. The neighbours are trying to get their cars out.']]},
- {key:'culdesac',title:'Hold the cul-de-sac while the neighbours get out',x:-230,z:-320,r:30,type:'hold',time:45,spawn:[-224,-322,PI],
-  waves:[{t:3,n:4,kinds:['rifle','rush'],dir:[0,1]},{t:16,n:5,kinds:['rifle','rifle','rush'],dir:[1,0]},{t:30,n:5,kinds:['rifle','rush','heavy'],dir:[-1,0]}],
+ {key:'culdesac',title:'Hold the cul-de-sac while the neighbours get out',x:-222,z:-319,r:26,type:'hold',time:45,spawn:[-221,-309,-PI/2],
+  waves:[{t:3,n:4,kinds:['rifle','rush'],dir:[1,0]},{t:16,n:5,kinds:['rifle','rifle','rush'],dir:[0,-1]},{t:30,n:5,kinds:['rifle','rush','heavy'],dir:[-1,0]}],
   talk:[[0,'AUNT RO','Hold the cul-de-sac. Nobody leaves without their good casserole dish, and that takes time.'],
    [5,'KINGSLEY','(loudspeaker) Residents of Terra Linda, this is Chet Kingsley. Please stay indoors while we improve your lifestyle.'],
    [12,'MR. PENNINGTON','Here they come. Through the side yards. Over my roses.'],[22,'JUNEBUG','Mr. P, how many you got? I got like... forty.'],[25,'MR. PENNINGTON','You have two, son.']],

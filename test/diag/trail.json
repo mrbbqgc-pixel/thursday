@@ -1,0 +1,7 @@
+[
+ {"click":"#btnStart"},{"wait":400},
+ {"eval":"(()=>{const g=window.__game,F=g.freeSpot,o=[];for(let z=-648;z<=-622;z+=1.5){let row='';for(let x=20;x<=80;x+=1.5)row+=F(x,z)?'.':'#';o.push(z.toFixed(1)+' '+row);}return o})()","log":"free x 20..80, rows z"},
+ {"eval":"(()=>{const g=window.__game;return g.colliders.filter(c=>!c.off&&c.x1>25&&c.x0<75&&c.z1>-645&&c.z0<-625).map(c=>[c.kind,+c.x0.toFixed(1),+c.x1.toFixed(1),+c.z0.toFixed(1),+c.z1.toFixed(1),+c.y0.toFixed(1),+c.y1.toFixed(1)]).slice(0,30)})()","log":"colliders"},
+ {"eval":"(()=>{const g=window.__game;g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;g.gunRoot.visible=false;g.cam(10,2.2,-636,80,1.5,-636);return 1})()"},{"wait":600},{"shot":"diag/trail-east"},
+ {"eval":"(()=>{const g=window.__game;g.cam(45,60,-636,45,0,-635);return 1})()"},{"wait":500},{"shot":"diag/trail-top"}
+]

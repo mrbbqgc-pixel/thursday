@@ -63,7 +63,7 @@ function blockCollider(c){if(c.y0>1.2||c.y1<.5)return;const w=c.x1-c.x0,d=c.z1-c
     const x=NX0+(i+.5)*CELL,z=NZ0+(j+.5)*CELL;if(x>c.x0-.7&&x<c.x1+.7&&z>c.z0-.7&&z<c.z1+.7)blocked[j*NW+i]=1;}}
 colliders.forEach(blockCollider);
 const cellOf=(x,z)=>{const i=Math.floor((x-NX0)/CELL),j=Math.floor((z-NZ0)/CELL);return(i<0||j<0||i>=NW||j>=NH)?-1:j*NW+i;};
-function makeField(){return{d:new Int16Array(NW*NH).fill(-1),q:new Int32Array(42000),n:0,x:0,z:0};}
+function makeField(whole){return{d:new Int16Array(NW*NH).fill(-1),q:new Int32Array(whole?NW*NH:42000),n:0,x:0,z:0};} // whole: a field that can cover the entire map (the test bot)
 function flow(F,px,pz,maxD){const d=F.d,q=F.q;for(let k=0;k<F.n;k++)d[q[k]]=-1;F.n=0;F.x=px;F.z=pz;const s=cellOf(px,pz);if(s<0)return;
   let qh=0,qt=0;const cap=q.length-4;d[s]=0;q[qt++]=s;
   while(qh<qt){const c=q[qh++],dd=d[c]+1;if(dd>maxD||qt>cap)continue;const i=c%NW,j=(c-i)/NW;
