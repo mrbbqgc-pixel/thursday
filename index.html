@@ -377,8 +377,12 @@ sunFollow(0,0);
 const MAXA=Math.min(8,renderer.capabilities.getMaxAnisotropy());
 function tex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
   const t=new T.CanvasTexture(c);if(rep)t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=MAXA;return t;}
-function noise(g,w,h,n,a,x0,y0){x0=x0||0;y0=y0||0;for(let k=0;k<n;k++){g.fillStyle='rgba('+(rnd()<.5?'0,0,0,':'255,255,255,')+(rnd()*a).toFixed(3)+')';
-  g.fillRect(x0+rnd()*w,y0+rnd()*h,1+rnd()*2,1+rnd()*2);}}
+// speckle: n tiny rects, each black or white at a random alpha. (fast) The alpha goes through globalAlpha and the colour string is
+// only set when it changes (parsing a new rgba() string per rect was half the cost); same draws from rnd(), same picture.
+function noise(g,w,h,n,a,x0,y0){x0=x0||0;y0=y0||0;if(n<=0)return;const ga=g.globalAlpha;let last=-1,al='';
+  for(let k=0;k<n;k++){const b=rnd()<.5?0:1;al=(rnd()*a).toFixed(3);if(b!==last){g.fillStyle=b?'#ffffff':'#000000';last=b;}g.globalAlpha=ga*+al;
+    g.fillRect(x0+rnd()*w,y0+rnd()*h,1+rnd()*2,1+rnd()*2);}
+  g.globalAlpha=ga;g.fillStyle='rgba('+(last?'255,255,255,':'0,0,0,')+al+')';}
 const L=o=>new T.MeshLambertMaterial(o);
 // colour helpers: hex int -> shaded hex int
 function shade(h,k){return(clamp(Math.round((h>>16&255)*k),0,255)<<16)|(clamp(Math.round((h>>8&255)*k),0,255)<<8)|clamp(Math.round((h&255)*k),0,255);}
@@ -392,12 +396,20 @@ const CH=128,chunks=new Map(),globals=new Map();
 let ANCH=null; // while set, all chunked geometry goes to the chunk of this point (keeps one object in one buffer)
 // A material may be an alias of another (plain colours ride in the facade material, on a white texel), so they share buffers.
 const WU=.003,WV=.003;
+// (fast) A batch array: push() and length like a plain array, but kept in a typed array that doubles when full (much less copying
+// and garbage than a growing JS array of 1.4M vertices). a.subarray(0,length) is the content. Positions and uvs end up as 32-bit
+// floats anyway; normals and colours keep 64 bits until mkMesh (03c) quantizes them, so the numbers are exactly as before.
+class VBuf{constructor(A){this.a=new A(96);this.length=0;}
+  grow(n){let c=this.a.length*2;while(c<n)c*=2;const b=new this.a.constructor(c);b.set(this.a);this.a=b;}
+  push(...v){const l=this.length,n=v.length;if(l+n>this.a.length)this.grow(l+n);const a=this.a;for(let j=0;j<n;j++)a[l+j]=v[j];return this.length=l+n;}
+  view(){return this.a.subarray(0,this.length);}}
+const vbP=()=>new VBuf(Float32Array),vbN=()=>new VBuf(Float64Array),vbI=()=>new VBuf(Uint32Array);
 function bat(mat,x,z){
-  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:[],n:[],u:[],i:[]};globals.set(mat,b);}return b;}
+  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),i:vbI()};globals.set(mat,b);}return b;}
   if(mat.userData.alias)mat=mat.userData.alias;
   if(ANCH){x=ANCH[0];z=ANCH[1];}
   const key=Math.floor(x/CH)+','+Math.floor(z/CH);let m=chunks.get(key);if(!m){m=new Map();chunks.set(key,m);}
-  let b=m.get(mat);if(!b){b={p:[],n:[],u:[],c:[],i:[],mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
+  let b=m.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),c:vbN(),i:vbI(),mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
 function anchor(x,z,fn){const o=ANCH;ANCH=[x,z];try{return fn();}finally{ANCH=o;}}
 // tiling ground quad (global batch)
 function quad(mat,a,b,c,d,nx,ny,nz,u1,v1){const B=bat(mat,a[0],a[2]),k=B.p.length/3;
@@ -423,9 +435,19 @@ function boxC(mat,x,y,z,w,h,d,col,top,skip){const x0=x-w/2,x1=x+w/2,y1=y+h,z0=z-
 const _m4=new T.Matrix4(),_n3=new T.Matrix3(),_v=new T.Vector3(),_q=new T.Quaternion(),_e=new T.Euler(),_s=new T.Vector3(),_p=new T.Vector3();
 function pushGeo(mat,geo,m4,col){_n3.getNormalMatrix(m4);const P=geo.attributes.position,N=geo.attributes.normal,U=geo.attributes.uv,Cc=geo.attributes.color,ix=geo.index;
   _v.setFromMatrixPosition(m4);const B=bat(mat,_v.x,_v.z),k=B.p.length/3,r=(col>>16&255)/255,g=(col>>8&255)/255,bl=(col&255)/255,tx=B.uv,own=!!mat.map&&!!U;
-  for(let i=0;i<P.count;i++){_v.fromBufferAttribute(P,i).applyMatrix4(m4);B.p.push(_v.x,_v.y,_v.z);_v.fromBufferAttribute(N,i).applyMatrix3(_n3).normalize();B.n.push(_v.x,_v.y,_v.z);
-    if(Cc)B.c.push(r*Cc.getX(i),g*Cc.getY(i),bl*Cc.getZ(i));else B.c.push(r,g,bl);if(tx){if(own)B.u.push(U.getX(i),U.getY(i));else B.u.push(WU,WV);}}
-  const i0=B.i.length;if(ix)for(let i=0;i<ix.count;i++)B.i.push(k+ix.getX(i));else for(let i=0;i<P.count;i++)B.i.push(k+i);
+  if(P.isInterleavedBufferAttribute||N.isInterleavedBufferAttribute||(Cc&&Cc.isInterleavedBufferAttribute)||(own&&U.isInterleavedBufferAttribute)||(ix&&ix.isInterleavedBufferAttribute)){
+    for(let i=0;i<P.count;i++){_v.fromBufferAttribute(P,i).applyMatrix4(m4);B.p.push(_v.x,_v.y,_v.z);_v.fromBufferAttribute(N,i).applyMatrix3(_n3).normalize();B.n.push(_v.x,_v.y,_v.z);
+      if(Cc)B.c.push(r*Cc.getX(i),g*Cc.getY(i),bl*Cc.getZ(i));else B.c.push(r,g,bl);if(tx){if(own)B.u.push(U.getX(i),U.getY(i));else B.u.push(WU,WV);}}}
+  else{ // (fast) the same arithmetic as Vector3.applyMatrix4 / applyMatrix3 / normalize, on the plain arrays: identical numbers, no per-vertex calls
+    const e=m4.elements,f=_n3.elements,pa=P.array,ps=P.itemSize,na=N.array,ns=N.itemSize,ca=Cc?Cc.array:null,cs=Cc?Cc.itemSize:0,ua=own?U.array:null,us=own?U.itemSize:0,bp=B.p,bn=B.n,bc=B.c,bu=B.u;
+    const e0=e[0],e1=e[1],e2=e[2],e3=e[3],e4=e[4],e5=e[5],e6=e[6],e7=e[7],e8=e[8],e9=e[9],e10=e[10],e11=e[11],e12=e[12],e13=e[13],e14=e[14],e15=e[15];
+    const f0=f[0],f1=f[1],f2=f[2],f3=f[3],f4=f[4],f5=f[5],f6=f[6],f7=f[7],f8=f[8];
+    for(let i=0,n=P.count;i<n;i++){let x=pa[i*ps],y=pa[i*ps+1],z=pa[i*ps+2];const w=1/(e3*x+e7*y+e11*z+e15);
+      bp.push((e0*x+e4*y+e8*z+e12)*w,(e1*x+e5*y+e9*z+e13)*w,(e2*x+e6*y+e10*z+e14)*w);
+      x=na[i*ns];y=na[i*ns+1];z=na[i*ns+2];const nx=f0*x+f3*y+f6*z,ny=f1*x+f4*y+f7*z,nz=f2*x+f5*y+f8*z,q=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);
+      bn.push(nx*q,ny*q,nz*q);
+      if(ca)bc.push(r*ca[i*cs],g*ca[i*cs+1],bl*ca[i*cs+2]);else bc.push(r,g,bl);if(tx){if(ua)bu.push(ua[i*us],ua[i*us+1]);else bu.push(WU,WV);}}}
+  const i0=B.i.length;if(ix){const ia=ix.array,bi=B.i;for(let i=0,n=ix.count;i<n;i++)bi.push(k+ia[i]);}else for(let i=0;i<P.count;i++)B.i.push(k+i);
   if(B.det){if(!geo.boundingSphere)geo.computeBoundingSphere();detMark(B,i0,geo.boundingSphere.radius*m4.getMaxScaleOnAxis());}}
 // distance detail: a small object baked into a chunk remembers its index range and size, and the chunk drops it when it is far (03c)
 function detMark(B,i0,size){if(!B.det||size>=DET_R[DET_R.length-1])return;const d=B.det,n=d.length;if(n&&d[n-1]===i0&&d[n-3]===size)d[n-1]=B.i.length;else d.push(size,i0,B.i.length);}
@@ -690,9 +712,12 @@ const macroC=document.createElement('canvas');macroC.width=macroC.height=64;
  g.putImageData(im,0,0);}
 function macroAlpha(g,w,h){g.save();g.globalCompositeOperation='destination-in';g.drawImage(macroC,0,0,w,h);g.restore();}
 // lo..hi: colour factors at the two ends of the macro noise; sc: macro scale in texture tiles
-function macroMat(m,sc,lo,hi){const v3=a=>'vec3('+a.map(x=>x.toFixed(3)).join(',')+')',key='mac'+sc+lo+hi;
-  m.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n\tdiffuseColor.rgb*=mix('+v3(lo)+','+v3(hi)+',clamp((texture2D(map,mat2(.8,-.6,.6,.8)*vUv*'+sc.toFixed(4)+'+vec2(.37,.71)).a-.6)*2.5,0.,1.));\n\tdiffuseColor.a=1.0;');};
-  m.customProgramCacheKey=()=>key;return m;}
+// The factors and the scale are uniforms (rounded as they used to be written into the shader), so every macro material shares one
+// shader program: fewer programs to compile before the first frame.
+function macroMat(m,sc,lo,hi){const v3=a=>new T.Vector3(+a[0].toFixed(3),+a[1].toFixed(3),+a[2].toFixed(3)),
+    U={macLo:{value:v3(lo)},macHi:{value:v3(hi)},macSc:{value:+sc.toFixed(4)}};
+  m.onBeforeCompile=s=>{Object.assign(s.uniforms,U);s.fragmentShader='uniform vec3 macLo;\nuniform vec3 macHi;\nuniform float macSc;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n\tdiffuseColor.rgb*=mix(macLo,macHi,clamp((texture2D(map,mat2(.8,-.6,.6,.8)*vUv*macSc+vec2(.37,.71)).a-.6)*2.5,0.,1.));\n\tdiffuseColor.a=1.0;');};
+  m.customProgramCacheKey=()=>'mac';return m;}
 // soft blob that wraps round the tile edges
 function wblob(g,w,h,x,y,rx,ry,a,fill){for(const ox of [-w,0,w])for(const oy of [-h,0,h]){if(x+ox+rx<0||x+ox-rx>w||y+oy+ry<0||y+oy-ry>h)continue;
   g.fillStyle=fill;g.globalAlpha=a;g.beginPath();g.ellipse(x+ox,y+oy,rx,ry,0,0,7);g.fill();}g.globalAlpha=1;}
@@ -2856,17 +2881,19 @@ const sunSprite=new T.Sprite(new T.SpriteMaterial({map:glow,fog:false,depthWrite
 // =====================================================================
 const chunkMeshes=[];function freeArr(){this.array=null;}
 // normals and colours of the static town are stored as bytes; the car paint stays in floats because wrecks rewrite it
-function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;g.setAttribute('position',new T.Float32BufferAttribute(b.p,3));
-  if(small){const n=new Int8Array(b.n.length);for(let i=0;i<n.length;i++)n[i]=Math.round(b.n[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
-  else g.setAttribute('normal',new T.Float32BufferAttribute(b.n,3));
-  if(b.u.length)g.setAttribute('uv',new T.Float32BufferAttribute(b.u,2));
-  if(b.c&&mat.vertexColors){if(small){const c=new Uint8Array(b.c.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(b.c[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
-    else g.setAttribute('color',new T.Float32BufferAttribute(b.c,3));}
-  g.setIndex(b.i);
+function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;
+  // (fast) the batches are typed arrays (VBuf, 01-core): copy out exactly what plain arrays used to give
+  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.Float32BufferAttribute(BP,3));
+  if(small){const n=new Int8Array(BN.length);for(let i=0;i<n.length;i++)n[i]=Math.round(BN[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
+  else g.setAttribute('normal',new T.Float32BufferAttribute(BN,3));
+  if(BU.length)g.setAttribute('uv',new T.Float32BufferAttribute(BU,2));
+  if(BC&&mat.vertexColors){if(small){const c=new Uint8Array(BC.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(BC[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
+    else g.setAttribute('color',new T.Float32BufferAttribute(BC,3));}
+  {let mx=-Infinity;for(let i=0;i<I.length;i++)if(I[i]>mx)mx=I[i];g.setIndex(new T.BufferAttribute(mx>65535?new Uint32Array(I):new Uint16Array(I),1));} // as setIndex(array) picks the type
   // far versions of the index without the small objects (see detMark): one per distance tier
   if(b.det&&b.det.length){const nT=b.i.length/3,drop=new Uint8Array(nT),d=b.det,NT=DET_R.length;   // drop[k]: first tier without triangle k (0 = never)
     for(let q=0;q<d.length;q+=3){let t=0;while(t<NT&&d[q]>=DET_R[t])t++;if(t<NT)drop.fill(t+1,d[q+1]/3,d[q+2]/3);}
-    const L=[g.index],I=b.i,big=b.p.length/3>65535;for(let t=1;t<=NT;t++){let n=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t)n++;
+    const L=[g.index],big=b.p.length/3>65535;for(let t=1;t<=NT;t++){let n=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t)n++;
       if(n===nT){L.push(L[t-1]);continue;}const A=big?new Uint32Array(n*3):new Uint16Array(n*3);let o=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t){A[o++]=I[3*k];A[o++]=I[3*k+1];A[o++]=I[3*k+2];}
       const at=new T.BufferAttribute(A,1);at.onUpload(freeArr);L.push(at);}
     if(L.some(a=>a!==L[0])){g.userData.lod=L;g.userData.tier=0;}}
@@ -5921,7 +5948,9 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
       showMenu('dead','You are down',G.mode==='mission'?RP(DOWN_MSG)+' You restart at the last checkpoint.':'You held the cul-de-sac through wave '+(MS.surv?MS.surv.wave:0)+'.',statList());}}
   avatarFrame(dt); // (mech) the player's figure outside play, and when down in third person
   fxUpdate(dt);sky.position.copy(camera.position);sierra.position.set(camera.position.x,0,camera.position.z);sunSprite.position.copy(camera.position).addScaledVector(SUN,2000);if(Q.shadows)sunFollow(camera.position.x,camera.position.z);
-  cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);}
+  cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);
+  // (fast) a few frames into the menu, compile the shader programs that the first frame of play would otherwise stop to compile
+  if(!tick.warm&&frame>2&&G.state==='menu'){tick.warm=1;try{renderer.compile(scene,camera);}catch(e){}}}
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,damageSoldier,boboSet,KIND,SURV,syncBobo,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);},M,menuAt:t=>{menuT=t;}};
 Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests

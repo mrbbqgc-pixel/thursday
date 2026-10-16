@@ -3,17 +3,19 @@
 // =====================================================================
 const chunkMeshes=[];function freeArr(){this.array=null;}
 // normals and colours of the static town are stored as bytes; the car paint stays in floats because wrecks rewrite it
-function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;g.setAttribute('position',new T.Float32BufferAttribute(b.p,3));
-  if(small){const n=new Int8Array(b.n.length);for(let i=0;i<n.length;i++)n[i]=Math.round(b.n[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
-  else g.setAttribute('normal',new T.Float32BufferAttribute(b.n,3));
-  if(b.u.length)g.setAttribute('uv',new T.Float32BufferAttribute(b.u,2));
-  if(b.c&&mat.vertexColors){if(small){const c=new Uint8Array(b.c.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(b.c[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
-    else g.setAttribute('color',new T.Float32BufferAttribute(b.c,3));}
-  g.setIndex(b.i);
+function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;
+  // (fast) the batches are typed arrays (VBuf, 01-core): copy out exactly what plain arrays used to give
+  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.Float32BufferAttribute(BP,3));
+  if(small){const n=new Int8Array(BN.length);for(let i=0;i<n.length;i++)n[i]=Math.round(BN[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
+  else g.setAttribute('normal',new T.Float32BufferAttribute(BN,3));
+  if(BU.length)g.setAttribute('uv',new T.Float32BufferAttribute(BU,2));
+  if(BC&&mat.vertexColors){if(small){const c=new Uint8Array(BC.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(BC[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
+    else g.setAttribute('color',new T.Float32BufferAttribute(BC,3));}
+  {let mx=-Infinity;for(let i=0;i<I.length;i++)if(I[i]>mx)mx=I[i];g.setIndex(new T.BufferAttribute(mx>65535?new Uint32Array(I):new Uint16Array(I),1));} // as setIndex(array) picks the type
   // far versions of the index without the small objects (see detMark): one per distance tier
   if(b.det&&b.det.length){const nT=b.i.length/3,drop=new Uint8Array(nT),d=b.det,NT=DET_R.length;   // drop[k]: first tier without triangle k (0 = never)
     for(let q=0;q<d.length;q+=3){let t=0;while(t<NT&&d[q]>=DET_R[t])t++;if(t<NT)drop.fill(t+1,d[q+1]/3,d[q+2]/3);}
-    const L=[g.index],I=b.i,big=b.p.length/3>65535;for(let t=1;t<=NT;t++){let n=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t)n++;
+    const L=[g.index],big=b.p.length/3>65535;for(let t=1;t<=NT;t++){let n=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t)n++;
       if(n===nT){L.push(L[t-1]);continue;}const A=big?new Uint32Array(n*3):new Uint16Array(n*3);let o=0;for(let k=0;k<nT;k++)if(!drop[k]||drop[k]>t){A[o++]=I[3*k];A[o++]=I[3*k+1];A[o++]=I[3*k+2];}
       const at=new T.BufferAttribute(A,1);at.onUpload(freeArr);L.push(at);}
     if(L.some(a=>a!==L[0])){g.userData.lod=L;g.userData.tier=0;}}

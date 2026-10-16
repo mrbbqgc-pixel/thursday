@@ -96,12 +96,20 @@ const CH=128,chunks=new Map(),globals=new Map();
 let ANCH=null; // while set, all chunked geometry goes to the chunk of this point (keeps one object in one buffer)
 // A material may be an alias of another (plain colours ride in the facade material, on a white texel), so they share buffers.
 const WU=.003,WV=.003;
+// (fast) A batch array: push() and length like a plain array, but kept in a typed array that doubles when full (much less copying
+// and garbage than a growing JS array of 1.4M vertices). a.subarray(0,length) is the content. Positions and uvs end up as 32-bit
+// floats anyway; normals and colours keep 64 bits until mkMesh (03c) quantizes them, so the numbers are exactly as before.
+class VBuf{constructor(A){this.a=new A(96);this.length=0;}
+  grow(n){let c=this.a.length*2;while(c<n)c*=2;const b=new this.a.constructor(c);b.set(this.a);this.a=b;}
+  push(...v){const l=this.length,n=v.length;if(l+n>this.a.length)this.grow(l+n);const a=this.a;for(let j=0;j<n;j++)a[l+j]=v[j];return this.length=l+n;}
+  view(){return this.a.subarray(0,this.length);}}
+const vbP=()=>new VBuf(Float32Array),vbN=()=>new VBuf(Float64Array),vbI=()=>new VBuf(Uint32Array);
 function bat(mat,x,z){
-  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:[],n:[],u:[],i:[]};globals.set(mat,b);}return b;}
+  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),i:vbI()};globals.set(mat,b);}return b;}
   if(mat.userData.alias)mat=mat.userData.alias;
   if(ANCH){x=ANCH[0];z=ANCH[1];}
   const key=Math.floor(x/CH)+','+Math.floor(z/CH);let m=chunks.get(key);if(!m){m=new Map();chunks.set(key,m);}
-  let b=m.get(mat);if(!b){b={p:[],n:[],u:[],c:[],i:[],mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
+  let b=m.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),c:vbN(),i:vbI(),mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
 function anchor(x,z,fn){const o=ANCH;ANCH=[x,z];try{return fn();}finally{ANCH=o;}}
 // tiling ground quad (global batch)
 function quad(mat,a,b,c,d,nx,ny,nz,u1,v1){const B=bat(mat,a[0],a[2]),k=B.p.length/3;
