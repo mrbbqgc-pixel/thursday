@@ -60,24 +60,24 @@ school(RR(117,zS('CH'),247,-132,null,[SWA,0,0,0]),'MIDDLE SCHOOL',2);
 park2(RR(247,zS('CH'),354,-132,null,[SWA,0,0,0]),'COYOTE PARK',{field:[300,-200,48,0],play:[332,-150],shelter:[270,-150]});
 apartments(RR(354,zS('CH'),xW('MILL'),-132,null,[SWA,0,0,SWA]));
 townCenter(RR(xE('HAVEN'),-132,342,zN('FH')));
-stripCenter(RR(342,-132,xW('MILL'),zN('FH'),null,[0,SWA,0,SWA]),1,'MILLIKEN SQUARE',{fill:.4});
+stripCenter(RR(342,-132,xW('MILL'),zN('FH'),null,[0,SWA,0,SWA]),1,'PALM COURT CENTER',{fill:.4});
 tract(RR(xE('MILL'),zS('CH'),xW('ROCH'),-102,['A','W','A','A']),{coll:[]});
-stripCenter(RR(xE('MILL'),-102,702,zN('FH'),null,[0,SWA,SWA,0]),1,'FOOTHILL MARKETPLACE',{sign0:4});
+stripCenter(RR(xE('MILL'),-102,702,zN('FH'),null,[0,SWA,SWA,0]),1,'SUNSET MARKETPLACE',{sign0:4});
 {const F=TF(0,0,0);pad2(702,-102,xW('ROCH'),zN('FH'),M.pad,[0,SWA,0,SWA]);fastFood(728,-48,0,8,0xb3261e);gasStation(800,-46,0,0xd8412f);}
 tract(RR(xE('ROCH'),zS('CH'),xW('DAYC'),-102,['A','W','A','A']));
-stripCenter(RR(xE('ROCH'),-102,xW('DAYC'),zN('FH'),null,[0,SWA,SWA,SWA]),1,'ETIWANDA CROSSING',{sign0:16});
+stripCenter(RR(xE('ROCH'),-102,xW('DAYC'),zN('FH'),null,[0,SWA,SWA,SWA]),1,'CITRUS CROSSING',{sign0:16});
 promenade(1150,-160);
 // ---------- Foothill to Arrow: Route 66 strip, the Civic Center, the Market Hall, the ballpark
 tract(RR(-562,zS('FH'),xW('ARCH'),zN('AR'),['A','A','W','A']),{swap:true,coll:[],older:true});
-stripCenter(RR(xE('ARCH'),zS('FH'),xW('HERM'),94,null,[SWA,0,SWA,SWA]),0,'VINEYARD PLAZA',{sign0:12});
+stripCenter(RR(xE('ARCH'),zS('FH'),xW('HERM'),94,null,[SWA,0,SWA,SWA]),0,'DESERT ROSE PLAZA',{sign0:12});
 tract(RR(xE('ARCH'),94,xW('HERM'),zN('AR'),['W','A','A','A']),{older:true,coll:[]});
-stripCenter(RR(xE('HERM'),zS('FH'),-90,122,null,[SWA,0,SWA,0]),0,'ROUTE 66 PLAZA',{sign0:0,fill:.3});
+stripCenter(RR(xE('HERM'),zS('FH'),-90,122,null,[SWA,0,SWA,0]),0,'MOTHER ROAD PLAZA',{sign0:0,fill:.3});
 {pad2(-90,zS('FH'),xW('HAVEN'),122,M.pad,[SWA,0,0,SWA]);mapR(-90,zS('FH'),xW('HAVEN'),122,'#b7b3ab');gasStation(-56,40,2,0x1d6f9a);fastFood(-56,98,3,17,0x2f7d4f);}
 tract(RR(xE('HERM'),122,xW('HAVEN'),zN('AR'),['W','A','A','A']),{older:true,coll:[]});
 civicCenter(RR(xE('HAVEN'),zS('FH'),152,152));
 {pad2(xE('HAVEN'),152,152,zN('AR'),M.grass,[0,SWA,SWA,0]);mapR(xE('HAVEN'),152,152,zN('AR'),'#b7b3ab');marketHall(40,205);
  const F=TF(0,0,0);F.lot(80,158,148,158+18.6*3,false);lotCars(F,80,158,148,158+18.6*3,false,.45);}
-officePark(RR(152,zS('FH'),337,zN('AR'),null,[SWA,SWA,0,0]),{name:'HAVEN OFFICE PARK'});
+officePark(RR(152,zS('FH'),337,zN('AR'),null,[SWA,SWA,0,0]),{name:'OFFICE PARK'});
 apartments(RR(337,zS('FH'),xW('MILL'),zN('AR'),null,[SWA,SWA,0,SWA]),{name:'APARTMENTS'});
 {const x0=xE('MILL'),F=TF(0,0,0);pad2(x0,zS('FH'),705,zN('AR'),M.pad,[SWA,SWA,SWA,0]);mapR(x0,zS('FH'),705,zN('AR'),'#b7b3ab');
  F.shops(600,40,150,18,{sign0:20});const nm=4;F.lot(x0+4,64,700,64+18.6*nm,true);lotCars(F,x0+4,64,700,64+18.6*nm,true,.3);label(600,140,'BALLPARK PARKING',0);}
@@ -91,7 +91,7 @@ tract(RR(-562,zS('AR'),xW('ARCH'),zN('JE'),['A','A','W','A']),{swap:true,coll:[]
 tract(RR(xE('ARCH'),zS('AR'),xW('HERM'),zN('JE'),['A','A','A','A']),{older:true,swap:true,coll:[]});
 industrial(RR(xE('HERM'),zS('AR'),xW('HAVEN'),zN('JE')),{len:110});
 {pad2(xE('HAVEN'),zS('AR'),150,zN('JE'),M.grass,[SWA,SWA,SWA,0]);mapR(xE('HAVEN'),zS('AR'),150,zN('JE'),'#c4cf9f');office(48,285,40,24,5,{front:2});office(48,345,36,22,4,{front:2});
- const F=TF(0,0,0);F.lot(80,262,146,262+18.6*5,false);lotCars(F,80,262,146,262+18.6*5,false,.35);for(let z=260;z<370;z+=20)fans.push([20,z,rr(14,18)]);label(60,310,'HAVEN CORPORATE CENTER',0);}
+ const F=TF(0,0,0);F.lot(80,262,146,262+18.6*5,false);lotCars(F,80,262,146,262+18.6*5,false,.35);for(let z=260;z<370;z+=20)fans.push([20,z,rr(14,18)]);label(60,310,'CORPORATE CENTER',0);}
 industrial(RR(150,zS('AR'),xW('MILL'),zN('JE'),null,[SWA,SWA,0,SWA]),{len:160});
 industrial(RR(xE('MILL'),zS('AR'),xW('ROCH'),zN('JE')),{len:160});
 padStair(xE('ROCH'),zS('AR'),RAILN,M.dry,20,[SWA,0,SWA]);
@@ -117,7 +117,7 @@ for(let z=-560;z<900;z+=160){const xa=Math.max(fwX(z),fwX(z+160))+46;filler(xa,z
 filler(-1000,1236,860,1370);
 // ---------- districts for the area name on the HUD (first match wins)
 const AREAS=[[330,-627,477,-516,'Central Park'],[-241,-250,-160,-118,'Church St Park'],[-156,-250,-15,-118,'Elementary School'],
-  [120,-250,245,-135,'Middle School'],[250,-250,352,-135,'Coyote Park'],[15,-130,340,-15,'Vista Town Center'],[1080,-250,1400,-15,'Rancho Promenade'],[15,15,150,150,'Civic Center'],[15,150,150,226,'The Market Hall'],
+  [120,-250,245,-135,'Middle School'],[250,-250,352,-135,'Coyote Park'],[15,-130,340,-15,'Sierra Town Center'],[1080,-250,1400,-15,'Rancho Promenade'],[15,15,150,150,'Civic Center'],[15,150,150,226,'The Market Hall'],
   [700,60,830,200,'Ballpark'],[380,390,480,500,'Metrolink Station'],[500,970,830,1210,'Inland Empire Outlets'],[-260,-330,-200,-270,'Aunt Ro\'s Street'],[-1000,-30,1300,30,'Route 66'],[-1000,476,1000,1210,'Industrial Park'],
   [-1000,236,1000,476,'Arrow Corridor'],[-500,-500,-10,-20,'Terra Linda'],[-1000,-20,0,236,'Old Cucamonga'],[0,-520,840,-20,'Terra Vista'],[840,-700,1500,-20,'Etiwanda'],[-1000,-760,1500,-500,'Alta Loma'],[0,0,1000,236,'Haven Corridor']];
 for(const a of [[-250,-380,'TERRA LINDA'],[400,-380,'TERRA VISTA'],[1000,-380,'ETIWANDA'],[-360,140,'OLD CUCAMONGA']])label(a[0],a[1],a[2],1);

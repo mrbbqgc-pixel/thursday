@@ -1,5 +1,5 @@
 // =====================================================================
-// 02d LANDMARKS (1): local frames, parking helpers, The Market Hall, the Civic Center, Vista Town Center
+// 02d LANDMARKS (1): local frames, parking helpers, The Market Hall, the Civic Center, Sierra Town Center
 // A landmark is written once in local coordinates with its front towards local +z, then turned in quarter turns:
 // r=0 front faces south (+z), r=1 east (+x), r=2 north (-z), r=3 west (-x).
 // =====================================================================
@@ -97,7 +97,7 @@ function civicCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M
   block(bx,z0+11,Math.min(bw,40),12,5,{front:2,fc:['glassFront','stucco'],sc:['stucco','hwinW'],tint:0xe3d3b8});
   const lz0=bz1+6;if(z1-lz0>20){lotFlat(bx0-4,lz0,x1-2,lz0+18.6*Math.floor((z1-lz0-2)/18.6),true);const F=TF(0,0,0);lotCars(F,bx0-4,lz0,x1-2,lz0+18.6*Math.floor((z1-lz0-2)/18.6),true,.4);}
   label(fx,fz,'CIVIC CENTER',1);return{fx,fz};}
-// ---------- Vista Town Center: four big boxes in a row, a huge lot in front, pad restaurants on Foothill
+// ---------- Sierra Town Center: four big boxes in a row, a huge lot in front, pad restaurants on Foothill
 function townCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0,z0,x1,z1,M.pad,[0,SWA,SWA,0]);mapR(x0,z0,x1,z1,'#b7b3ab');
   const bz0=z0+4,bd=38,names=[['HOME CENTER','#f4f0e7','#d86a1f'],['SUPERMARKET','#f4f0e7','#b3261e'],['OFFICE SUPPLY','#f4f0e7','#1d3f7a'],['CINEMA 12','#15110c','#e2b93b']];let x=x0+6;const ws=[62,48,40,52];
   for(let k=0;k<4;k++){const w=Math.min(ws[k],x1-6-x);if(w<25)break;bigBox(x+w/2,bz0+bd/2,w,bd,1,names[k][0],{bg:names[k][1],fg:names[k][2],band:[0xb7472a,0x2f6a3a,0x1d3f7a,0x6a3d8f][k],h:k===3?11:9});x+=w+4;}
@@ -107,5 +107,5 @@ function townCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0
   const pz=z1-SWA-14;block(x0+40,pz,18,12,5.2,{front:1,fc:['storeD','glassFront'],tint:0xe8d8bc,band:0xb3261e});faceQuad(x0+40,pz,18,12,1,0,8,4.2,.9,signUV(8));
   block(x1-40,pz,16,12,5.2,{front:1,fc:['storeD','store'],tint:0xe3cfb0,band:0x2f7d4f});faceQuad(x1-40,pz,16,12,1,0,8,4.2,.9,signUV(1));
   for(let xx=x0+12;xx<x1-8;xx+=22)fans.push([xx,z1-SWA-2,rr(12,17)]);
-  pylon(strip('vtc','VISTA TOWN CENTER','#3a3128','#f1d38a','bold 30px "Arial Narrow",Arial'),(x0+x1)/2,z1-SWA-3,0,9,0xe3d3b8,strip('vtc2','HOME · FOOD · MOVIES','#f4f0e7','#3a3128'));
-  label((x0+x1)/2,(z0+z1)/2,'VISTA TOWN CENTER',1);}
+  pylon(strip('vtc','SIERRA TOWN CENTER','#3a3128','#f1d38a','bold 30px "Arial Narrow",Arial'),(x0+x1)/2,z1-SWA-3,0,9,0xe3d3b8,strip('vtc2','HOME · FOOD · MOVIES','#f4f0e7','#3a3128'));
+  label((x0+x1)/2,(z0+z1)/2,'SIERRA TOWN CENTER',1);}

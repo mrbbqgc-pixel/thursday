@@ -70,7 +70,7 @@ Landmarks (fictional names; centre positions):
 | strip | Route 66 strip mall + gas station | Foothill strip | (−150, 30) | strip mall with parking lot south side of Foothill, gas station at (−60, 25) |
 | market | The Market Hall | the food hall on Haven | (40, 205) | big barn-like hall, patio with tables and a small stage on its north side |
 | civic | Civic Center | city hall plaza | (25, 100) | plaza, fountain, a low civic building; Bobo boss arena |
-| towncenter | Vista Town Center | big-box shopping center | (190, −45) | big-box stores and a huge parking lot north of Foothill |
+| towncenter | Sierra Town Center | big-box shopping center | (190, −45) | big-box stores and a huge parking lot north of Foothill |
 | ballpark | the ballpark | minor-league stadium | (770, 130) | small stadium, stands and lights |
 | station | Metrolink station | train station | (440, 480) | platforms, tracks E–W along z ≈ 476 |
 | promenade | Rancho Promenade | outdoor main-street mall | (1150, −160) | a 200 m "main street" of two-story storefronts N–S, fountain plaza at (1150, −160), parking around |

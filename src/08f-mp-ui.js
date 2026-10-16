@@ -28,7 +28,7 @@ function mpUi(){if(mpEl.mpUi.hidden)return;const inRoom=MP.on&&(MP.phase==='lobb
   if(!mpEl.mpMsg.textContent||mpEl.mpMsg._auto){mpEl.mpMsg._auto=true;mpEl.mpMsg.textContent=h?(M.vs&&n<2?'Send the invite. Versus needs at least two players.':n<2?'You can start alone, or send the invite and wait for the others.':n+' players are in. Start when everyone is here.')
     :MP.phase==='play'?'The game is under way.':MP.away?'The host is not answering. They may have put the game in the background.':'Waiting for the host to start.';}}
 function mpNote(t){mpEl.mpMsg._auto=false;mpSay(t);}
-function mpName(){const n=cleanName(mpEl.mpName.value);mpEl.mpName.value=n;SAVE.name=n;SAVE.cls=mpEl.mpCls.value|0;try{localStorage.setItem('opInsurgentes2',JSON.stringify(SAVE));}catch(e){}return n;}
+function mpName(){const n=cleanName(mpEl.mpName.value);mpEl.mpName.value=n;SAVE.name=n;SAVE.cls=mpEl.mpCls.value|0;try{localStorage.setItem('thursday1',JSON.stringify(SAVE));}catch(e){}return n;}
 function mpBusy(on){mpEl.btnMpCreate.disabled=mpEl.btnMpJoin.disabled=on;}
 const mpLink=()=>location.origin+location.pathname+'?join='+NET.code;
 if(NET.ok){
@@ -37,8 +37,8 @@ if(NET.ok){
   mpEl.btnMpJoin.addEventListener('click',()=>{initAudio();const code=mpEl.mpCode.value.toUpperCase().replace(/[^A-Z0-9]/g,'');mpEl.mpCode.value=code;if(code.length!==5){mpNote('The room code has five letters or digits.');return;}
     mpBusy(true);mpNote('Joining room '+code+'…');mpJoin(code,mpName(),SAVE.cls|0,err=>{mpBusy(false);if(err){mpNote(err);return;}mpEl.mpMsg._auto=true;mpSay('');mpUi();});});
   mpEl.btnMpBack.addEventListener('click',()=>{if(MP.on||NET.state!=='off'){mpLeave();mpBusy(false);mpEl.mpMsg._auto=true;mpSay('');mpUi();}else{mpClose();toMain();}});
-  mpEl.btnMpShare.addEventListener('click',()=>{const url=mpLink(),text='Join my game of Operación Insurgentes. Room code '+NET.code;
-    if(navigator.share){navigator.share({title:'Operación Insurgentes',text,url}).catch(()=>{});}
+  mpEl.btnMpShare.addEventListener('click',()=>{const url=mpLink(),text='Join my game of THURSDAY. Room code '+NET.code;
+    if(navigator.share){navigator.share({title:'THURSDAY',text,url}).catch(()=>{});}
     else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>mpNote('Invite link copied. Paste it in a message to your friends.'),()=>mpNote('Invite link: '+url));}
     else mpNote('Invite link: '+url);});
   mpEl.mpMode.addEventListener('change',()=>mpSetCfg('mode',mpEl.mpMode.value));mpEl.mpArena.addEventListener('change',()=>mpSetCfg('arena',mpEl.mpArena.value));

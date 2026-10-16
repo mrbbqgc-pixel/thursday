@@ -11,3 +11,4 @@ test/static.html
 test/mp-*.png
 # agent worktrees
 .claude/
+test/diag/*.png
