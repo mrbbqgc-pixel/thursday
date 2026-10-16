@@ -85,7 +85,7 @@ const KQ=[['RAY','Should\'ve stayed in the city.'],['RAY','That\'s one. I think.
   ['AUNT RO','That is a VIOLATION of the CC&Rs.'],['AUNT RO','And STAY off the grass.'],['AUNT RO','Write him up, Ray.']],
   KQA=[['JUNEBUG','I got one! Did anybody see? Nobody saw.'],['MR. PENNINGTON','Got him. Off my lawn.'],['JUNEBUG','That one\'s going on the kiosk flyer.']],
   CKPT=[['AUNT RO','Back on your feet, Ray. We are not done.'],['AUNT RO','From the top. And stay out of the flower beds this time.'],['JUNEBUG','Okay, cuz. Again. But cooler this time.'],['MR. PENNINGTON','Deep breath, son. Again.']];
-const MS={fading:false,knockT:0,chaser:null,chaseL:[],chasePos:null,parkS:null,stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null,
+const MS={knocks:0,fading:false,knockT:0,chaser:null,chaseL:[],chasePos:null,parkS:null,stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null,
   boss:null,bossDown:false,talkT:0,npc:null,q:[],clock:0,kqT:0};
 const OBJ={text:'',sub:'',prog:0,x:0,z:0,y:1.8,show:false};
 const TIPS=isTouch?['Tap AIM to look down the sights. CROUCH behind cars and block walls; the security guards do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','NADE throws a grenade. USE swaps your weapon for one on the ground. Red barrels and fuel pumps explode.']
@@ -157,7 +157,7 @@ function scooterGeo(){if(scootG)return scootG;const b=new GB(),mint=0x9ad8c4,dk=
 function scooterMesh(){const m=new T.Mesh(scooterGeo(),vcMat);m.castShadow=true;return m;}
 const bikeApi=()=>typeof spawnBike==='function'&&typeof mountBike==='function';
 function offBike(){if(P.bike&&typeof dismountBike==='function'){try{dismountBike();}catch(e){}}}
-function chaseStart(st){const sx=st.spawn[0]+Math.sin(st.spawn[2])*st.chase,sz=st.spawn[1]+Math.cos(st.spawn[2])*st.chase,p=safeSpot([sx,sz]);MS.chaseL=[];
+function chaseStart(st){const back=st.chase+15*Math.min(3,MS.knocks),sx=st.spawn[0]+Math.sin(st.spawn[2])*back,sz=st.spawn[1]+Math.cos(st.spawn[2])*back,p=safeSpot([sx,sz]);MS.chaseL=[];
   const b=addSoldier(1,'bobo',p[0],p[1],{list:MS.chaseL,yaw:st.spawn[2],aware:true});boboPrep(b);boboSet(b,'scoot');b.scoot=scooterMesh();b.g.add(b.scoot);b.swingCD=3;b.whiff=0;MS.chaser=b; // not a hostile: bullets do not stop him
   if(bikeApi()&&!P.bike){try{mountBike(spawnBike(P.x,P.z,P.yaw));}catch(e){}}
   for(const a of allies){if(a.kind==='june'){a.ride=true;if(typeof bikeMesh==='function'&&!a.bikeM){try{a.bikeM=bikeMesh();a.g.add(a.bikeM);}catch(e){a.bikeM=null;}}}
@@ -165,7 +165,8 @@ function chaseStart(st){const sx=st.spawn[0]+Math.sin(st.spawn[2])*st.chase,sz=s
 function chaseEnd(keep){const b=MS.chaser;if(b){if(keep){MS.chasePos=[b.x,b.z];const m=scooterMesh();m.position.set(b.x,0,b.z);m.rotation.y=b.yaw+.4;m.scale.setScalar(1.35);scene.add(m);MS.parkS=m;}removeSoldier(b);}
   MS.chaser=null;MS.chaseL=[];MS.knockT=0;scootSound(false);
   for(const a of allies){if(a.ride){a.ride=false;if(a.bikeM){a.g.remove(a.bikeM);a.bikeM=null;}}if(a.parked){a.parked=false;a.g.visible=true;const q=spotNear(P.x,P.z,6,30)||[P.x,P.z];a.x=q[0];a.z=q[1];a.g.position.set(a.x,0,a.z);}}}
-// Bobo on the scooter: keeps up with whatever speed you go, closes in when you slow down, and swings when he is alongside (the first swing misses)
+// Bobo on the scooter: keeps up with whatever speed you go, closes in when you slow down, and swings when he is alongside (the first swing misses;
+// after each knock-off he starts 15 m further back, up to three times)
 function updChase(s,dt){s.bT+=dt;s.swingCD-=dt;s.mx=0;s.mz=0;s.spd=0;const d=Math.hypot(P.x-s.x,P.z-s.z),pv=P.alive?(P.speed||0):0;
   if(MS.knockT>0){}
   else if(s.bs==='scoot'||s.bs==='swing'){const sp=s.bs==='swing'?Math.max(pv,6):clamp(d>45?pv+4:d>14?pv+.6:pv-.8,5.5,14);moveToward(s,P.x,P.z,sp,null);face(s,s.x+s.mx*3,s.z+s.mz*3,dt,5);
@@ -175,7 +176,7 @@ function updChase(s,dt){s.bT+=dt;s.swingCD-=dt;s.mx=0;s.mz=0;s.spd=0;const d=Mat
   stepSoldier(s,dt);animSoldier(s,dt);scootSound(true,s.x,s.z,s.spd);}
 function knockOff(s){const kx=P.x-s.x,kz=P.z-s.z,l=Math.hypot(kx,kz)||1;
   if(MP.on){hurt(45,s.x,s.z);if(P.alive){P.vx=kx/l*9;P.vz=kz/l*9;P.vy=4;P.ground=false;}return;} // with other players nobody goes back for one
-  offBike();P.vx=kx/l*9;P.vz=kz/l*9;P.vy=4.5;P.ground=false;sndBobo('thud',P.x,P.z);boboShake(P.x,P.z,1.2);G.vig=1;
+  MS.knocks++;offBike();P.vx=kx/l*9;P.vz=kz/l*9;P.vy=4.5;P.ground=false;sndBobo('thud',P.x,P.z);boboShake(P.x,P.z,1.2);G.vig=1;
   banner('KNOCKED OFF','BOBO CAUGHT YOU');radio('JUNEBUG','Cuz! He clotheslined you right off the bike!');MS.knockT=2.2;}
 // Junebug rides next to you on the trail
 function updRider(s,dt){s.mx=0;s.mz=0;s.spd=0;const cy=Math.cos(P.yaw),sy=Math.sin(P.yaw),gx=P.x-cy*2.6+sy*1.6,gz=P.z+sy*2.6+cy*1.6,d=Math.hypot(gx-s.x,gz-s.z);
@@ -187,7 +188,7 @@ function syncBobo(i){const bi=ST.findIndex(t=>t.type==='boss'),b=allies.find(a=>
   if(i<=bi&&b){removeSoldier(b);allies.splice(allies.indexOf(b),1);}
   else if(i>bi&&!b&&squadOK()){const p=spotNear(P.x,P.z,6,30)||[P.x,P.z],n=addSoldier(0,'bobo',p[0],p[1],{name:'BOBO',aware:true});boboPrep(n);n.yielded=true;n.maxHp=n.hp=n.K.allyHp;boboSet(n,'walk');}}
 function stageStart(i,again){MS.i=i;const st=ST[i];MS.st=st;MS.prog=0;MS.t=0;MS.stall=0;MS.tip=0;MS.lastN=-1;MS.hinted=false;MS.phase='';MS.reinfDone=false;MS.waveK=0;MS.done=false;MS.plantT=0;MS.defT=0;G.stage=i;
-  MS.boss=null;MS.bossDown=false;MS.talkT=0;
+  MS.boss=null;MS.bossDown=false;MS.talkT=0;if(!again)MS.knocks=0;
   if(st.warp&&farFrom(st.spawn))warpTo(st,i);else if(MS.fading)fadeCut();MS.fading=false;
   if(MS.chaser||allies.some(a=>a.ride||a.parked))chaseEnd(false);if(st.type!=='chase')offBike();
   syncBobo(i);

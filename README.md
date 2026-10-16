@@ -20,9 +20,10 @@ furious, Aunt Ro runs the fight from her walkie-talkie, and Ray just wants to ma
 
 ## The mission
 
-Seven stages: clear the patrol off Aunt Ro's street, hold the cul-de-sac, push down to Route 66, retake the Market Hall, get past Bobo at
-the Civic Center, fight down the Promenade, and take Kingsley Prime's command post at the outlets. Survival mode: hold the cul-de-sac
-against wave after wave.
+Eight stages: clear the patrol off Aunt Ro's street, hold the cul-de-sac, push down to Route 66, retake the Market Hall, ride lowrider
+bikes down the Pacific Electric Trail with Bobo chasing you on a scooter far too small for him, knock Bobo down on the Central Park lawn
+(he does not die; he sits down, works out you are not with Kingsley, and joins you), fight down the Promenade, and take Kingsley Prime's
+command post at the outlets. Survival mode: hold the cul-de-sac against wave after wave.
 
 ## Controls
 
