@@ -39,6 +39,7 @@ on phones (iPhone Safari first), so every change is checked at phone size as wel
 ## Build, test, publish
 
 ```sh
+cd tools && npm ci                            # once: terser, which web/build.py uses to minify the game script of index.html
 sh build.sh                                   # src -> src/operacion-insurgentes.html -> index.html + manifest
 cd test && npm ci                             # once; Chromium path can be set with CHROME_PATH
 node play.js w1.json | python3 fmt.py         # desktop smoke test
@@ -55,6 +56,10 @@ git push origin main main:gh-pages            # publish; the Pages deploy takes 
 Every run must print `no console errors` and `no outside requests` (the built page may not load anything from another host; it
 contacts the PeerJS service only once a player creates or joins a multiplayer game).
 `python3 web/build.py --single DIR` writes a one-file copy with the icons inlined, for hosts that take a single HTML file.
+`web/build.py` minifies the game script with terser from `tools/` (local names only; property names stay, so `window.__game` and the
+tests are unaffected); without `tools/node_modules` it warns and leaves the script as written, `--no-min` skips it on purpose (for
+profiling). The artifact (`src/operacion-insurgentes.html`) is never minified. `node perf.js [--cpu 4] [--mobile] [--runs N] [--dir DIR]`
+in `test/` times the load: town build, first menu frame, play-ready, main-thread CPU, shader programs.
 
 Checking the live site from a Claude cloud session: the shell usually cannot reach `github.io`, so use WebFetch on the URL, and
 `gh api "repos/mrbbqgc-pixel/thursday/actions/runs?per_page=1"` for the deploy status. The Pages settings API is not
@@ -70,7 +75,9 @@ reachable through the session proxy; Pages was switched on by pushing the `gh-pa
   (view distance 430, no shadows). The whole town is about 1.40M vertices in about 820 chunk meshes: static geometry and props are
   baked into 128 m chunks, and there is one skinned mesh per soldier, civilian and moving car. Far chunks draw a cheaper index without
   their small objects (`DET_D`, `DET_R` in `01-core.js`, `detMark`; switched in `cullChunks`), and contact shadows stop at 230 m.
-  The script that builds the town runs in about 1.2 to 1.6 s in the headless test (`static3.js` prints the per-module times).
+  The script that builds the town runs in about 1.1 to 1.2 s in the headless test (`static3.js` prints the per-module times); the
+  first menu frame compiles 13 shader programs (the macro ground materials share one, `macroMat`) and the rest are compiled a few
+  frames into the menu (`tick.warm`), so play starts without a stall. Batches are typed-array blocks (`VBuf`), not JS arrays.
   `__game.menuAt(t)` sets the flyover angle for measuring the menu view.
 - **Map:** origin (0,0) = Haven Ave × Foothill Blvd; x east, z south; real distances compressed to 30% (x = (lon+117.5759)·27654,
   z = −(lat−34.1063)·33285), buildings at real size. Main streets come from US Census TIGER data (`data/tiger-major.txt`); residential
