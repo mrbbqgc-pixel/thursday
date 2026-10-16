@@ -40,7 +40,7 @@ barrelSpots.push([-70,60],[-40,62],[1160,-90],[54,148],[660,1012]);
 // ---------- bus benches with an advert on the back at some corners, the odd payphone beside them
 isoR(()=>{for(const i of ISEC){if(!inB(i.x,i.z,-20)||rnd()>.3)continue;if(i.x>-249&&i.x<0&&i.z>-504&&i.z<-260)continue;const ns=rnd()<.5,s=rnd()<.5?-1:1,t=rnd()<.5?-1:1,
     x=ns?i.x+s*(i.a.hw+1.3):i.x+t*(i.a.hw+rr(9,16)),z=ns?i.z+t*(i.b.hw+rr(9,16)):i.z+s*(i.b.hw+1.3),ry=ns?(s<0?PI/2:-PI/2):(s<0?0:PI);
-    if(x>fwEdge(z)-6)continue;roomSync();if(!roomFor(x,z,2.2,2.2,1))continue;adBenches.push([x,z,ry]);solid(x,z,ns?.6:1.9,ns?1.9:.6,1.1,0,5);
+    if(x>fwEdge(z)-6||(x>-252&&x<3&&z>-507&&z<-257))continue;roomSync(); // (the friend's block, 02j, is built later: keep clear of its edge walls)if(!roomFor(x,z,2.2,2.2,1))continue;adBenches.push([x,z,ry]);solid(x,z,ns?.6:1.9,ns?1.9:.6,1.1,0,5);
     if(rnd()<.3){const px=ns?x:x+2.2,pz=ns?z+2.2:z;phoneSpots.push([px,pz,ry]);solid(px,pz,.5,.5,2.1,0,0);}}});
 // ---------- worn arterials: cracks along the lanes, sealed cracks and dark patches (inside the playing area)
 isoR(()=>{const wear=(x,z,ry)=>{const k=rnd();if(k<.5)cutF(x,z,.034,rr(2.6,5),rr(.5,.9),ry+rr(-.25,.25),CUT.crack,0xffffff);else if(k<.75)cutF(x,z,.034,rr(2,3.2),rr(1.8,2.8),ry+rr(-.2,.2),CUT.tar,0xffffff);

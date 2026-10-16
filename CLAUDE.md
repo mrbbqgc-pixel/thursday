@@ -21,10 +21,11 @@ on phones (iPhone Safari first), so every change is checked at phone size as wel
   `01*` core, materials and the facade atlas; `02a-02c` building, prop and vehicle builders; `02d-02f` landmark builders;
   `02d-02f` landmarks (Market Hall, Civic Center, Sierra Town Center; schools, parks, strips; ballpark, station, Promenade, Outlets,
   industrial park, freeway, Pacific Electric Trail); `02g` world frame, Census street table, roads and the tract builder; `02h` what stands
-  on each block, area names, quiet zones; `02i` signals, signs, power lines, Kingsley barricades, spawn points; `03*` baked props, street
-  furniture, mountains, collision and navigation; `04` effects and audio; `05` soldiers (Kingsley security, Junebug, Pennington, Bobo);
+  on each block, area names, quiet zones; `02i` signals, signs, power lines, Kingsley barricades, spawn points; `02j` the friend's block
+  (start of the mission) at full scale: curved streets, lots, the start house; `03*` baked props, street furniture, mountains, collision,
+  navigation, chunk meshes and their distance detail; `04` effects and audio; `05` soldiers (Kingsley security, Junebug, Pennington, Bobo);
   `06a/06b` weapons and player (third-person camera), `06c` the player avatar (`AVATAR`, `setAvatar`), `06d` lowrider bikes; `07*` AI
-  (Bobo boss and ally); `08` mission (8 stages, trail chase, warps);
+  (Bobo boss and ally), `07c` street life (civilians, traffic, dogs, birds, neighbourhood sound); `08` mission (8 stages, trail chase, warps);
   `08b-08g` multiplayer (`08b` rooms and connections, `08c` session, lobby state and event routing, `08d` replication of players,
   hits, grenades and props, `08e` Versus, `08f` the multiplayer panel, score list and results, `08g` co-op);
   `09a` HUD and map; `09b` input, menus and the frame loop.
@@ -71,8 +72,10 @@ reachable through the session proxy; Pages was switched on by pushing the `gh-pa
   headless test (`static3.js` prints the per-module times).
 - **Map:** origin (0,0) = Haven Ave × Foothill Blvd; x east, z south; real distances compressed to 30% (x = (lon+117.5759)·27654,
   z = −(lat−34.1063)·33285), buildings at real size. Main streets come from US Census TIGER data (`data/tiger-major.txt`); residential
-  streets are generic and made up; nobody's real address is used or marked. Bounds x −540…1480, z −700…1200; the 15 freeway is the
-  diagonal east edge.
+  streets are generic and made up, except the friend's block (`02j`, x −249…0, z −504…−260), which is at 1:1 scale with
+  x = (lon+117.5759)·92180, z = −(lat−34.11925)·110950−380, with its real curved streets; no house number, street-name signs or names
+  are shown there. The friend's own house stands at its real spot, at his request, without number or signs; no other real address is
+  used or marked. Bounds x −540…1480, z −700…1200; the 15 freeway is the diagonal east edge.
 - **Names:** real streets, the Pacific Electric Trail, city parks and district names are real; every business, shopping center and
   mall has a fictional name (no real brands). No film characters, lines or lookalikes; no real people's likenesses except the friend's
   own avatar, with his consent and for the beta only (only small textures made from his photos are committed, never the photos).

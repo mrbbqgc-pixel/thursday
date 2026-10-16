@@ -32,7 +32,8 @@ for(const s of signalArms){const [px,pz,dx,dz,L0,green]=s;
  bake(b2.build(),M.flat,poles.filter((p,k)=>p[3]&&k%5!==0),(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});poles.forEach(p=>solid(p[0],p[1],.3,.3,9));
  const pts=[],cols=[];const seg=(a,b,c)=>{pts.push(...a,...b);cols.push(...c,...c);};
  for(let k=0;k<poles.length-1;k++){const A=poles[k],B=poles[k+1];if(A[2]!==B[2]||Math.hypot(A[0]-B[0],A[1]-B[1])>50)continue;
-   for(const s of [-1,0,1])for(let q=0;q<4;q++){const t0=q/4,t1=(q+1)/4,sag=t=>8.85-1.6*t*(1-t),ox=A[2]?s:0,oz=A[2]?0:s;
+   // back-lot runs carry one wire: three 1-pixel lines read as a black band from the air
+   for(const s of A[3]?[0]:[-1,0,1])for(let q=0;q<4;q++){const t0=q/4,t1=(q+1)/4,sag=t=>8.85-1.6*t*(1-t),ox=A[2]?s:0,oz=A[2]?0:s;
      seg([lerp(A[0],B[0],t0)+ox,sag(t0),lerp(A[1],B[1],t0)+oz],[lerp(A[0],B[0],t1)+ox,sag(t1),lerp(A[1],B[1],t1)+oz],[.17,.15,.13]);}}
  for(const s of stringLights)for(let q=0;q<6;q++){const t0=q/6,t1=(q+1)/6,sag=t=>s[4]-1.2*t*(1-t);seg([lerp(s[0],s[2],t0),sag(t0),lerp(s[1],s[3],t0)],[lerp(s[0],s[2],t1),sag(t1),lerp(s[1],s[3],t1)],[1,.86,.55]);}
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts,3));g.setAttribute('color',new T.Float32BufferAttribute(cols,3));

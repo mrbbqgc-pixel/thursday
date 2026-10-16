@@ -13,8 +13,10 @@ ones who save it. Built on the Operación Insurgentes engine (same tech, control
   caricature. The enemy is a corporate private army, not a gang or any ethnic group.
 - **Real places, fictional businesses.** Real main streets and the city's shape are used. Big landmarks are recognisable by layout and
   silhouette but carry fictional names (the GTA approach), so no shopping center, mall or business is named or branded.
-- **Residential streets are made up**, modelled on the generic look of a 1990s Rancho tract, not on anyone's real street or house.
-  Nobody's home address is used or marked.
+- **Residential streets are made up**, modelled on the generic look of a 1990s Rancho tract, not on anyone's real street or house,
+  except the friend's own block (x −249…0, z −504…−260): it is built at 1:1 scale with its real curved streets, and the friend's own
+  house stands at its real spot, at his request, without a house number, street-name signs or names. No other real address is used
+  or marked.
 - Schools are scenery. No shooting in or targeting of school grounds; no spawns there.
 - Civilians are not targets. Hurting them is penalised, as in the hometown game.
 

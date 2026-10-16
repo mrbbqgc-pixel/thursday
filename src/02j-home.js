@@ -417,7 +417,7 @@ for(const b of BULB)SPN.push([b.c[0],b.c[1]]);
 // asphalt patches (darker, newer asphalt over old cuts) and the odd oil stain, as translucent decals
 for(const k of ['IW','MN','SG','MS']){const st=S[k];for(let s=rr(5,30);s<st.L-5;s+=rr(25,60)){const q=at(st,s),o=rr(-3.2,3.2),cx=q.x+q.nx*o,cz=q.z+q.nz*o;if(inset(cx,cz)<2)continue;
   const L0=rr(1.4,4.5),W0=rr(.9,2.4),P=[[-L0,-W0],[L0,-W0],[L0,W0],[-L0,W0]].map(e=>[cx+q.tx*e[0]+q.nx*e[1],YR+.004,cz+q.tz*e[0]+q.nz*e[1]]);
-  anchor(cx,cz,()=>{if((P[1][2]-P[0][2])*(P[2][0]-P[0][0])-(P[1][0]-P[0][0])*(P[2][2]-P[0][2])>0)quadC(M.shade,P[0],P[1],P[2],P[3],0,1,0,0,.53,.02,.97,.03);else quadC(M.shade,P[1],P[0],P[3],P[2],0,1,0,0,.53,.02,.97,.03);});}}
+  anchor(cx,cz,()=>{if((P[1][2]-P[0][2])*(P[2][0]-P[0][0])-(P[1][0]-P[0][0])*(P[2][2]-P[0][2])>0)quadC(M.shade,P[0],P[1],P[2],P[3],0,1,0,0,.53,.28,.97,.29);else quadC(M.shade,P[1],P[0],P[3],P[2],0,1,0,0,.53,.28,.97,.29);});}}
 mapR(B.x0,B.z0,B.x1,B.z1,'#c4cf9f');
 for(const l of LOTS)if(l.house&&l.house.foot)HOOD.foot.push(...l.house.foot);
 // the Aunt Ro's street area name now belongs on Mesada, round the start house
