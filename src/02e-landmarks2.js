@@ -1,76 +1,87 @@
 // =====================================================================
-// 02e LANDMARKS (2): institutional halls, schools, kindergartens, gas stations, hotels, the supermarket
+// 02e LANDMARKS (2): schools (quiet scenery), parks, gas stations, fast-food pads, strip centers, apartments, office parks
 // =====================================================================
-const cyc=(pat,n)=>{const a=[];for(let k=0;k<n;k++)a.push(pat[k%pat.length]);return a;};
-// a plain institutional building in a local frame. o: front, fc/sc (cell patterns for the front and the other sides), up (upper-floor pattern), band, roof
-function hall(F,lx,lz,lw,ld,h,tint,o){o=o||{};const front=o.front===undefined?1:o.front,fc=o.fc||['doorGlass','winWide'],sc=o.sc||['stucco','stucco','winSmall'],two=!!o.up,hg=two?3.4:h;
-  const b=F.b(lx,lz,lw,ld);
-  anchor(b[0],b[1],()=>{for(let s=0;s<4;s++){const n=segs(s<2?lw:ld);F.side(lx,lz,lw,ld,PADY,hg-PADY,s,cyc(s===front?fc:sc,n),tint);if(two)F.side(lx,lz,lw,ld,hg,h-hg,s,cyc(s===front?o.up:['upPlain','upWin'],n),tint);}
-    roofFlat(b[0],b[1],b[2],b[3],h,o.roof||0xd9d2c4,o.band===undefined?shade(tint,.84):o.band);
-    if(o.band!==undefined)boxC(M.flat,b[0],h-.95,b[1],b[2]+.12,.6,b[3]+.12,o.band);
-    if(!o.noAC)for(let k=0;k<Math.round(lw*ld/90);k++)boxC(M.flat,b[0]+rr(-b[2]/3,b[2]/3),h,b[1]+rr(-b[3]/3,b[3]/3),1.1,.6,.8,0xc9ccc8,0xb3b6b2);
-    shadeRect(b[0],b[1],b[2],b[3],PADY);});
-  solid(b[0],b[1],b[2],b[3],h+.3,0,1);buildings.push({x:b[0],z:b[1],w:b[2],d:b[3],h,flat:true});}
-// flat corridor roof on round posts along the local front of a hall
-function corridor(F,lx,lz,lw,depth,y,col){F.box(lx,y-.16,lz,lw,.16,depth,col===undefined?0xe9e4d8:col);const n=Math.max(2,Math.round(lw/3.6));
-  for(let k=0;k<n;k++)F.put(GEO.cyl8,lx-lw/2+.2+(lw-.4)*k/(n-1),PADY,lz+depth/2-.15,0,.08,y-.16-PADY,.08,0xf4f0e7);}
-function hoop(F,lx,lz,dir){F.post(lx,lz,3.05,.07,0x8c9396,PADY);F.box(lx,PADY+2.6,lz+dir*.5,1.2,.9,.06,0xf4f0e7);F.put(GEO.cyl8,lx,PADY+2.75,lz+dir*.85,0,.24,.03,.24,0xd8412f);}
-function compoundWall(F,LW,LD,h,tint,gate,cn){const hw=LW/2-.6,hd=LD/2-.6;F.wall(0,-hd,LW-1.2,.4,h,tint,cn);F.wall(-hw,0,.4,LD-1.6,h,tint,cn);F.wall(hw,0,.4,LD-1.6,h,tint,cn);
-  const sl=(LW-1.2-gate)/2;F.wall(-(gate/2+sl/2),hd,sl,.4,h,tint,cn);F.wall(gate/2+sl/2,hd,sl,.4,h,tint,cn);
-  for(const s of [-1,1]){F.box(s*(gate/2+.3),0,hd,.6,h+.5,.6,shade(tint,.9));}}
-// ---------- school: a walled block with classroom wings, a court and a flagpole. Local front (+z) is the gate.
-function school(B,name,r,tint){const F=TF(B.cx,B.cz,r),LW=r%2?B.d:B.w,LD=r%2?B.w:B.d,hw=LW/2,hd=LD/2;tint=tint||0xf2e6c8;pad(B.cx,B.cz,B.w,B.d);
-  compoundWall(F,LW,LD,2.2,tint,6.6,'dado');
-  const cl=Math.min(LW-14,60);hall(F,0,-hd+6.2,cl,7,3.7,tint,{fc:['schoolWin','schoolWin','doorMetal'],sc:['stucco'],band:0x1d5a8a,noAC:true});corridor(F,0,-hd+10.9,cl,2.4,3.1);
-  const sl=LD-24;hall(F,-hw+6,-hd+12+sl/2,7,sl,3.7,tint,{front:3,fc:['schoolWin','doorMetal'],sc:['stucco'],band:0x1d5a8a,noAC:true});
-  if(LW>60)hall(F,hw-7,-hd+12+sl/2,8,sl,3.7,tint,{front:2,fc:['schoolWin','doorMetal'],sc:['stucco'],band:0x1d5a8a,noAC:true});
-  const cx0=LW>60?6:4,cw=Math.min(26,LW-34);F.flat(M.court,cx0-cw/2,-hd+15,cx0+cw/2,hd-5,PADY+.006,6);
-  hoop(F,cx0,-hd+15.6,1);hoop(F,cx0,hd-5.6,-1);flagpole(F,-hw+14,hd-6,9);
-  for(let k=0;k<4;k++)F.tree(-hw+11+k*((LW-22)/3),hd-3.2,rr(.9,1.2),0);
-  F.sign(name,gateX(LW),PADY+1.45,hd-.37,0,Math.min(9.6,(LW-8)/2),1.3,'#f4f0e7','#1d3f7a',true);
-  label(B.cx,B.cz,name,0);return F;}
-const gateX=LW=>3.3+Math.min(9.6,(LW-8)/2)/2+.9;
-// ---------- kindergarten: low colourful rooms, a play yard and a low painted wall
-function kinder(B,name,r){const F=TF(B.cx,B.cz,r),LW=r%2?B.d:B.w,LD=r%2?B.w:B.d,hw=LW/2,hd=LD/2,tint=0xf3d98a;
-  compoundWall(F,LW,LD,1.5,0x7fc4bd,6.2,'dado');
-  hall(F,0,-hd+6,LW-10,7,3.3,tint,{fc:['schoolWin','doorMetal','schoolWin'],sc:['stucco'],band:0xd8603a,noAC:true});corridor(F,0,-hd+10.6,LW-10,2.2,2.9,0xf4f0e7);
-  // play yard: slide, swings, sandbox
-  const px=-hw+9,pz=hd-9;F.box(px,PADY,pz,5,.25,5,0xcdb58c,0xe2cf9a);F.solid(px,pz,5,5,.37,0,5);
-  F.box(px+7,PADY+1.5,pz,1.2,.1,1.2,0xd8412f);for(const a of [-.5,.5])for(const b2 of [-.5,.5])F.post(px+7+a,pz+b2,1.5,.05,0x2f6fb5,PADY);F.put(GEO.box,px+9,PADY+.72,pz,0,.9,.08,3.2,0xe2b93b,M.flat);
-  for(const s of [-1,1]){F.post(px+14+s*1.8,pz-1,2.3,.06,0x2f7d4f,PADY);F.post(px+14+s*1.8,pz+1,2.3,.06,0x2f7d4f,PADY);}F.box(px+14,PADY+2.3,pz,4,.1,.1,0x2f7d4f);
-  for(const s of [-.8,.8]){F.box(px+14+s,PADY+.55,pz,.5,.05,.25,0xd8412f);}
-  F.tree(hw-6,hd-6,1.1,0);F.tree(hw-14,hd-5,.9,0);flagpole(F,3.5,hd-5,7);
-  F.sign(name,-(3.1+Math.min(8,(LW-8)/2)/2+.8),PADY+1.0,hd-.37,0,Math.min(8,(LW-8)/2),.9,'#f4f0e7','#b03a73',true);label(B.cx,B.cz,name,0);return F;}
-// ---------- gas station. Local front (+z) is the road it serves.
+function hoop(x,z,ry){anchor(x,z,()=>{post(x,z,3.05,.07,0x8c9396,PADY);put(M.flat,GEO.box,x+Math.sin(ry)*.5,PADY+2.6,z+Math.cos(ry)*.5,ry,1.2,.9,.06,0xf4f0e7);put(M.flat,GEO.tube8,x+Math.sin(ry)*.85,PADY+2.95,z+Math.cos(ry)*.85,0,.24,.03,.24,0xd8412f);});solid(x,z,.2,.2,3);}
+function flagpole(x,z,h){anchor(x,z,()=>{post(x,z,h,.07,0xd9d9d2,PADY);put(M.flat,GEO.sph,x,h+PADY,z,0,.14,.14,.14,0xe2b93b);});
+  const f=new T.Mesh(new T.PlaneGeometry(2.6,1.5),flagMat);f.position.set(x+1.35,h-.8,z);addProp(f);solid(x,z,.2,.2,h);}
+const flagMat=new T.MeshBasicMaterial({side:T.DoubleSide,map:tex(128,64,(g,w,h)=>{for(let k=0;k<13;k++){g.fillStyle=k%2?'#f4f0e7':'#b3261e';g.fillRect(0,k*h/13,w,h/13+1);}g.fillStyle='#1d3f7a';g.fillRect(0,0,w*.42,h*7/13);
+  g.fillStyle='#f4f0e7';for(let i=0;i<6;i++)for(let j=0;j<5;j++)g.fillRect(4+i*8.5,3+j*6.5,2,2);})});
+// ---------- school: fenced campus, classroom wings with covered walks, portables, blacktop, a ball field. Quiet scenery.
+function school(R,name,r){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,cx=(x0+x1)/2,cz=(z0+z1)/2,F=TF(cx,cz,r),LW=r%2?z1-z0:x1-x0,LD=r%2?x1-x0:z1-z0,hw=LW/2,hd=LD/2;
+  pad2(x0,z0,x1,z1,M.grass,R.sw||[0,0,0,0]);mapR(x0,z0,x1,z1,'#b9cf9a');QUIET.push([x0-2,z0-2,x1+2,z1+2]);
+  const e=1.5;F.chain(-hw+e,-hd+e,hw-e,-hd+e,2.4);F.chain(-hw+e,-hd+e,-hw+e,hd-e,2.4);F.chain(hw-e,-hd+e,hw-e,hd-e,2.4);F.chain(-hw+e,hd-e,-6,hd-e,2.4);F.chain(6,hd-e,hw-e,hd-e,2.4);
+  // classroom wings along the front, a covered walk, the office with the marquee
+  const tint=0xe8dcc0,cw=Math.min(LW-24,64);F.block(0,hd-14,cw,9,3.8,{front:1,fc:['schoolWin','schoolWin','doorMetal'],sc:['stucco'],tint,band:0x2d5a8a,noAC:true});
+  F.box(0,3.25,hd-7.6,cw,.2,3.2,0xe9e4d8);for(let k=0;k<=Math.round(cw/5);k++)F.post(-cw/2+.2+(cw-.4)*k/Math.round(cw/5),hd-6.2,3.25,.07,0x2d5a8a,PADY);
+  const wd=Math.min(LD-40,50);F.block(-hw+12,hd-30-wd/2,9,wd,3.8,{front:3,fc:['schoolWin','doorMetal'],sc:['stucco'],tint,band:0x2d5a8a,noAC:true});
+  for(let k=0;k<3;k++)F.block(-hw+28+k*12,hd-34,9,7,3,{front:1,fc:['schoolWin','doorMetal'],sc:['stucco'],tint:0xd9cdb4,noAC:true});
+  // blacktop with hoops, the field with a backstop
+  F.flat(M.asphaltO,-hw+24,hd-60,-hw+24+Math.min(36,LW-50),hd-40,PADY+.004,10);for(let k=0;k<2;k++){const hx=-hw+30+k*16;const p=F.p(hx,hd-58.5),q=F.p(hx,hd-41.5);hoop(p[0],p[1],F.ry);hoop(q[0],q[1],F.ry+PI);}
+  const fx=hw-26,fz=-hd+26;F.flat(M.infield,fx-14,fz-14,fx+4,fz+4,PADY+.006,6);for(const s of [-1,1]){const p=F.p(fx-14+s*.01,fz-14);}
+  const bp=F.p(fx-16,fz-16);anchor(bp[0],bp[1],()=>{F.put(GEO.box,fx-16,0,fz-12,0,.06,4,8,0x9aa0a2);F.put(GEO.box,fx-12,0,fz-16,0,8,4,.06,0x9aa0a2);});F.solid(fx-16,fz-12,.2,8,4);F.solid(fx-12,fz-16,8,.2,4);
+  const fp=F.p(-6,hd-4);flagpole(fp[0],fp[1],9);
+  for(let k=0;k<5;k++)F.tree(-hw+8+k*(LW-16)/4,hd-4,rr(.9,1.2),pick([0,2,3]));
+  F.board(strip('sch'+name,name,'#f4f0e7','#2d5a8a','bold 30px "Arial Narrow",Arial',true),9,PADY+.6,hd-.6,0,6.4,1.6,true);F.box(9,PADY,hd-.6,6.8,.6,.4,0xcfc6b4);
+  F.label(0,0,name,0);}
+// ---------- parks: lawns, trees, a ball field, a playground, a picnic shelter and restrooms
+function playground(x,z){anchor(x,z,()=>{flat(M.dirtO,x-7,z-6,x+7,z+6,PADY+.004,4);
+    put(M.flat,GEO.box,x-3,PADY,z-2,0,2.4,1.6,2.4,0xe2b93b);put(M.flat,GEO.cone4,x-3,PADY+1.6,z-2,PI/4,2,1.2,2,0xd8412f);put(M.flat,GEO.box,x-.6,PADY+.2,z-2,-.5,.9,.1,3,0x2f8f8a,0.0,.5);
+    for(const s of [-1,1]){put(M.flat,GEO.tube6,x+3+s*1.6,PADY,z+2,0,.06,2.4,.06,0x1d3f7a);}put(M.flat,GEO.box,x+3,PADY+2.4,z+2,0,3.4,.1,.1,0x1d3f7a);
+    for(const s of [-.7,.7])put(M.flat,GEO.box,x+3+s,PADY+.5,z+2,0,.45,.05,.2,0x15110c);});solid(x-3,z-2,2.4,2.4,1.6,0,5);lowCover.push([x-3,z-2]);}
+function shelter(x,z,w,d){anchor(x,z,()=>{for(const a of [-1,1])for(const b of [-1,1])post(x+a*(w/2-.4),z+b*(d/2-.4),2.6,.1,0x5a4a3c,PADY);hipRoof(x,z,w,d,2.75,.45,0x8a5a46,.4,SWN.dbrown);
+    for(const s of [-1,1])picnic(x+s*w/4,z,true);});}
+function ballField(x,z,size,r){const F=TF(x,z,r),s=size;F.flat(M.infield,-s*.32,-s*.32,s*.12,s*.12,PADY+.006,6);
+  for(const p of [[0,0],[-s*.28,0],[-s*.28,-s*.28],[0,-s*.28]])F.box(p[0],PADY+.01,p[1],.4,.06,.4,0xf4f0e7);
+  F.put(GEO.box,s*.16,0,s*.06,0,.06,4.5,s*.2,0x9aa0a2);F.put(GEO.box,s*.06,0,s*.16,0,s*.2,4.5,.06,0x9aa0a2);F.solid(s*.16,s*.06,.2,s*.2,4.5);F.solid(s*.06,s*.16,s*.2,.2,4.5);
+  for(const q of [[s*.2,-s*.3],[-s*.3,s*.2]]){F.box(q[0],PADY,q[1],q[0]>0?2:6,.9,q[0]>0?6:2,0x9aa0a2,0xb9bcbb);F.solid(q[0],q[1],q[0]>0?2:6,q[0]>0?6:2,1,0,5);F.cover(q[0],q[1]);}}
+function park2(R,name,o){o=o||{};const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M.grass,R.sw||[SWA,SWA,SWA,SWA]);mapR(x0,z0,x1,z1,'#9cc184');
+  const w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  // trees in clumps round the edges, an open middle
+  for(let k=0;k<Math.round((w+d)/18);k++){const t=rnd()*2*(w+d);let x,z;if(t<w){x=x0+t;z=z0+rr(5,12);}else if(t<2*w){x=x0+t-w;z=z1-rr(5,12);}else if(t<2*w+d){x=x0+rr(5,12);z=z0+t-2*w;}else{x=x1-rr(5,12);z=z0+t-2*w-d;}
+    if(o.keep&&x>o.keep[0]&&x<o.keep[2]&&z>o.keep[1]&&z<o.keep[3])continue;trees.push([x,z,rr(.9,1.35),pick([0,2,1,4,0,3])]);}
+  if(o.field)ballField(o.field[0],o.field[1],o.field[2]||50,o.field[3]||0);
+  if(o.play)playground(o.play[0],o.play[1]);if(o.shelter)shelter(o.shelter[0],o.shelter[1],8,6);
+  if(o.rest)block(o.rest[0],o.rest[1],7,5,3,{front:1,fc:['doorMetal','stucco','doorMetal'],sc:['block'],tint:0xd8cfbf,noAC:true});
+  if(o.paths)for(const p of o.paths)flat(M.walkO,p[0],p[1],p[2],p[3],PADY+.004,6);
+  if(o.benches)for(const b of o.benches)bench(b[0],b[1],!!b[2]);
+  label(cx,cz,name,0);}
+// ---------- gas station of around 2000: canopy with a coloured band, pump islands, a food mart, the price sign. front = side to the street.
 const pumps=[];
-function gas(B,r,brand){const F=TF(B.cx,B.cz,r),LW=r%2?B.d:B.w,LD=r%2?B.w:B.d,hd=LD/2,cz=hd-13,stripe=brand||0x1f6b45;pad(B.cx,B.cz,B.w,B.d,M.asphalt,true);
-  const p0=F.p(0,cz);
-  anchor(p0[0],p0[1],()=>{for(const a of [-1,1])for(const b of [-1,1]){F.put(GEO.cyl12,a*7,PADY,cz+b*3.6,0,.26,4.9,.26,0xf4f0e7);F.put(GEO.cyl12,a*7,PADY,cz+b*3.6,0,.42,.5,.42,stripe);F.solid(a*7,cz+b*3.6,.6,.6,5);}
-    F.box(0,5,cz,17.4,.75,11.2,0xf4f0e7,0xd9d2c4);F.box(0,5.18,cz,17.6,.22,11.4,stripe);F.box(0,4.94,cz,16.6,.06,10.4,0xe9e9e4);F.solid(0,cz,17.4,11.2,.75,5);
-    for(const s of [-3.6,3.6]){F.box(s,PADY,cz,1.4,.18,5.2,0xd9d3c6);F.box(s,PADY+.18,cz-2.2,.3,.9,.3,0xe2b93b);F.box(s,PADY+.18,cz+2.2,.3,.9,.3,0xe2b93b);const p=F.p(s,cz);pumps.push([p[0],p[1],r%2===0]);}
-    const b=F.b(0,cz,17.4,11.2);blob(b[0],b[1],b[2]/2+1,b[3]/2+1,PADY);});
-  const sw=Math.min(LW-8,26);hall(F,0,-hd+6.5,sw,9,4,0xf2efe6,{fc:['shopOpen','glassFront','doorGlass'],sc:['stucco','stain'],band:stripe});
-  F.sign('GASOLINERA',0,PADY+3.55,-hd+11.07,0,Math.min(9,sw-4),1.0,css(stripe),'#f4f0e7',true);
-  F.car(3.6+2.2,cz+1,false);const pp=F.p(LW/2-3,hd-3);pylon('GASOLINERA',pp[0],pp[1],F.ry,css(stripe));
-  F.barrel(sw/2-1.5,-hd+12.2);F.barrel(sw/2-2.8,-hd+12.4);F.barrel(-LW/2+4,-hd+13);
-  label(B.cx,B.cz,'GASOLINERA',0);return F;}
-// ---------- hotel: two-storey wing with an outside gallery, an office and a car park
-function hotel(B,r,tint){const F=TF(B.cx,B.cz,r),LW=r%2?B.d:B.w,LD=r%2?B.w:B.d,hw=LW/2,hd=LD/2;tint=tint||0xe8d9b8;pad(B.cx,B.cz,B.w,B.d);
-  const ml=LW-8;hall(F,0,-hd+7,ml,9,6.8,tint,{fc:['doorWood','winCurtain'],up:['upWin','upPlain','upWin'],sc:['stucco','winSmall'],roof:0xd9d2c4});
-  F.box(0,3.3,-hd+12.3,ml,.16,1.6,0xd9d3c6);for(let k=0;k<=Math.round(ml/3.4);k++){const x=-ml/2+.2+(ml-.4)*k/Math.round(ml/3.4);F.put(GEO.cyl8,x,PADY,-hd+12.95,0,.08,6.5,.08,0xf4f0e7);}
-  F.box(0,3.46+.9,-hd+13.05,ml,.06,.06,0x2b2621);F.box(0,3.46+.45,-hd+13.05,ml,.04,.04,0x2b2621);F.box(0,6.6,-hd+12.3,ml+.2,.14,1.9,0xd9d3c6);
-  hall(F,-hw+7.5,hd-9,11,10,3.5,shade(tint,.94),{front:3,fc:['doorGlass','winWide'],sc:['stucco','winBars']});
-  F.flat(M.asphaltO,-hw+15,-hd+15,hw-2,hd-2,PADY+.006,10);
-  const n=Math.floor((LW-22)/3);for(let k=0;k<=n;k++)F.flat(M.lineW,-hw+16+k*3-.06,hd-8.4,-hw+16+k*3+.06,hd-3.2,PADY+.012,1);
-  for(let k=0;k<n;k++)if(rnd()<.45)F.car(-hw+17.5+k*3,hd-5.8,false);
-  const pp=F.p(hw-3,hd-3);pylon('HOTEL',pp[0],pp[1],F.ry);F.palm(hw-5,-hd+16);F.palm(-hw+17,-hd+16.5);label(B.cx,B.cz,'HOTEL',0);return F;}
-// ---------- supermarket with its car park in front
-function market(B,r){const F=TF(B.cx,B.cz,r),LW=r%2?B.d:B.w,LD=r%2?B.w:B.d,hw=LW/2,hd=LD/2;pad(B.cx,B.cz,B.w,B.d,M.asphalt,true);
-  const bw=LW-6,bd=Math.min(26,LD-20),bz=-hd+2+bd/2;hall(F,0,bz,bw,bd,7,0xf2efe6,{fc:['glassFront','glassFront','doorGlass','glassFront'],sc:['stucco','stain'],band:0xb3261e,roof:0xd9d2c4});
-  F.sign('SUPERMERCADO',0,5.6,bz+bd/2+.1,0,Math.min(16,bw-6),1.5,'#b3261e','#f4f0e7',true);
-  F.box(0,3.6,bz+bd/2+1.3,bw-4,.14,2.6,0xe9e4d8);for(let k=0;k<6;k++)F.put(GEO.cyl8,-bw/2+2.4+(bw-4.8)*k/5,PADY,bz+bd/2+2.45,0,.09,3.5,.09,0xd9d9d2);
-  const z0=bz+bd/2+5,rows=Math.floor((LW-8)/2.9);
-  for(let k=0;k<=rows;k++)F.flat(M.lineW,-hw+4+k*2.9-.06,z0,-hw+4+k*2.9+.06,z0+5.2,PADY+.012,1);
-  for(let k=0;k<rows;k++)if(rnd()<.5)F.car(-hw+5.45+k*2.9,z0+2.6,false);
-  for(const k of [-12,0,12]){F.put(GEO.cyl8,k,PADY,hd-2,0,.2,.9,.2,0xe2b93b);F.solid(k,hd-2,.5,.5,1,0,5);}
-  label(B.cx,B.cz,'SUPERMERCADO',0);return F;}
+function gasStation(cx,cz,r,band){const F=TF(cx,cz,r),cz2=6;band=band||0x1d6f9a;
+  const p0=F.p(0,cz2);anchor(p0[0],p0[1],()=>{for(const a of [-1,1])for(const b of [-1,1]){F.put(GEO.box,a*7,PADY,cz2+b*3.4,0,.5,4.9,.5,0xf4f0e7);F.solid(a*7,cz2+b*3.4,.6,.6,5);}
+    F.box(0,5,cz2,19,.8,11.6,0xf4f0e7,0xd9d2c4);F.box(0,5.18,cz2,19.2,.35,11.8,band);F.box(0,4.96,cz2,18.4,.05,11,0xf2f2ec);F.solid(0,cz2,19,11.6,.8,5);
+    for(const s of [-3.6,3.6]){F.box(s,PADY,cz2,1.4,.18,6,0xd9d3c6);const p=F.p(s,cz2);pumps.push([p[0],p[1],r%2===0]);}
+    const b=F.b(0,cz2,19,11.6);blob(b[0],b[1],b[2]/2+1,b[3]/2+1,PADY);});
+  F.block(0,-12,20,10,4.2,{front:1,fc:['glassFront','storeD','glassFront'],sc:['dado','doorMetal'],tint:0xf2efe6,band});
+  F.board(strip('foodmart','FOOD MART','#f4f0e7','#1d3f7a','900 34px "Arial Narrow",Arial'),0,3.3,-6.85,0,6,1.1);
+  const pp=F.p(9.5,17);pylon(strip('gasP','GAS','#1d6f9a','#f4f0e7','900 44px "Arial Narrow",Arial'),pp[0],pp[1],F.ry,7,0xf2efe6,strip('gas159','UNLEADED  1.59⁹','#15110c','#f1d38a','bold 28px "Arial Narrow",Arial'));
+  F.barrel(8,-15);F.barrel(-9,-17.5);F.cover(9,-6);label(cx,cz,'GAS STATION',0);return F;}
+// ---------- fast-food pad with a drive-through lane and a pole sign. front = side to the street.
+function fastFood(cx,cz,r,sk,band){const F=TF(cx,cz,r);F.flat(M.asphaltO,-14,-14,14,14,PADY+.004,10);
+  F.block(0,-2,15,11,4.6,{front:1,fc:['glassFront','storeD','glassFront'],sc:['stucco','store'],tint:pick([0xf2e6c8,0xe8d0b0,0xf1ebe0]),band:band||0xb3261e});
+  F.flat(M.lineW,-11.5,-10,-11.3,8,PADY+.01,1);F.box(-9.6,PADY,4,.8,1.4,.6,0x3a3128);F.board(signUV(sk),0,3.6,3.62,0,5,1.1);
+  const pp=F.p(11,12);anchor(pp[0],pp[1],()=>{post(pp[0],pp[1],9,.18,0xd9d9d2);boardQ(signUV(sk),pp[0],8,pp[1],F.ry,4,1.2,true);});solid(pp[0],pp[1],.4,.4,9);
+  for(const q of [[-6,10],[6,10]])F.car(q[0],q[1],false,undefined,undefined,2);}
+// ---------- strip center: shops along the back of a pad, the lot in front, a pylon. R in world, front = side facing the street (0..3)
+function stripCenter(R,front,name,o){o=o||{};const cx=(R.x0+R.x1)/2,cz=(R.z0+R.z1)/2,r=[2,0,3,1][front],F=TF(cx,cz,r),LW=r%2?R.z1-R.z0:R.x1-R.x0,LD=r%2?R.x1-R.x0:R.z1-R.z0,hw=LW/2,hd=LD/2;
+  pad2(R.x0,R.z0,R.x1,R.z1,M.pad,R.sw||[SWA,SWA,SWA,SWA]);mapR(R.x0,R.z0,R.x1,R.z1,'#b7b3ab');
+  const sd=o.depth||20,sw=Math.min(o.len||LW-14,LW-10),sx=o.sx||0;F.shops(sx,-hd+3+sd/2,sw,sd,{tint:o.tint,sign0:o.sign0});
+  const lz0=-hd+3+sd+5,nm=Math.max(1,Math.floor((LD-sd-14)/18.6));F.lot(-hw+4,lz0,hw-4,lz0+nm*18.6,true);lotCars(F,-hw+4,lz0,hw-4,lz0+nm*18.6,true,o.fill||.35);
+  F.flat(M.asphaltO,-hw+4,-hd+3+sd+3.2,hw-4,lz0,PADY+.004,10);if(lz0+nm*18.6<hd-SWA-1)F.flat(M.asphaltO,-hw+4,lz0+nm*18.6,hw-4,hd-SWA-1,PADY+.004,10);
+  for(let x=-hw+8;x<hw-6;x+=24)F.fan(x,hd-SWA-1.5,rr(11,16));
+  if(name)pylon(strip('sc'+name,name,'#3a3128','#f1d38a','bold 30px "Arial Narrow",Arial'),...F.p(hw-6,hd-SWA-3),F.ry,7.5,0xe8d8bc,strip('sc2'+name,o.sub||'SHOPS · DINING','#f4f0e7','#3a3128'));
+  F.label(sx,0,name||'SHOPS',0);return F;}
+// ---------- apartments: two-story buildings round a court with carports
+function apartments(R,o){o=o||{};const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M.grass,R.sw||[SWA,SWA,SWA,SWA]);mapR(x0,z0,x1,z1,'#c4cf9f');
+  const w=x1-x0,d=z1-z0;wallLine(x0+SWA+2,z0+SWA+2,x1-SWA-2,z0+SWA+2,1.6,C.blockWall,12);
+  const nb=Math.max(1,Math.floor((w-16)/42));for(let i=0;i<nb;i++){const bx=x0+10+21+i*42;for(let z=z0+18;z<z1-16;z+=30){const front=((z-z0-18)/30)%2?0:1;apartment(bx,z,34,12,front);
+      flat(M.asphaltO,bx-17,z+(front?9:-13),bx+17,z+(front?13:-9),PADY+.004,10);}}
+  for(let k=0;k<Math.round(w*d/700);k++){const x=rr(x0+6,x1-6),z=rr(z0+6,z1-6);roomSync();if(roomFor(x,z,3,3))trees.push([x,z,rr(.8,1.2),pick([0,2,3,6])]);}
+  label((x0+x1)/2,(z0+z1)/2,o.name||'APARTMENTS',0);}
+// ---------- office park: two-story mirrored-glass offices with palms and lots
+function officePark(R,o){o=o||{};const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0,z0,x1,z1,M.grass,R.sw||[SWA,SWA,SWA,SWA]);mapR(x0,z0,x1,z1,'#c4cf9f');
+  const w=x1-x0,d=z1-z0,fl=o.floors||2;let k=0;
+  for(let x=x0+8;x+40<x1-4;x+=52)for(let z=z0+10;z+30<z1-4;z+=62){office(x+20,z+12,40,22,fl+(k++%3===0&&o.tall?2:0),{front:1});
+    const lz=z+26,lz1=Math.min(z1-4,lz+18.6*2);if(lz1-lz>16){F.lot(x,lz,x+40,lz+18.6*Math.floor((lz1-lz)/18.6),true);lotCars(F,x,lz,x+40,lz+18.6*Math.floor((lz1-lz)/18.6),true,.3);}
+    for(const s of [-1,1])fans.push([x+20+s*22,z+12,rr(13,18)]);}
+  label((x0+x1)/2,(z0+z1)/2,o.name||'OFFICES',0);}

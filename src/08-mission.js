@@ -1,28 +1,9 @@
 // =====================================================================
 // 08 MISSION: objectives through the real town, garrisons, reinforcements, checkpoints, helicopter, survival
 // =====================================================================
+// TEMP (world branch): one free-roam stage at Aunt Ro's house so the game runs on the new map; the story part replaces this table
 const ST=[
- {key:'gas',title:'Secure the gas station on Blvd. Benito Juárez',x:24,z:254,r:26,type:'capture',spawn:[3.5,484,0],
-  groups:[{x:0,z:345,r:16,units:{rifle:3}},{x:26,z:254,r:24,units:{rifle:4,rush:1}}],marks:0,reinf:{at:.4,n:3,kinds:['rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','Halcón, hostiles hold the gas station ahead. Push up the boulevard and secure it.'],outro:['COMMAND','Gas station is ours. The Glorieta is three blocks north.']},
- {key:'glorieta',title:'Take the Glorieta',x:0,z:0,r:24,type:'capture',spawn:[18,286,0],
-  groups:[{x:0,z:124,r:18,units:{rifle:2}},{x:0,z:6,r:24,units:{rifle:4,heavy:1,rush:1}},{x:44,z:0,r:10,units:{rifle:2}}],marks:1,reinf:{at:.45,n:4,kinds:['rifle','rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','The statue marks the crossroads where Highway 1 turns for Loreto. Take it.'],outro:['COMMAND','Crossroads secured. Expect a counterattack from the Loreto road. Dig in.']},
- {key:'hold',title:'Hold the Glorieta',x:0,z:0,r:34,type:'hold',time:75,spawn:[-4,14,0],
-  waves:[{t:3,n:5,kinds:['rifle','rifle','rush'],dir:[1,0]},{t:26,n:5,kinds:['rifle','rush','rush'],dir:[0,-1]},{t:48,n:6,kinds:['rifle','rifle','heavy','rush'],dir:[1,0]}],
-  outro:['COMMAND','Counterattack broken. Move north up the boulevard to Calle Miguel Hidalgo.']},
- {key:'north',title:'Clear the boulevard up to Calle Miguel Hidalgo',x:0,z:-312,r:30,type:'capture',spawn:[4,-16,0],
-  groups:[{x:-20,z:-90,r:22,units:{rifle:2}},{x:0,z:-200,r:18,units:{rifle:3,rush:1}},{x:-4,z:-300,r:26,units:{rifle:4}}],marks:1,reinf:{at:.5,n:4,kinds:['rifle','rush'],dir:[0,-1]},
-  intro:['COMMAND','Supermarket on your left, then the hotel and the gas station. Watch the rooftops.'],outro:['COMMAND','Good work. A radio jammer is parked by the bus terminal, two blocks up at the corner of Pípila.']},
- {key:'jam',title:'Destroy the radio jammer at the bus terminal',x:44,z:-478.5,r:4.6,type:'plant',spawn:[4,-322,0],defend:24,
-  groups:[{x:30,z:-466,r:24,units:{rifle:5,rush:1}}],marks:1,waves:[{t:2,n:4,kinds:['rifle','rush'],dir:[0,-1]},{t:12,n:4,kinds:['rifle','rifle','rush'],dir:[1,0]}],
-  outro:['COMMAND','Jammer is down. Go east along Pípila to Avenida 20 de Noviembre, then north past Allende to the Plaza Principal.']},
- {key:'plaza',title:'Clear the Plaza Principal',x:208,z:-630,r:64,type:'eliminate',spawn:[30,-478,-1.57],
-  groups:[{x:112,z:-480,r:16,units:{rifle:2}},{x:160,z:-548,r:16,units:{rifle:2,rush:1}},{x:208,z:-630,r:30,units:{rifle:5,heavy:1,rush:1}}],marks:0,belfry:true,
-  intro:['COMMAND','Marksmen are in the bell towers of the parish. Use cover and take the plaza.'],outro:['COMMAND','Plaza is clear. Helicopter is inbound. Hold until it lands.']},
- {key:'exfil',title:'Hold the plaza until the helicopter lands',x:208,z:-630,r:46,type:'hold',time:55,spawn:[208,-612,0],heli:true,
-  waves:[{t:3,n:5,kinds:['rifle','rush'],dir:[-1,0]},{t:22,n:5,kinds:['rifle','rifle','rush'],dir:[0,1]},{t:40,n:5,kinds:['rifle','heavy','rush'],dir:[1,0]}]},
- {key:'board',title:'Board the helicopter',x:256,z:-600,r:5.5,type:'reach',spawn:[208,-612,0],intro:['REYES','Bird is on the deck. Go, go!']}];
+ {key:'aunt',title:'Walk out to the cul-de-sac',x:-227,z:-320,r:6,type:'reach',spawn:[-230,-285,0],intro:['COMMAND','World test: walk round the house to the cul-de-sac.']}];
 const MS={stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null};
 const OBJ={text:'',sub:'',prog:0,x:0,z:0,y:1.8,show:false};
 const TIPS=isTouch?['Tap AIM to look down the sights. CROUCH behind cars and sandbags; hostiles do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','NADE throws a grenade. USE swaps your weapon for one on the ground. Red barrels and fuel pumps explode.']
