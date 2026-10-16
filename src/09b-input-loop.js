@@ -104,6 +104,7 @@ function simStep(dt,raw){G.time+=dt;G.stats.time+=dt;G.prompt='';if(frame%6===0)
   const guest=MP.on&&!MP.host&&mpMode().coop; // a co-op guest: the host runs the hostiles and the mission
   if(MP.on&&!P.alive)mpDead(dt);else{gatherInput();updPlayer(dt);updCamera(dt);}
   if(guest)coPuppets(dt);else updAI(dt);updNades(dt);updProps(dt);updPicks(dt);if(!guest)missionUpdate(dt);if(MP.on)mpTick(dt,raw);
+  lifeUpdate(dt); // (life) civilians, traffic, birds, neighbourhood sound; clears itself in multiplayer (07c)
   if(G.state==='play'||G.state==='dead')hud(dt);IN.use=false;
   {const lowHp=P.hp<30;if(lowHp!==G.lowHp&&AU.ctx){G.lowHp=lowHp;try{AU.lp.frequency.cancelScheduledValues(AU.ctx.currentTime);AU.lp.frequency.setTargetAtTime(lowHp?1300:18000,AU.ctx.currentTime,.25);}catch(e){}}}
   // drop quality once if the frame rate stays low
@@ -122,5 +123,6 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,damageSoldier,boboSet,KIND,SURV,syncBobo,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);}};
 Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests
+Object.assign(window.__game,LIFEX); // (life) civilians, traffic and birds for the tests (07c)
 el.btnStart.disabled=false;el.btnMapMenu.hidden=false;toMain();mpAuto();requestAnimationFrame(tick);
 })();
