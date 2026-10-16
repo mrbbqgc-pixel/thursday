@@ -41,10 +41,11 @@ function roomSync(){for(;roomN<colliders.length;roomN++){const c=colliders[roomN
   if((i1-i0+1)*(j1-j0+1)>400)continue;for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i*4096+j;let L=roomBins.get(k);if(!L){L=[];roomBins.set(k,L);}L.push(c);}}}
 function park(x,z,alongX,col,type,lite){type=type||carType();const V=VEH[type];roomSync();if(roomFor(x,z,alongX?V.len:V.wid,alongX?V.wid:V.len))return car(x,z,alongX,col,type,lite);return null;}
 // cars in the stalls of a lot laid with F.lot from (lx0,lz0): fill = share of stalls taken
-function lotCars(F,lx0,lz0,lx1,lz1,alongLX,fill,lite){fill*=.26;const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0;
+function lotCars(F,lx0,lz0,lx1,lz1,alongLX,fill,lite){fill*=.26;const lc=F.p((lx0+lx1)/2,(lz0+lz1)/2),lo0=carLo;carLo=lc[1]>TRK&&!(lc[0]>490&&lc[0]<840&&lc[1]>965); // far lots: cheapest cars
+  try{const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0;
   for(let m=0;m*18.6<L2-5;m++)for(const rv of [2.75,15.85]){if(m*18.6+rv>L2-2.5)continue;for(let s=0;(s+1)*2.75<=L1-.3;s++){if(rnd()>fill)continue;const a=s*2.75+1.375,b=m*18.6+rv;
       if(alongLX)F.car(lx0+a,lz0+b,false,undefined,undefined,lite===undefined?2:lite);else F.car(lx0+b,lz0+a,true,undefined,undefined,lite===undefined?2:lite);}}
-  for(let m=0;m*18.6<L2-1;m+=3)for(let s=24;s<L1-6;s+=60){const b=m*18.6+.2;if(alongLX)F.lamp(lx0+s,lz0+b,3);else F.lamp(lx0+b,lz0+s,3);}}
+  for(let m=0;m*18.6<L2-1;m+=3)for(let s=24;s<L1-6;s+=60){const b=m*18.6+.2;if(alongLX)F.lamp(lx0+s,lz0+b,3);else F.lamp(lx0+b,lz0+s,3);}}finally{carLo=lo0;}}
 // ---------- The Market Hall: a barn-like food hall on Haven, patio with tables and a small stage on its north side. Local front (+z) faces north.
 function marketHall(cx,cz){const F=TF(cx,cz,2),hw=22,hd=12,hz=-4,rc=0x3f5a4a,wt=0xb8452f,pz=hz+hd;
   const b=F.b(0,hz,2*hw,2*hd);

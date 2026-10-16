@@ -62,7 +62,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
   const rect=(u0,v0,u1,v1)=>{const a=P(u0,v0),b=P(u1,v1);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])];};
   const padL=(u0,v0,u1,v1,s)=>{const r=rect(u0,v0,u1,v1);pad2(r[0],r[1],r[2],r[3],M.grass,W4(s));mapR(r[0],r[1],r[2],r[3],'#c4cf9f');};
   const wallL=(u0,v0,u1,v1,pil,tint)=>{const a=P(u0,v0),b=P(u1,v1);wallLine(a[0],a[1],b[0],b[1],1.85,tint,pil);};
-  const gateL=(u0,v0,u1,v1)=>{const a=P(u0,v0),b=P(u1,v1);gateLine(a[0],a[1],b[0],b[1]);};
+  const gateL=(u0,v0,u1,v1)=>{const a=P(u0,v0),b=P(u1,v1);gateLine(a[0],a[1],b[0],b[1],isoR(()=>rnd()<.45));};
   const flatL=(mat,u0,v0,u1,v1,y,rp)=>{const r=rect(u0,v0,u1,v1);if(r[2]-r[0]>.05&&r[3]-r[1]>.05)flat(mat,r[0],r[1],r[2],r[3],y,rp);};
   const tree=(u,v,s,t)=>{const p=P(u,v);trees.push([p[0],p[1],s,t]);};
   // streets across the depth: rows of lots back to back, about 21 to 30 m deep
@@ -119,12 +119,14 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
   runWall(uL0,false,vL0,vL1,gapsV(0),K[2]==='A'?12:0);runWall(uL1,false,vL0,vL1,gapsV(1),K[3]==='A'?12:0);
   const rear=[];for(let i=0;i<ns-1;i++)rear.push((vs[i]+vs[i+1])/2);
   for(const rv of rear)runWall(rv,true,uL0,uL1,coll.map(uc=>[uc-HWC-SWC-2.5,uc+HWC+SWC+2.5]),0);
+  for(const rv of rear)backPoles(P,sw,rv,uL0,uL1,coll);
   // arterial parkway: a row of trees in front of the wall
   for(let s=0;s<4;s++){if(K[s]!=='A')continue;const along=s<2,fix=s===0?V0+SWA+pk[0]/2:s===1?V1-SWA-pk[1]/2:s===2?U0+SWA+pk[2]/2:U1-SWA-pk[3]/2,a=along?uL0:vL0,b=along?uL1:vL1,ty=o.wind&&o.wind.indexOf('NSWE'[sw?[2,3,0,1][s]:s])>=0?5:-1;
     for(let t=a+6;t<b-4;t+=ty===5?13:rr(24,32)){const u=along?t:fix,v=along?fix:t;let skip=false;for(const g of (along?(s===0?(cex[0]?gapsU:[]):(cex[1]?gapsU:[])):gapsV(s-2)))if(t>g[0]-3&&t<g[1]+3)skip=true;if(skip)continue;
       if(ty===5)tree(u,v,rr(.9,1.15),5);else if(rnd()<.18){const p=P(u,v);fans.push([p[0],p[1],rr(11,17)]);}else tree(u,v,rr(.85,1.15),pick([0,2,3,0,6]));}}
   // ---------- lots
   const tintN=()=>pick(wallCols),roofN=()=>pick(roofCols),only1=!!o.older,lotsAll=[];
+  const TK=isoR(()=>({park:rnd()<(only1?.85:.6),post:only1||rnd()<.3,old:only1})); // dressing: parkway strips, curbside post mailboxes
   const rowRear=(r)=>{const i=r.i;if(r.side<0)return i===0?vL0:rear[i-1];return i===ns-1?vL1:rear[i];};
   const bulbDz=(ul,uh,ubb)=>{if(ubb===null||ubb===undefined)return 0;const du=ubb<ul?ul-ubb:ubb>uh?ubb-uh:0,Rr=RBUL+1.5;return du>=Rr?0:Math.sqrt(Rr*Rr-du*du);};
   for(const r of lotRows){const vR=rowRear(r),depth=Math.abs(r.v-vR)-HWL-SWL;if(depth<17)continue;
@@ -139,44 +141,48 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       place(cur+dir*w/2,w,k);cur+=dir*w;}
     L.sort((p,q)=>p.u-q.u);
     const fr=r.side<0?0:2,sg=r.side;                        // north row faces +v (r 0), south row faces -v (r 2)
+    const trash=isoR(()=>rnd()<.45),DT={P,sw,rw,fr,sg,flatL,TK,trash};    // dressing: is it trash day on this street
     for(const l of L){const H=HT[l.k],bz=Math.max(bulbDz(l.u-l.w/2,l.u+l.w/2,r.ubL),bulbDz(l.u-l.w/2,l.u+l.w/2,r.ubH)),vF=r.v+sg*Math.max(HWL+SWL,bz);
       let set=bz>HWL+SWL?rr(3.4,4.4):rr(5.6,6.6);if(Math.abs(vF-vR)-set-H.D<3)set=Math.max(3,Math.abs(vF-vR)-H.D-3);if(Math.abs(vF-vR)-set-H.D<2){l.skip=1;continue;}
-      const vc=vF+sg*(set+H.D/2),wc=P(l.u,vc),tint=tintN(),rf=roofN(),hz=house(wc[0],wc[1],rw(fr),l.k,tint,rf);l.vc=vc;l.vf=vF+sg*set;l.vb=vc+sg*H.D/2;l.vF=vF;l.W=H.W;
+      const vc=vF+sg*(set+H.D/2),wc=P(l.u,vc),tint=tintN(),rf=roofN(),hs=isoR(()=>houseLook(tint,rf,only1)),hz=house(wc[0],wc[1],rw(fr),l.k,hs.t,hs.r,hs);l.vc=vc;l.vf=vF+sg*set;l.vb=vc+sg*H.D/2;l.vF=vF;l.W=H.W;
       // driveway and front walk (local coordinates of the template: x -> u, z -> v, flipped for the south row)
       const gU=sw?hz.gar[1]:hz.gar[0],du=sw?hz.door[1]:hz.door[0];l.gU=gU;
       flatL(M.walkO,gU-2.8,Math.min(r.v+sg*HWL,l.vf),gU+2.8,Math.max(r.v+sg*HWL,l.vf),PADY+.003,6);
       flatL(M.walkO,du-.6,Math.min(vF,vc+sg*(H.D/2-.4)),du+.6,Math.max(vF,vc+sg*(H.D/2-.4)),PADY+.003,6);
       // yard life
       const sideU=gU>l.u?-1:1,fy=Math.abs(l.vf-vF);
-      if(fy>3.2&&rnd()<.25){const t=rnd();if(t<.08){const p=P(l.u+sideU*(H.W/2-1.5),vF-sg*fy*.55);fans.push([p[0],p[1],rr(9,14)]);}else tree(l.u+sideU*(H.W/2-2),vF-sg*Math.min(fy*.5,3.2),rr(.7,1.05),pick([0,1,2,3,0,2,6]));}
+      if(fy>3.2&&rnd()<.25){const t=rnd();if(t<.08){const p=P(l.u+sideU*(H.W/2-1.5),vF+sg*fy*.55);fans.push([p[0],p[1],rr(9,14)]);}else{tree(l.u+sideU*(H.W/2-2),vF+sg*Math.min(fy*.5,3.2),rr(.7,1.05),pick([0,1,2,3,0,2,6]));isoR(()=>yardTree(trees[trees.length-1]));}l.tr=1;}
       if(rnd()<.45){const p=P(l.u+sideU*rr(1,H.W/2-1),l.vf-sg*.9);shrubs.push([p[0],p[1],rr(.55,.9)]);}
       const by=Math.abs(vR-l.vb);
       if(by>5&&rnd()<.1)tree(l.u+rr(-l.w/3,l.w/3),vR-sg*2.4,rr(.8,1.2),pick([0,4,2,0,6]));
       if(by>7.5&&rnd()<.3){const pv=(l.vb+vR)/2,a=P(l.u-3.2,pv-1.7),b=P(l.u+3.2,pv+1.7),a2=P(l.u-4.3,pv-2.6),b2=P(l.u+4.3,pv+2.6),y=PADY+.004;
         const q=(p0,p1,yy,col)=>{const x0=Math.min(p0[0],p1[0]),x1=Math.max(p0[0],p1[0]),z0=Math.min(p0[1],p1[1]),z1=Math.max(p0[1],p1[1]);quadC(M.flat,[x0,yy,z1],[x1,yy,z1],[x1,yy,z0],[x0,yy,z0],0,1,0,col);};
         anchor(wc[0],wc[1],()=>{q(a2,b2,y,0xd8d2c4);q(a,b,y+.004,0x4aa3d8);});mapR(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1]),'#4aa3d8');}
-      if(rnd()<.24){const p=P(gU+(gU>l.u?3.4:-3.4),r.v+sg*(HWL+.55));trashBins(p[0],p[1],rw(fr));}
-      if(rnd()<.2&&fy>5.4){const p=P(gU+rr(-1,1),l.vf-sg*2.8);car(p[0],p[1],sw,undefined,undefined,2);}
-      else if(rnd()<.05&&fy>5.4&&!only1){const p=P(gU+(gU>l.u?-1:1)*0,l.vf-sg*3.4);rvs.push([p[0],p[1],sw?1:0]);}
-      if(rnd()<.14){const a=P(gU,l.vf-sg*.05),fa=rw(fr)*PI/2;anchor(a[0],a[1],()=>{put(M.flat,GEO.box,a[0]+Math.sin(fa)*.25,3.05,a[1]+Math.cos(fa)*.25,fa,1.2,.8,.06,0xf4f1ea);put(M.flat,GEO.tube8,a[0]+Math.sin(fa)*.55,3.1,a[1]+Math.cos(fa)*.55,0,.23,.04,.23,0xd8412f);});}
+      if(rnd()<.24){const p=P(gU+(gU>l.u?3.4:-3.4),r.v+sg*(HWL+.55));trashBins(p[0],p[1],rw(fr),!trash&&isoR(()=>rnd()<.85));l.bins=1;}
+      if(rnd()<.2&&fy>5.4){const p=P(gU+rr(-1,1),l.vf-sg*2.8);car(p[0],p[1],sw,undefined,undefined,2);l.car=1;}
+      else if(rnd()<.05&&fy>5.4&&!only1){const p=P(gU+(gU>l.u?-1:1)*0,l.vf-sg*3.4);rvs.push([p[0],p[1],sw?1:0]);l.car=1;}
+      if(rnd()<.14){l.hoop=1;const a=P(gU,l.vf-sg*.05),fa=rw(fr)*PI/2;anchor(a[0],a[1],()=>{put(M.flat,GEO.box,a[0]+Math.sin(fa)*.25,3.05,a[1]+Math.cos(fa)*.25,fa,1.2,.8,.06,0xf4f1ea);put(M.flat,GEO.tube8,a[0]+Math.sin(fa)*.55,3.1,a[1]+Math.cos(fa)*.55,0,.23,.04,.23,0xd8412f);});}
       if(rnd()<.12){const p=P(l.u+(gU>l.u?-1:1)*(H.W/2-1.2),l.vb-sg*.6);dishes.push([p[0],H.st*2.85-.2,p[1],rw(fr)*PI/2+rr(-.5,.5)]);}
+      isoR(()=>dressLot(DT,r,l,H,gU,du,fy));
       if(Math.abs(wc[0]-(-227))<3&&Math.abs(wc[1]-(-300))<12&&!auntRo){auntRo={x:wc[0],z:wc[1],l,r,P,sg};l.aunt=1;}
       lotsAll.push(l);}
     // gates between neighbours, side walls back to the rear line, and the end walls of the row
     const Lp=L.filter(l=>!l.skip);
     for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2+l.ex;
       if(nx){const g=r.side<0?Math.min(l.vf,nx.vf)-2.2:Math.max(l.vf,nx.vf)+2.2,ok=r.side<0?g>Math.max(l.vb,nx.vb)+.5:g<Math.min(l.vb,nx.vb)-.5;
-        if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);}
+        if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);
+          isoR(()=>{if(rnd()<.24){const p=P(bnd,g+sg*rr(.6,2.5));cutX(p[0],p[1],PADY,rr(1.5,2.3),rr(1.9,2.5),CUT.boug,0xffffff,rnd());}});}
         else wallL(bnd,l.vF+sg*1,bnd,vR,0,C.greyWall);}
       if(k===0){const e=l.u-l.w/2,g=l.vf+sg*2.2;if(!l.aunt)gateL(e,g,l.u-l.W/2,g);wallL(e,g,e,vR,0,C.greyWall);}
       if(k===Lp.length-1){const e=l.u+l.w/2+l.ex,g=r.side<0?l.vf-2.2:l.vf+2.2;if(!l.aunt)gateL(l.u+l.W/2,g,e,g);wallL(e,g,e,vR,0,C.greyWall);}}
     // mailbox cluster and a street light every few lots, the odd car at the curb
-    for(let k=0;k<Lp.length;k+=5){const l=Lp[k],p=P(l.u+l.w/2-1,r.v+sg*(HWL+.7));mailboxes.push([p[0],p[1]]);}
-    if(r.side<0)for(let k=2;k<Lp.length;k+=6){const l=Lp[k],p=P(l.u+l.w/2,r.v-(HWL+.5));lamps.push([p[0],p[1],2,(sw?0:PI/2)+(sw?PI:0),.75]);}
-    for(let k=0;k<Lp.length;k++)if(rnd()<.07){const l=Lp[k],p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);}}
+    if(!TK.post)for(let k=0;k<Lp.length;k+=5){const l=Lp[k],p=P(l.u+l.w/2-1,r.v+sg*(HWL+.7));mailboxes.push([p[0],p[1]]);}
+    if(r.side<0)for(let k=2;k<Lp.length;k+=6){const l=Lp[k],p=P(l.u+l.w/2,r.v-(HWL+.5));lamps.push([p[0],p[1],5,(sw?0:PI/2)+(sw?PI:0),1]);}
+    for(let k=0;k<Lp.length;k++)if(rnd()<.07){const l=Lp[k],p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);l.curb=1;}
+    isoR(()=>{for(const l of Lp)if(!l.curb&&rnd()<.06){const p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);}});}
   // end lots facing the bulbs, with gates back to the side walls
   for(const bb of bulbs){if(!bb[3])continue;const dir=bb[2],k=Math.floor(rnd()*HT.length),H=HT[k],uf=bb[0]+dir*(RBUL+1.5+3.2),uc=uf+dir*H.D/2;if(dir>0?uc+H.D/2>uL1-3:uc-H.D/2<uL0+3)continue;
-    const wc=P(uc,bb[1]),fr=dir>0?3:1,hz=house(wc[0],wc[1],rw(fr),k,tintN(),roofN());
+    const wc=P(uc,bb[1]),fr=dir>0?3:1,t0=tintN(),r0=roofN(),hs=isoR(()=>houseLook(t0,r0,only1)),hz=house(wc[0],wc[1],rw(fr),k,hs.t,hs.r,hs);
     const gv=sw?hz.gar[0]:hz.gar[1];flatL(M.walkO,Math.min(bb[0]+dir*RBUL,uf),gv-2.8,Math.max(bb[0]+dir*RBUL,uf),gv+2.8,PADY+.003,6);
     const ug=uf+dir*2.2;
     for(const s of [-1,1]){const rv=s<0?(()=>{for(let i=rear.length-1;i>=0;i--)if(rear[i]<bb[1])return rear[i];return vL0;})():(()=>{for(const q of rear)if(q>bb[1])return q;return vL1;})();
@@ -184,7 +190,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
     if(rnd()<.6)tree(uc+dir*(H.D/2+3),bb[1]+rr(-6,6),rr(.9,1.2),pick([0,4,2]));}
   // stop signs where the streets meet the collector, a light at each corner
   for(const uc of coll)for(const v of vs)for(const s of [-1,1]){const p=P(uc+s*(HWC+SWC*.5),v+s*(HWL+SWL*.6));stopSigns.push([p[0],p[1],rw(s<0?3:1)*PI/2]);}
-  for(const uc of coll){for(let v=V0+20;v<V1-10;v+=48){const p=P(uc+HWC+.6,v);lamps.push([p[0],p[1],2,rw(3)*PI/2,.8]);}
+  for(const uc of coll){for(let v=V0+20;v<V1-10;v+=48){const p=P(uc+HWC+.6,v);lamps.push([p[0],p[1],5,rw(3)*PI/2,1]);}
     for(let v=V0+8;v<V1-6;v+=rr(22,28)){let skip=false;for(const q of vs)if(Math.abs(v-q)<HWL+SWL+4)skip=true;if(skip)continue;for(const s of [-1,1])tree(uc+s*(HWC+SWC+1.5),v,rr(.75,1),pick([0,1,2]));}}
   tracts.push({R,vs,coll,sw});return{vs,coll,lots:lotsAll};}
 const shrubs=[],rvs=[],dishes=[],mailboxes=[],stopSigns=[];
@@ -195,3 +201,52 @@ function filler(x0,z0,x1,z1,swap){const sw=!!swap;for(let v=(sw?x0:z0)+14;v<(sw?
     const k=Math.floor(rnd()*HF.length),p=sw?[v+s*14,u]:[u,v+s*14],r=sw?(s<0?1:3):(s<0?0:2);put(M.wall,HF[k].wall,p[0],0,p[1],r*PI/2,1,1,1,pick(wallCols));put(M.wall,HF[k].roof,p[0],0,p[1],r*PI/2,1,1,1,pick(roofCols));
     if(rnd()<.1)trees.push([p[0]+rr(-6,6),p[1]+rr(-6,6),rr(.8,1.2),pick([0,4,2,5])]);}
   mapR(x0,z0,x1,z1,'#c9cba6');}
+// ---------- dressing: how each house looks and what its yard holds. Every random choice here comes from the side stream (isoR),
+// so the layout of the town (lots, houses, colliders made with rnd()) is the same as without it.
+function cutIv(a,b,ex){let o=[[a,b]];for(const e of ex){const n=[];for(const q of o){if(e[1]<=q[0]||e[0]>=q[1]){n.push(q);continue;}if(e[0]>q[0])n.push([q[0],e[0]]);if(e[1]<q[1])n.push([e[1],q[1]]);}o=n;}return o.filter(q=>q[1]-q[0]>.4);}
+// style, wall and roof colour of a house: some near-white stucco, sun-faded older houses, mostly red-orange concrete tile, flat tile in browns and greys
+function houseLook(t,rf,old){const s=old?pick([5,5,1,1,0,3,5]):pick([0,0,1,2,3,4,1,2,0,4,3]),f=rnd()<(s===4?.45:.16),o={s,f,open:rnd()<.07,tarp:rnd()<(old?.06:.015)};
+  if(rnd()<.24)t=mixc(t,0xf4f1ea,.55);if(old&&rnd()<.6||rnd()<.1)t=mixc(t,0xe2dccf,rr(.2,.45));
+  let r=f?pick([0x8a7c70,0x6e655e,0x9a8a78,0x7a6a5c,0x5c5650,0xa08a74]):pick([0xb5583a,0xa14a33,0xc0603e,0xb86a48,0xb0533c,0xc46a4a,0xb5583a,0xc0603e,0x9c5a40,0x8a5a46,0x7e5c4c,0x94786a,0x8c8580,0x6a625c,0xb88a70]);
+  if(old||rnd()<.22)r=mixc(r,0xcfc4b6,rr(.12,.35));o.t=t;o.r=r;return o;}
+// a yard tree may be a white birch or a jacaranda in bloom (its fallen flowers round it)
+function yardTree(t){const k=rnd();if(k<.3)t[3]=7;else if(k<.42)t[3]=1;if(t[3]===1)for(let i=0;i<2;i++)cutF(t[0]+rr(-1.6,1.6),t[1]+rr(-1.6,1.6),PADY+.008,rr(2.4,3.6),rr(2.4,3.6),rnd()*3,CUT.petals);}
+// T: the tract's frame (P, sw, rw, fr, sg, flatL), its look (TK) and whether it is trash day on this street
+function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.TK,old=tk.old,u0=l.u-l.w/2,u1=l.u+l.w/2,curb=r.v+sg*HWL,vF=l.vF,
+    park=tk.park&&!l.aunt&&Math.abs(vF-(r.v+sg*(HWL+SWL)))<.05,v0=vF+sg*(park?1.25:0),gf=Math.max(0,H.gar[1]-H.door[1]),vm=l.vf+sg*gf,dside=gU>l.u?-1:1,
+    rect=(mat,ua,ub,va,vb,y)=>T.flatL(mat,ua,Math.min(va,vb),ub,Math.max(va,vb),y,6);
+  // a boat on its trailer on a concrete pad beside the driveway
+  let boatIv=null;if(!l.car&&rnd()<.04){const bu=gU+dside*1.35;boatIv=1;const p=P(bu,l.vf-sg*3.4);boatSpots.push([p[0],p[1],ry+(rnd()<.5?0:PI)]);solid(p[0],p[1],T.sw?6.8:2.3,T.sw?2.3:6.8,2.2,0,0);
+    if(rnd()<.5){const q=P(gU-dside*1.35,l.vf-sg*2.75);car(q[0],q[1],T.sw,undefined,undefined,2);}}
+  // parkway: grass between the curb and a sidewalk set back from it, often with a young staked tree
+  if(park){for(const q of cutIv(u0,u1,[[gU-2.8,gU+2.8]]))rect(M.grassO,q[0],q[1],curb,vF,PADY+.002);
+    for(const q of cutIv(u0,u1,[[gU-2.8,gU+2.8],[du-.6,du+.6]]))rect(M.walkO,q[0],q[1],vF,v0,PADY+.003);
+    if(rnd()<.36){const c=cutIv(u0+1.2,u1-1.2,[[gU-3.8,gU+3.8]]);if(c.length){const q=pick(c),p=P(rr(q[0],q[1]),(curb+vF)/2);trees.push([p[0],p[1],rr(.8,1.1),rnd()<.75?9:pick([0,2,6,1])]);}}}
+  // the lawn: lush, patchy, brown, dirt, gravel with agaves and boulders, or overgrown
+  const lt=pick(old?['lush','patchy','patchy','brown','brown','dirt','xeri','over','patchy']:['lush','lush','lush','patchy','patchy','brown','xeri','xeri','over','lush']);
+  const ex=[[gU-2.8,gU+2.8],[du-.6,du+.6]];const ivs=cutIv(u0+.05,u1-.05,ex),la=v0,lb=l.vf;
+  if(ivs.length&&Math.abs(lb-la)>1.2){const spot=()=>{const q=pick(ivs);return P(rr(q[0]+.3,q[1]-.3),lerp(la,lb,rr(.15,.85)));};
+    if(lt==='brown'||lt==='dirt'||lt==='xeri'){const m=lt==='brown'?M.dryO:lt==='dirt'?M.dirtO:M.gravelO;for(const q of ivs)rect(m,q[0],q[1],la,lb,PADY+.002);}
+    if(lt==='patchy'||lt==='over'||(lt==='brown'&&rnd()<.5))for(let k=0;k<(lt==='patchy'?rr(1,3.4):1);k++){const p=spot();cutF(p[0],p[1],PADY+.007,rr(1.6,3.4),rr(1.4,3),rnd()*3,CUT.dryP);}
+    if(lt==='over'||lt==='dirt')for(let k=0;k<(lt==='over'?rr(4,8):rr(1,3));k++){const p=spot();cutX(p[0],p[1],PADY,rr(.6,1.1),rr(.45,.9),CUT.weed,0xffffff,rnd()*3);}
+    if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,2.2);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3]);}
+      if(rnd()<.5)cutL(P(du+.7,v0+sg*.1),P(du+.7,vm-sg*.4),PADY,.2,CUT.rocks,0xffffff,2.2);}}
+  // the driveway: oil stains, the family cars (often two side by side), a portable hoop at its edge
+  if(rnd()<.55)for(let k=0;k<1+(rnd()<.4?1:0);k++){const p=P(gU+rr(-1.6,1.6),l.vf-sg*rr(1.4,4.2));stain(p[0],p[1],rr(.3,.7),rr(.3,.9),rnd()*3,PADY);}
+  if(!l.car&&!boatIv&&fy>5.4&&rnd()<(old?.3:.22)){for(const o of rnd()<.35?[-1.35,1.35]:[rr(-.4,.4)]){const p=P(gU+o,l.vf-sg*2.75);car(p[0],p[1],T.sw,undefined,undefined,2);}}
+  if(!l.hoop&&rnd()<.07){const p=P(gU-dside*2.3,vF+sg*(park?1.7:.6));hoopPoles.push([p[0],p[1],ry+PI]);solid(p[0],p[1],.3,.3,3.1,0,0);}
+  // the curb: a white post mailbox by the driveway, the bins out on trash day
+  if(tk.post){const p=P(gU-dside*3.35,curb+sg*(park?.7:.35));postBoxes.push([p[0],p[1],ry]);solid(p[0],p[1],.3,.3,1.3,0,0);}
+  if(T.trash&&!l.bins&&rnd()<.62){const p=P(gU+dside*3.6,curb+sg*.5);trashBins(p[0],p[1],T.rw(T.fr));}
+  // the front of the house: a clipped hedge or roses under the windows, cypresses by the door
+  const mu0=gU>l.u?l.u-H.W/2+.4:gU+3.5,mu1=gU>l.u?gU-3.5:l.u+H.W/2-.4,fv=vm-sg*.55;
+  if(mu1-mu0>1.5){const k=rnd();
+    if(k<.27){for(const q of cutIv(mu0,mu1,[[du-1,du+1]])){const a=P(q[0],fv),b=P(q[1],fv);hedgeSpots.push([(a[0]+b[0])/2,(a[1]+b[1])/2,ry,q[1]-q[0]]);}}
+    else if(k<.42){for(let u=mu0+.5;u<mu1-.3;u+=rr(1.2,1.9)){if(Math.abs(u-du)<.9)continue;const p=P(u,fv);cutX(p[0],p[1],PADY,rr(.7,1),rr(.6,.95),CUT.rose,0xffffff,rnd()*3);}}
+    if(rnd()<.07)for(const s of [-1,1]){const u=du+s*1.3;if(Math.abs(u-gU)<3.5)continue;const p=P(u,vm-sg*.7);trees.push([p[0],p[1],rr(.75,1),8]);}}
+  // a FOR SALE sign, kids' toys left on the lawn
+  if(ivs.length&&rnd()<.03){const q=pick(ivs),p=P(rr(q[0]+.3,q[1]-.3),v0+sg*.9);yardSigns.push([p[0],p[1],ry,0]);}
+  if(ivs.length&&rnd()<.05){const q=pick(ivs),p=P(rr(q[0]+.4,q[1]-.4),lerp(v0,l.vf,rr(.3,.7)));toySpots.push([p[0],p[1],rnd()*TAU,Math.floor(rnd()*3)]);}}
+// wooden power poles along the rear lot lines (inside the playing area; not in the home block, which has its own module)
+function backPoles(P,sw,rv,a,b,coll){const c=P((a+b)/2,rv);if(c[0]<BOUND.x0||c[0]>BOUND.x1||c[1]<BOUND.z0||c[1]>BOUND.z1)return;if(c[0]>-249&&c[0]<0&&c[1]>-504&&c[1]<-260)return;
+  for(let u=a+12;u<b-8;u+=48){if(coll.some(uc=>Math.abs(u-uc)<HWC+SWC+5))continue;const p=P(u,rv+.55);poles.push([p[0],p[1],sw?1:0,1]);}}
