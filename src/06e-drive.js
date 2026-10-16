@@ -75,7 +75,7 @@ function carPrompt(k,dt){G.prompt=DRV.on;if(IN.useHeld&&!DRV.latch){DRV.hold+=dt
 // ---------- getting in and out
 function carEnter(k){if(P.car||P.bike||!P.alive||!k||k.c.wrecked)return false;P.car=k;k.c.off=true;carCells(k,false);DRV.hold=0;DRV.latch=true;RIDE.hold=0;
   k.vx=k.vz=0;k.steer=0;k.y=Math.min(k.y,.05);P.x=k.x;P.z=k.z;P.y=0;P.vx=P.vz=P.vy=0;P.crouching=false;P.crouch=0;P.sprinting=false;P.wantAds=false;P.ads=0;cancelReload();IN.fire=false;
-  P.yaw=k.yaw;P.pitch=-.2;DRV.camYaw=k.yaw;DRV.lookT=0;DRV.camD=Math.min(DRV.camD,4);carDoor(k.x,k.z);return true;}
+  P.yaw=k.yaw;P.pitch=-.17;DRV.camYaw=k.yaw;DRV.lookT=0;DRV.camD=Math.min(DRV.camD,4);carDoor(k.x,k.z);return true;}
 function carExit(how){const k=P.car;if(!k)return false;how=how|0;
   if(how!==2){const p=exitSpot(k);if(!p&&how===0){toast('NO ROOM TO GET OUT');DRV.latch=true;return false;}P.car=null;carPark(k);if(p){P.x=p[0];P.z=p[1];}else pushOut(P,.45,0);}
   else{P.car=null;carPark(k);}
@@ -86,7 +86,7 @@ function exitSpot(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx,
   for(const strict of [true,false])for(const q of C){const x=k.x+fx*q[0]+rx*q[1],z=k.z+fz*q[0]+rz*q[1];if(x<BOUND.x0+1||x>BOUND.x1-1||z<BOUND.z0+1||z>BOUND.z1-1)continue;
     pr.x=x;pr.z=z;pushOut(pr,.5,0);if(Math.hypot(pr.x-x,pr.z-z)>.02||floorAt(x,z,0)>.3)continue;if(strict&&!freeSpot(x,z))continue;
     if(rayWorld(k.x,1,k.z,x-k.x,0,z-k.z,1)<.98)continue; // (rayWorld takes a direction; this one is unnormalised, so t is a fraction of the way)
-    return[x,z];}
+    DRV.exitFree=strict;return[x,z];}
   return null;}
 // damage inside a car: reduced; a hit that would kill throws you out first, so you go down on the street
 function carHurt(dmg){dmg*=.6;if(P.alive&&G.state==='play'&&P.hp-dmg*G.dmgK<=0&&!(MP.on&&P.spawnT>0)){const k=P.car;if(!carExit(1)&&P.car)carExit(2);if(k)P.yaw=k.yaw;}return dmg;}
@@ -122,7 +122,7 @@ function driveUpdate(dt){const k=P.car,V=k.V;vehFrame(dt);
   P.hurtT+=dt;if(P.hurtT>4.5&&P.hp<100)P.hp=Math.min(100,P.hp+20*dt);if(Math.hypot(P.x-P.stillX,P.z-P.stillZ)>3.5){P.stillX=P.x;P.stillZ=P.z;P.stillT=0;}else P.stillT+=dt;
   if(P.flashT>0)P.flashT-=dt;flash.visible=false;tpFlash.visible=false;P.recoil=0;P.kick*=Math.exp(-dt*13);P.punch*=Math.exp(-dt*7);P.roll*=Math.exp(-dt*6);
   engSound(1,Math.abs(vf),f);if(P.speed>12)noiseEvent(P.x,P.z,25,true);
-  G.prompt=DRV.off;}
+  if(P.speed<4||DRV.hold>0)G.prompt=DRV.off;} // (only when slow: at speed the prompt and the USE button would sit on the car)
 // static colliders against the car's box (separating axes: x, z and the car's own two): the deepest overlap pushes the car out.
 // Returns true and the push direction in _cb when there was one. Kerbs and pads (under 0.35 m), awnings and roofs (from 1.3 m) do not count.
 function carSolids(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx,hl=k.V.len/2*.96,hw=k.V.wid/2*.94,st=++stamp;let best=0,bx=0,bz=0,hit=false;
@@ -152,8 +152,8 @@ function carPeople(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx
 function carCamera(dt){const k=P.car,sp=Math.hypot(k.vx,k.vz);VIEW.on=true;VIEW.sc=0;gunRoot.visible=false;PAV.g.visible=false;tpFlash.visible=false;
   if(Math.abs(angDiff(P.yaw,DRV.camYaw))>.002)DRV.lookT=1.4;else if(DRV.lookT>0)DRV.lookT-=dt;
   const vf=k.vx*-Math.sin(k.yaw)+k.vz*-Math.cos(k.yaw),back=vf<-2.5&&IN.f<-.2,want=k.yaw+(back?PI:0),fol=DRV.lookT>0?0:clamp(sp/4,.35,1)*3;
-  P.yaw+=angDiff(want,P.yaw)*Math.min(1,dt*fol);if(DRV.lookT<=0)P.pitch+=(-.2-P.pitch)*Math.min(1,dt*2);P.pitch=clamp(P.pitch,-.85,.35);DRV.camYaw=P.yaw;
-  const cp=Math.cos(P.pitch),dx=Math.sin(P.yaw)*cp,dy=-Math.sin(P.pitch),dz=Math.cos(P.yaw)*cp,D=lerp(5.6,7,clamp(sp/DRV.VMAX,0,1)),tx=k.x,ty=k.y+1.45,tz=k.z,
+  P.yaw+=angDiff(want,P.yaw)*Math.min(1,dt*fol);if(DRV.lookT<=0)P.pitch+=(-.17-P.pitch)*Math.min(1,dt*2);P.pitch=clamp(P.pitch,-.85,.35);DRV.camYaw=P.yaw;
+  const cp=Math.cos(P.pitch),dx=Math.sin(P.yaw)*cp,dy=-Math.sin(P.pitch),dz=Math.cos(P.yaw)*cp,D=lerp(6.2,7.4,clamp(sp/DRV.VMAX,0,1)),tx=k.x,ty=k.y+1.55,tz=k.z,
     t=rayWorld(tx,ty,tz,dx,dy,dz,D+.3),want2=t<D+.3?Math.max(1.2,t-.35):D;
   if(want2<DRV.camD)DRV.camD=want2;else DRV.camD+=(want2-DRV.camD)*Math.min(1,dt*3);
   const sh=shake?shake*.07:0;camera.position.set(tx+dx*DRV.camD+(sh?R2(-sh,sh):0),Math.max(.6,ty+dy*DRV.camD)+(sh?R2(-sh,sh):0),tz+dz*DRV.camD+(sh?R2(-sh,sh):0));
@@ -188,4 +188,4 @@ function vehPuppet(pl,s,dt){const v=pl.veh||0,kind=v?v[0]:0;
   else{if(e)e.g.visible=false;if(s.inCar){s.inCar=false;s.g.visible=s.alive;}}}
 
 // test and debugging hooks (window.__game, through MECH)
-if(typeof MECH!=='undefined')Object.assign(MECH,{DRV,carEnter,carExit,carNear,carsReset,vehPack,vehRx,exitSpot,CAR_TYPES});
+if(typeof MECH!=='undefined')Object.assign(MECH,{RHc:()=>RHc,DRV,carEnter,carExit,carNear,carsReset,vehPack,vehRx,exitSpot,CAR_TYPES});
