@@ -91,6 +91,7 @@ function freeSpot(x,z){const c=cellOf(x,z);return c>=0&&!blocked[c]&&reach[c]===
 const MX0=-560,MZ0=-720,MAPW=2060,MAPH=1940,mapC=document.createElement('canvas');mapC.width=MAPW;mapC.height=MAPH;
 {const g=mapC.getContext('2d'),X=x=>x-MX0,Z=z=>z-MZ0;g.fillStyle='#cfc3a4';g.fillRect(0,0,MAPW,MAPH);
  for(const r of MAPR){g.fillStyle=r[4];g.fillRect(X(r[0]),Z(r[1]),r[2]-r[0],r[3]-r[1]);}
+ if(typeof hoodMap==='function')hoodMap(g,X,Z); // 02j-home hook: the curved streets and turned houses of the start block
  // the freeway, the tracks and the trail on top
  g.lineCap='round';g.strokeStyle='#bdb59f';g.lineWidth=2*FWH+28;g.beginPath();FWY.forEach((p,k)=>k?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.stroke();
  g.strokeStyle='#8d8a84';g.lineWidth=2*FWH;g.stroke();g.strokeStyle='#e2b93b';g.lineWidth=1.5;g.stroke();

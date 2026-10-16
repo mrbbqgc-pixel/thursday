@@ -1,5 +1,5 @@
 [
  {"click":"#btnStart"},{"wait":400},
- {"eval":"(()=>{const g=window.__game,F=g.freeSpot,o=[];for(let z=-300;z<=-250;z+=1.5){let row='';for(let x=-240;x<=-190;x+=1.5)row+=F(x,z)?'.':'#';o.push(z.toFixed(1)+' '+row);}return o})()","log":"free x -240..-190 (cols 1.5 m), rows z"},
- {"eval":"(()=>{const g=window.__game;const cs=g.colliders.filter(c=>c.x1>-240&&c.x0<-190&&c.z1>-280&&c.z0<-255).map(c=>[c.kind,+c.x0.toFixed(1),+c.x1.toFixed(1),+c.z0.toFixed(1),+c.z1.toFixed(1),+c.y1.toFixed(1)]);return cs.slice(0,40)})()","log":"colliders near the back wall"}
+ {"eval":"(()=>{const g=window.__game,F=g.freeSpot,o=[];for(let z=-400;z<=-340;z+=1.5){let row='';for(let x=-95;x<=-18;x+=1.5)row+=F(x,z)?'.':'#';o.push(z.toFixed(1)+' '+row);}return o})()","log":"free x -95..-18 (cols 1.5 m), rows z: round the start house"},
+ {"eval":"(()=>{const g=window.__game;const cs=g.colliders.filter(c=>c.x1>-62&&c.x0<-40&&c.z1>-385&&c.z0<-358).map(c=>[c.kind,+c.x0.toFixed(1),+c.x1.toFixed(1),+c.z0.toFixed(1),+c.z1.toFixed(1),+c.y1.toFixed(1)]);return cs.slice(0,40)})()","log":"colliders at the start house"}
 ]

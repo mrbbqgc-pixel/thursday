@@ -55,7 +55,9 @@ function medianRun(r,a,b,alongZ){a+=24;b-=24;const cuts=[];const lo=alongZ?BOUND
 // Local frame: u runs along the streets, v across them; o.swap makes the streets run north-south.
 const HWL=4.5,HWC=5.5,SWC=1.8,PK=3,RBUL=9.5,tracts=[];
 let auntRo=null;
-function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=r=>sw?[1,0,3,2][r]:r,
+const HOODB={x0:AV.HERM.x+AV.HERM.hw,x1:AV.HAVEN.x-AV.HAVEN.hw,z0:STR.BL.z+STR.BL.hw,z1:STR.CH.z-STR.CH.hw}; // 02j-home hook: this block (Hermosa-Haven, Base Line-Church) is built by 02j-home.js
+function tract(R,o){if(R.x0>=HOODB.x0-1&&R.x1<=HOODB.x1+1&&R.z0>=HOODB.z0-1&&R.z1<=HOODB.z1+1){tracts.push({R,vs:[],coll:[],sw:false});return{vs:[],coll:[],lots:[]};} // 02j-home hook: no generic streets or lots here
+  o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=r=>sw?[1,0,3,2][r]:r,
   U0=sw?R.z0:R.x0,U1=sw?R.z1:R.x1,V0=sw?R.x0:R.z0,V1=sw?R.x1:R.z1,K=sw?[R.k[2],R.k[3],R.k[0],R.k[1]]:R.k.slice(),pk=o.pk||[PK,PK,PK,PK];
   const ins=k=>K[k]==='A'?SWA+pk[k]:.5,uL0=U0+ins(2),uL1=U1-ins(3),vL0=V0+ins(0),vL1=V1-ins(1);
   const W4=(a)=>sw?[a[2],a[3],a[0],a[1]]:a;   // local [v0,v1,u0,u1] -> world [N,S,W,E]

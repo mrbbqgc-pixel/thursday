@@ -6,18 +6,19 @@
 // warp: a far stage. When the stage before it is done the screen fades to black on warpLine, and everyone is set down at its spawn (banner warpBan).
 // chase: the trail. Bobo follows on his scooter, chase metres behind the start; the bikes come from the bike module when it is there.
 const ST=[
- {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-180,z:-319,r:48,type:'eliminate',spawn:[-221,-309,-PI/2],
-  groups:[{x:-196,z:-321,r:10,units:{rifle:2}},{x:-165,z:-314,r:10,units:{rifle:1,rush:1}},{x:-138,z:-324,r:10,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[1,0]},
+ {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-78,z:-392,r:46,type:'eliminate',spawn:[-60.3,-366.6,1.758], // spawn: the start house's driveway, facing Mesada St
+  groups:[{x:-79,z:-394,r:9,units:{rifle:2}},{x:-100,z:-414,r:9,units:{rifle:1,rush:1}},{x:-68,z:-335,r:9,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[-1,0]},
   talk:[[0,'AUNT RO','Ray. Wake up. There are men in khakis on my street, and they are standing on the Hendersons\' lawn.'],[4,'RAY','It\'s seven in the morning.'],
    [7.5,'AUNT RO','It\'s Thursday. Get them off my street. Junebug, Mr. Pennington, go with him.'],[11.5,'JUNEBUG','Cuz! Welcome to the suburbs! It\'s not usually like this. Usually it\'s leaf blowers.']],
   outro:[[0,'AUNT RO','Street is clear. Now the cul-de-sac. The neighbours are trying to get their cars out.']]},
- {key:'culdesac',title:'Hold the cul-de-sac while the neighbours get out',x:-222,z:-319,r:26,type:'hold',time:45,spawn:[-221,-309,-PI/2],
-  waves:[{t:3,n:4,kinds:['rifle','rush'],dir:[1,0]},{t:16,n:5,kinds:['rifle','rifle','rush'],dir:[0,-1]},{t:30,n:5,kinds:['rifle','rush','heavy'],dir:[-1,0]}],
+ {key:'culdesac',title:'Hold the cul-de-sac while the neighbours get out',x:-65.3,z:-450,r:26,type:'hold',time:45,spawn:[-67,-432,0], // the Sago Ct bulb
+  waves:[{t:3,n:4,kinds:['rifle','rush'],dir:[-1,0]},{t:16,n:5,kinds:['rifle','rifle','rush'],dir:[0,1]},{t:30,n:5,kinds:['rifle','rush','heavy'],dir:[-1,0]}],
   talk:[[0,'AUNT RO','Hold the cul-de-sac. Nobody leaves without their good casserole dish, and that takes time.'],
    [5,'KINGSLEY','(loudspeaker) Residents of Terra Linda, this is Chet Kingsley. Please stay indoors while we improve your lifestyle.'],
    [12,'MR. PENNINGTON','Here they come. Through the side yards. Over my roses.'],[22,'JUNEBUG','Mr. P, how many you got? I got like... forty.'],[25,'MR. PENNINGTON','You have two, son.']],
   outro:[[0,'AUNT RO','Everybody is out. Good. Kingsley has the strip mall on Route 66 now. Go take it back. I need stamps.']]},
  {key:'route66',title:'Route 66: clear the strip mall and the gas station',x:-120,z:30,r:60,type:'eliminate',spawn:[-250,-60,PI],
+  warp:true,warpLine:['JUNEBUG','Foothill is a long walk, cuz. Everybody in the minivan.'],warpBan:['ROUTE 66','FOOTHILL BLVD'],
   groups:[{x:-200,z:-6,r:12,units:{rifle:2}},{x:-150,z:32,r:22,units:{rifle:3,rush:1}},{x:-62,z:25,r:14,units:{rifle:2,heavy:1}}],marks:1,reinf:{at:.5,n:4,kinds:['rifle','rush'],dir:[1,0]},
   talk:[[0,'AUNT RO','Kingsley has the strip mall and the gas station on Foothill. That is where I buy my lottery tickets. Clear it.'],
    [5,'JUNEBUG','The donut place is in there, cuz. If they touched the donut place, it\'s personal.'],[10,'RAY','They put a checkpoint on Route 66. Isn\'t that, like, a historic road?'],
@@ -65,7 +66,7 @@ const ST=[
    [7.5,'AUNT RO','I called the HOA. That is better.']],
   outro:[[0,'KINGSLEY','(loudspeaker) Okay. Okay! The lifestyle district is... postponed. Indefinitely.'],[2.5,'BOBO','I got my car back. Princess, Daddy is coming home.'],
    [5,'AUNT RO','Mission complete, Ray. I\'m pulling up in the minivan. Wipe your feet.']]}];
-const SURV={x:-230,z:-320,spawn:[-230,-320,0]}; // survival: hold the cul-de-sac (the co-op guests start here too)
+const SURV={x:-65.3,z:-450,spawn:[-65.3,-444,0]}; // survival: hold the cul-de-sac, the Sago Ct bulb (the co-op guests start here too)
 const SQUAD=[['june','JUNEBUG'],['penn','PENNINGTON']];
 // what the squad says. {d} is a direction
 const VOX={
