@@ -18,7 +18,7 @@ chunks.forEach(mm=>mm.forEach((b,mat)=>{if(!b.p.length)return;const m=mkMesh(b,m
 let viewFar=Q.far;
 // fog and draw distance: the menu flyover sees farther than the player on foot
 function setView(far,nearK){if(far===viewFar&&scene.fog.near===far*nearK)return;viewFar=far;scene.fog.near=far*nearK;scene.fog.far=far;}
-function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],s=m.geometry.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,r=viewFar+30+s.radius;m.visible=dx*dx+dz*dz<r*r;}
+function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],s=m.geometry.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,r=viewFar+s.radius;m.visible=dx*dx+dz*dz<r*r;}
   const r2=(viewFar+40)*(viewFar+40);for(let k=0;k<farCull.length;k++){const m=farCull[k],dx=m.position.x-x,dz=m.position.z-z;if(m.parent)m.visible=dx*dx+dz*dz<r2;}}
 
 // ---------- spatial bins (16 m cells) for rays and collision

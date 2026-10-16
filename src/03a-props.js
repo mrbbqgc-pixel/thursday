@@ -52,15 +52,16 @@ const fanLeaf=(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new
 // ---------- trees: 0 round shade tree, 1 jacaranda (in flower), 2 pepper tree, 3 magnolia, 4 pine, 5 eucalyptus, 6 crape myrtle
 function lumpy(geo,k){const g=geo.clone(),P=g.attributes.position,seen={};for(let i=0;i<P.count;i++){const key=Math.round(P.getX(i)*50)+','+Math.round(P.getY(i)*50)+','+Math.round(P.getZ(i)*50),f=seen[key]||(seen[key]=1+rr(-k,k));P.setXYZ(i,P.getX(i)*f,P.getY(i)*f,P.getZ(i)*f);}
   g.computeVertexNormals();return g;}
-GEO.blobT=new T.SphereGeometry(1,5,4);
+GEO.blobT=new T.SphereGeometry(1,6,3);
 function treeGeo(type){const b=new GB(),BL=()=>lumpy(GEO.blobT,.2),lit=(lo,hi,y0,y1)=>(x,y,z)=>lo+(hi-lo)*clamp((y-y0)/(y1-y0),0,1)+rr(-.06,.06);
-  if(type===0){b.add(GEO.tube8,0,0,0,0,0,0,.17,2.6,.17,0x6b5138);for(const q of [[0,3.7,0,2.1,1.8,2.1],[-1.1,3.2,.6,1.5,1.3,1.5],[1,3.4,-.5,1.6,1.3,1.5]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3f7d3a,lit(.55,1,2.2,4.8));}
-  else if(type===1){b.add(GEO.tube8,0,0,0,0,0,.1,.15,2.6,.15,0x5a4a3c);for(const q of [[0,3.5,0,2.2,1.5,2.2,0x8a72c8],[-1.4,3.1,.7,1.5,1.2,1.4,0x9a82d4],[1.3,3.2,-.6,1.4,1.2,1.4,0x7a8a4a]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],q[6],lit(.6,1,2.4,4.2));}
-  else if(type===2){b.add(GEO.tube8,0,0,0,0,0,-.15,.22,2.2,.22,0x5f4a36);for(const q of [[0,3.2,0,2.4,1.5,2.4],[-1.8,2.5,.4,1.6,1.4,1.4],[1.7,2.6,-.5,1.5,1.4,1.5],[.2,2.4,1.7,1.4,1.3,1.3]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x7d9a4c,lit(.62,1,1.2,4.4));}
-  else if(type===3){b.add(GEO.tube8,0,0,0,0,0,0,.16,2,.16,0x5a4a3c);for(const q of [[0,3.8,0,1.6,2.6,1.6],[0,2.6,0,1.9,1.5,1.9]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x2f5a2a,lit(.55,1,1.6,6));}
-  else if(type===4){b.add(GEO.tube8,0,0,0,0,0,.04,.2,7.5,.2,0x5f4a36);for(const q of [[0,8,0,2.2,1.3,2.2],[-1.4,6.6,.6,1.5,.9,1.4],[1.3,7.2,-.6,1.5,.9,1.5],[.3,9.2,.2,1.3,.9,1.3]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3b5a33,lit(.6,1,6,10));}
-  else if(type===5){b.add(GEO.tube8,0,0,0,0,0,.05,.22,11,.16,0xd8cfbf,(x,y,z)=>.9+rr(-.08,.08));for(const q of [[0,11.5,0,2.2,2.6,2],[-1,8.6,.5,1.6,2,1.4],[1.1,9.8,-.4,1.5,2.2,1.5],[.2,13.4,.1,1.4,1.8,1.4]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x82927a,lit(.65,1,7,15));}
-  else{for(const a of [0,2.1,4.2])b.add(GEO.tube6,Math.cos(a)*.2,0,Math.sin(a)*.2,Math.sin(a)*.2,0,Math.cos(a)*.2,.07,1.8,.07,0x8a7766);for(const q of [[0,2.4,0,1.4,1.1,1.4],[.6,2,.4,.9,.8,.9]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0xc8708e,lit(.65,1,1.4,3.2));}
+  const TK=GEO.tube6;
+  if(type===0){b.add(TK,0,0,0,0,0,0,.17,2.6,.17,0x6b5138);for(const q of [[0,3.6,0,2.2,1.9,2.1],[-1.1,3.1,.6,1.6,1.3,1.5]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3f7d3a,lit(.55,1,2.2,4.8));}
+  else if(type===1){b.add(TK,0,0,0,0,0,.1,.15,2.6,.15,0x5a4a3c);for(const q of [[0,3.5,0,2.3,1.5,2.2,0x8a72c8],[1.2,3.1,-.6,1.5,1.2,1.4,0x7a8a4a]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],q[6],lit(.6,1,2.4,4.2));}
+  else if(type===2){b.add(TK,0,0,0,0,0,-.15,.22,2.2,.22,0x5f4a36);for(const q of [[0,3.2,0,2.4,1.5,2.4],[-1.8,2.5,.4,1.6,1.4,1.4],[1.7,2.6,-.5,1.5,1.4,1.5]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x7d9a4c,lit(.62,1,1.2,4.4));}
+  else if(type===3){b.add(TK,0,0,0,0,0,0,.16,2,.16,0x5a4a3c);b.add(BL(),0,3.3,0,0,rnd()*3,0,1.9,2.9,1.9,0x2f5a2a,lit(.55,1,1.4,6));}
+  else if(type===4){b.add(TK,0,0,0,0,0,.04,.2,7.5,.2,0x5f4a36);for(const q of [[0,8,0,2.3,1.3,2.2],[-1.4,6.7,.6,1.5,.9,1.4],[.6,9.2,-.3,1.4,1,1.4]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3b5a33,lit(.6,1,6,10));}
+  else if(type===5){b.add(TK,0,0,0,0,0,.05,.22,11,.16,0xd8cfbf,(x,y,z)=>.9+rr(-.08,.08));for(const q of [[0,11.6,0,2.3,3,2.1],[-1,8.6,.5,1.6,2,1.4],[.4,13.6,.1,1.4,1.8,1.4]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x82927a,lit(.65,1,7,15));}
+  else{for(const a of [0,3.1])b.add(GEO.rod,Math.cos(a)*.2,0,Math.sin(a)*.2,Math.sin(a)*.2,0,Math.cos(a)*.2,.07,1.8,.07,0x8a7766);b.add(BL(),0,2.3,0,0,rnd()*3,0,1.5,1.2,1.5,0xc8708e,lit(.65,1,1.4,3.2));}
   return b.build();}
 trees.forEach(t=>solid(t[0],t[1],.45,.45,2.6*t[2]));
 for(let ty=0;ty<7;ty++){const g=treeGeo(ty),g2=treeGeo(ty);bake(g,M.flat,trees.filter((t,k)=>t[3]===ty&&k%2===0),(o,p,k)=>{o.position.set(p[0],PADY*.5,p[1]);o.rotation.y=k*2.1;o.scale.setScalar(p[2]);});

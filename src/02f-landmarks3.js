@@ -51,9 +51,9 @@ function railway(){const z=TRK,cuts=NSA.filter(a=>a.z0<z&&a.z1>z).map(a=>[a.x-a.
       put(M.flat,GEO.box,px,3.3,pz,PI/4,.08,.22,1.6,0xf4f0e7);put(M.flat,GEO.box,px,3.3,pz,-PI/4,.08,.22,1.6,0xf4f0e7);for(const o of [-.35,.35])put(M.flat,GEO.cyl8,px+o,2.5,pz,0,.13,.26,.13,0xb3261e);
       put(M.flat,GEO.box,px,4.2,pz,0,.12,6,.12,0xd8412f);});solid(px,pz,.3,.3,4.2);}}}
 function station(cx,cz){const z=TRK;
-  for(const s of [-1,1]){const pz=z+s*9;boxC(M.flat,cx-5,0,pz,80,.25,6,0xbab4a8,0xc8c2b6);solid(cx-5,pz,80,6,.26,0,0);mapR(cx-45,pz-3,cx+35,pz+3,'#c8c2b6');
-    for(let k=0;k<4;k++){const sx=cx-36+k*20;anchor(sx,pz,()=>{for(const o of [-3,3])post(sx+o,pz-s*.8,3.4,.09,0x2d4f6a,.25);hipRoof(sx,pz,8,4.2,3.65,.4,C.tile,.3,SWN.cream);});}
-    for(let k=0;k<3;k++)bench(cx-26+k*20,pz-s*1.6,true,0x2d4f6a);}
+  for(const s of [-1,1]){const pz=z+s*9;boxC(M.flat,cx-18,0,pz,80,.25,6,0xbab4a8,0xc8c2b6);solid(cx-18,pz,80,6,.26,0,0);mapR(cx-58,pz-3,cx+22,pz+3,'#c8c2b6');
+    for(let k=0;k<4;k++){const sx=cx-49+k*20;anchor(sx,pz,()=>{for(const o of [-3,3])post(sx+o,pz-s*.8,3.4,.09,0x2d4f6a,.25);hipRoof(sx,pz,8,4.2,3.65,.4,C.tile,.3,SWN.cream);});}
+    for(let k=0;k<3;k++)bench(cx-39+k*20,pz-s*1.6,true,0x2d4f6a);}
   // depot: mission revival, tile roof, a little bell tower
   const dz=z-26,dx=cx-20;block(dx,dz,22,10,4.2,{front:1,fc:['arcade','doorGlass','arcade'],sc:['hwinA','stucco'],tint:0xeee3cb,noAC:true,roof:0xc9c0ae});
   anchor(dx,dz,()=>{hipRoof(dx,dz,22,10,4.2,.36,C.tile,.6);boxE(CE,dx+12,0,dz,4,9,4,0xeee3cb,cuv(CI.stucco));hipRoof(dx+12,dz,4,4,9,.8,C.tile,.4);});solid(dx+12,dz,4,4,10,0,1);

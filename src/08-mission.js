@@ -3,7 +3,8 @@
 // =====================================================================
 // TEMP (world branch): one free-roam stage at Aunt Ro's house so the game runs on the new map; the story part replaces this table
 const ST=[
- {key:'aunt',title:'Walk out to the cul-de-sac',x:-227,z:-320,r:6,type:'reach',spawn:[-230,-285,0],intro:['COMMAND','World test: walk round the house to the cul-de-sac.']}];
+ {key:'aunt',title:'Walk out to the cul-de-sac',x:-227,z:-320,r:6,type:'reach',spawn:[-230,-285,0],intro:['COMMAND','World test: walk round the house to the cul-de-sac.']},
+ {key:'church',title:'Walk down to Church St',x:-120,z:-262,r:8,type:'reach',spawn:[-227,-316,0]}];
 const MS={stall:0,tip:0,i:-1,st:null,prog:0,t:0,phase:'',init:1,reinfDone:false,waveK:0,done:false,nextT:0,plantT:0,defT:0,loadout:null,jam:null,surv:null};
 const OBJ={text:'',sub:'',prog:0,x:0,z:0,y:1.8,show:false};
 const TIPS=isTouch?['Tap AIM to look down the sights. CROUCH behind cars and sandbags; hostiles do the same.','Hostiles show on the minimap when they fire. Red arcs point to where shots come from.','NADE throws a grenade. USE swaps your weapon for one on the ground. Red barrels and fuel pumps explode.']

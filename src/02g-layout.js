@@ -10,7 +10,7 @@ function fwX(z){if(z<=FWY[0][1])return FWY[0][0];for(let k=0;k<FWY.length-1;k++)
 const FWH=20,fwEdge=z=>fwX(z)-FWH-14; // west foot of the freeway berm: nothing playable east of it
 // main streets: half width of the roadway (curb to centre), median width, lane texture
 const NSA=[{k:'ARCH',n:'ARCHIBALD AVE',x:-484,hw:11,mat:'road4c'},{k:'HERM',n:'HERMOSA AVE',x:-249,hw:8,mat:'road4u'},{k:'HAVEN',n:'HAVEN AVE',x:0,hw:15,med:6,mat:'road6',palm:1},
-  {k:'MILL',n:'MILLIKEN AVE',x:490,hw:13,med:5,mat:'road4m'},{k:'ROCH',n:'ROCHESTER AVE',x:836,hw:10,mat:'road4c',z1:382},{k:'DAYC',n:'DAY CREEK BLVD',x:1078,hw:12,med:5,mat:'road4m',z1:0,palm:1}];
+  {k:'MILL',n:'MILLIKEN AVE',x:481,hw:13,med:5,mat:'road4m'},{k:'ROCH',n:'ROCHESTER AVE',x:836,hw:10,mat:'road4c',z1:382},{k:'DAYC',n:'DAY CREEK BLVD',x:1078,hw:12,med:5,mat:'road4m',z1:0,palm:1}];
 const EWA=[{k:'BL',n:'BASE LINE RD',z:-504,hw:12,med:5,mat:'road4m'},{k:'CH',n:'CHURCH ST',z:-260,hw:10,mat:'road4c'},{k:'FH',n:'FOOTHILL BLVD',z:0,hw:15,med:6,mat:'road6',palm:1},
   {k:'AR',n:'ARROW RTE',z:236,hw:10,mat:'road4c'},{k:'JE',n:'JERSEY BLVD',z:382,hw:8,mat:'road4u',x1:836},{k:'SIX',n:'6TH ST',z:670,hw:9,mat:'road4c'},
   {k:'FOUR',n:'4TH ST',z:962,hw:12,mat:'road4c'},{k:'OMP',n:'ONTARIO MILLS PKWY',z:1214,hw:11,mat:'road4m',x0:490}];

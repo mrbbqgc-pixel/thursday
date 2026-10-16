@@ -96,7 +96,7 @@ industrial(RR(150,zS('AR'),xW('MILL'),zN('JE'),null,[SWA,SWA,0,SWA]),{len:160});
 industrial(RR(xE('MILL'),zS('AR'),xW('ROCH'),zN('JE')),{len:160});
 padStair(xE('ROCH'),zS('AR'),RAILN,M.dry,20,[SWA,0,SWA]);
 for(const q of [[xE('ARCH'),xW('HERM')],[xE('HERM'),xW('HAVEN')],[xE('HAVEN'),382]])industrial(RR(q[0],zS('JE'),q[1],RAILN,null,[SWA,0,SWA,SWA]),{len:120,dep:40});
-{pad2(382,zS('JE'),xW('MILL'),RAILN,M.grass,[SWA,0,0,SWA]);mapR(382,zS('JE'),xW('MILL'),RAILN,'#b7b3ab');station(440,476);const F=TF(0,0,0);F.lot(392,zS('JE')+3,474,zS('JE')+3+18.6*2,true);lotCars(F,392,zS('JE')+3,474,zS('JE')+3+18.6*2,true,.5);}
+{pad2(382,zS('JE'),xW('MILL'),RAILN,M.grass,[SWA,0,0,SWA]);mapR(382,zS('JE'),xW('MILL'),RAILN,'#b7b3ab');station(440,476);const F=TF(0,0,0);F.lot(388,zS('JE')+3,464,zS('JE')+3+18.6*2,true);lotCars(F,388,zS('JE')+3,464,zS('JE')+3+18.6*2,true,.5);}
 industrial(RR(xE('MILL'),zS('JE'),xW('ROCH'),RAILN,null,[SWA,0,SWA,SWA]),{len:150,dep:36});
 tract(RR(-562,zS('JE'),xW('ARCH'),RAILN,['A','W','W','A']),{swap:true,coll:[],older:true});
 for(const zb of [[RAILS,zN('SIX')],[zS('SIX'),zN('FOUR')]]){
