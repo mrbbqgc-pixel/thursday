@@ -85,7 +85,7 @@ const reach=new Uint8Array(NW*NH);{const q=new Int32Array(NW*NH);let qh=0,qt=0;
   for(const i of ISEC){if(i.x<BOUND.x0||i.x>BOUND.x1||i.z<BOUND.z0||i.z>BOUND.z1)continue;const s=cellOf(i.x,i.z);if(s>=0&&!blocked[s]&&!reach[s]){reach[s]=1;q[qt++]=s;}}
   while(qh<qt){const c=q[qh++],i=c%NW,j=(c-i)/NW;if(i>0&&!reach[c-1]&&!blocked[c-1]){reach[c-1]=1;q[qt++]=c-1;}if(i<NW-1&&!reach[c+1]&&!blocked[c+1]){reach[c+1]=1;q[qt++]=c+1;}
     if(j>0&&!reach[c-NW]&&!blocked[c-NW]){reach[c-NW]=1;q[qt++]=c-NW;}if(j<NH-1&&!reach[c+NW]&&!blocked[c+NW]){reach[c+NW]=1;q[qt++]=c+NW;}}}
-function freeSpot(x,z){const c=cellOf(x,z);return c>=0&&!blocked[c]&&reach[c]===1&&x>BOUND.x0&&x<BOUND.x1&&z>BOUND.z0&&z<BOUND.z1&&x<fwEdge(z)&&!inQuiet(x,z);}
+function freeSpot(x,z){const c=cellOf(x,z);return c>=0&&!blocked[c]&&reach[c]===1&&x>BOUND.x0&&x<BOUND.x1&&z>BOUND.z0&&z<BOUND.z1&&x<fwX(z)+FWH+15&&!inQuiet(x,z);}
 
 // ---------- map image (1 px per metre) used by the minimap and the tactical map
 const MX0=-560,MZ0=-720,MAPW=2060,MAPH=1940,mapC=document.createElement('canvas');mapC.width=MAPW;mapC.height=MAPH;

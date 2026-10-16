@@ -156,13 +156,13 @@ function freeway(){const zs=[];for(let z=-830;z<1500;z+=12)zs.push(z);const cros
     anchor((xa+xb)/2,mz,()=>{const m0=P(xa,za,0,Y),m1=P(xb,zb,0,Y);quadC(M.flat,[m1[0]-nx*.3,Y+.9,m1[2]-nz*.3],[m0[0]-nx*.3,Y+.9,m0[2]-nz*.3],[m0[0]+nx*.3,Y+.9,m0[2]+nz*.3],[m1[0]+nx*.3,Y+.9,m1[2]+nz*.3],0,1,0,0xc4bfb4);
       quadC(M.flat,[m0[0]+nx*.3,Y,m0[2]+nz*.3],[m1[0]+nx*.3,Y,m1[2]+nz*.3],[m1[0]+nx*.3,Y+.9,m1[2]+nz*.3],[m0[0]+nx*.3,Y+.9,m0[2]+nz*.3],nx,0,nz,0xb4afa5);
       quadC(M.flat,[m1[0]-nx*.3,Y,m1[2]-nz*.3],[m0[0]-nx*.3,Y,m0[2]-nz*.3],[m0[0]-nx*.3,Y+.9,m0[2]-nz*.3],[m1[0]-nx*.3,Y+.9,m1[2]-nz*.3],-nx,0,-nz,0xb4afa5);});
-    if(u&&k%2===0){for(const o of [FWH-2,0,-FWH+2]){const p=P(mz>=0?xa:xa,za,o,0);anchor(p[0],p[2],()=>put(M.flat,GEO.box,p[0],0,p[2],Math.atan2(xb-xa,zb-za),1.2,Y-1.4,1.2,0xb9b4a8));}}
+    if(u&&k%2===0){for(const o of [FWH-2,0,-FWH+2]){const p=P(xa,za,o,0);anchor(p[0],p[2],()=>put(M.flat,GEO.box,p[0],0,p[2],Math.atan2(xb-xa,zb-za),1.3,Y-1.4,1.3,0xb9b4a8));solid(p[0],p[2],1.5,1.5,Y-1.4);lowCover.push([p[0]-1.4,p[2]]);}}
     if(rnd()<.55){const lane=pick([-1,1])*rr(4,16),p=P((xa+xb)/2,mz,lane,Y);fwyCars.push([p[0],p[2],Math.atan2(xb-xa,zb-za)+(lane>0?0:PI),pick(['sedan','pickup','minivan','suv','sedan'])]);}}
-  // the boundary: a chain of boxes along the foot of the berm (also under the bridges, where a fence and barricades close the road)
-  for(let z=BOUND.z0-4;z<BOUND.z1+4;z+=4){const xe=fwEdge(z+2);if(xe>BOUND.x1+10)continue;solid(xe+16,z+2,32,4.2,14,0,0);}
-  for(const c of crossings){const z=c[0];if(z<BOUND.z0||z>BOUND.z1)continue;const xe=fwEdge(z);if(xe>BOUND.x1)continue;chainLink(xe,z-c[1]+5,xe,z+c[1]-5,2.6);
-    for(let t=-c[1]+7;t<c[1]-6;t+=3.6)barrier(xe-1.2,z+t,false,0xd6c08a);
-    boardQ(strip('closed','ROAD CLOSED','#f4f0e7','#b3261e','900 36px "Arial Narrow",Arial',true),xe-2.4,1.2,z,-PI/2,2.6,.65,true);}
+  // the boundary: a chain of boxes over the whole berm; under each bridge the space is open (piers are cover) and K-rails with a fence close the far side
+  const band=z=>crossings.find(c=>Math.abs(z-c[0])<c[1]-4);
+  for(let z=BOUND.z0-4;z<BOUND.z1+4;z+=4){const zc=z+2,xe=fwEdge(zc);if(xe>BOUND.x1+10||band(zc))continue;solid(xe+37,zc,74,4.2,14,0,0);}
+  for(let z=BOUND.z0-4;z<BOUND.z1+4;z+=4){const zc=z+2,c=band(zc);if(!c||fwEdge(zc)>BOUND.x1+10)continue;const xf=fwX(zc)+FWH+18;barrier(xf,zc,false,0xd6c08a);chainLink(xf+1,zc-2,xf+1,zc+2,2.6);}
+  for(const c of crossings)if(c[0]>BOUND.z0&&c[0]<BOUND.z1&&fwEdge(c[0])<BOUND.x1)boardQ(strip('closed','ROAD CLOSED','#f4f0e7','#b3261e','900 36px "Arial Narrow",Arial',true),fwX(c[0])+FWH+16.6,1.2,c[0],-PI/2,2.6,.65,true);
   // big green signs over the deck at the crossings
   for(const b of [STR.FH,STR.AR,STR.FOUR]){const x=fwX(b.z-30),z=b.z-30;sign('15 NORTH\nBarstow',x-8,Y+8.5,z,0,9,3,'#1f6b45','#f4f0e7',true);sign('15 SOUTH\nSan Diego',x+8,Y+8.5,z+.2,PI,9,3,'#1f6b45','#f4f0e7',true);
     anchor(x,z,()=>{post(x-FWH+1,z,Y+10,.3,0x8c9396,Y);post(x+FWH-1,z,Y+10,.3,0x8c9396,Y);boxC(M.flat,x,Y+9.9,z,2*FWH,.4,.4,0x8c9396);});}}

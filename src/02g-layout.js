@@ -48,7 +48,7 @@ for(const i of ISEC){flat(M.asphalt,i.x-i.a.hw,i.z-i.b.hw,i.x+i.a.hw,i.z+i.b.hw,
 function medianRun(r,a,b,alongZ){a+=24;b-=24;const cuts=[];const lo=alongZ?BOUND.z0-60:BOUND.x0-60,hi=alongZ?BOUND.z1+60:BOUND.x1+60;
   if(alongZ){const tz=trailZ(r.x);if(tz>a-10&&tz<b+10)cuts.push([tz-8,tz+8]);}
   let s=a;for(const c of cuts.concat([[b,b]])){const e=Math.min(c[0],b);if(e-s>6){const m=r.med/2;if(alongZ)pad2(r.x-m,s,r.x+m,e,M.grass,[0,0,0,0]);else pad2(s,r.z-m,e,r.z+m,M.grass,[0,0,0,0]);
-      for(let t=Math.max(s+5,lo);t<Math.min(e-4,hi);t+=r.palm?22:26){const p=alongZ?[r.x,t]:[t,r.z];if(r.palm)fans.push([p[0],p[1],rr(13,19)]);else trees.push([p[0],p[1],rr(.85,1.1),r.k==='BL'?5:0]);}}s=Math.max(s,c[1]);}}
+      for(let t=Math.max(s+5,lo);t<Math.min(e-4,hi);t+=r.palm?22:26){const p=alongZ?[r.x,t]:[t,r.z];if(!alongZ&&t>fwEdge(r.z)-6)continue;if(r.palm)fans.push([p[0],p[1],rr(13,19)]);else trees.push([p[0],p[1],rr(.85,1.1),r.k==='BL'?5:0]);}}s=Math.max(s,c[1]);}}
 
 // ---------- tract builder. A rectangle R between curb lines gets local streets, cul-de-sacs, an entry collector, lots with houses, walls.
 // R = {x0,z0,x1,z1,k:[N,S,W,E]} with side kinds 'A' (arterial: sidewalk, parkway, block wall) or 'W' (wall at the edge: trail, park, school).
