@@ -171,8 +171,9 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       lotsAll.push(l);}
     // gates between neighbours, side walls back to the rear line, and the end walls of the row
     const Lp=L.filter(l=>!l.skip);
-    {let a=null,b=null;const vF0=r.v+sg*(HWL+SWL),strip=()=>{if(a!==null)flatL(M.walkO,a,Math.min(vF0,vF0+sg*1.25),b,Math.max(vF0,vF0+sg*1.25),PADY+.003,6);a=null;}; // the set-back sidewalk
-     for(const l of Lp){if(!l.pk){strip();continue;}const u0=l.u-l.w/2,u1=l.u+l.w/2;if(a!==null&&u0<=b+.05)b=u1;else{strip();a=u0;b=u1;}}strip();}
+    {let a=null,b=null;const vF0=r.v+sg*(HWL+SWL),strip=()=>{if(a!==null)flatL(M.walkO,a,Math.min(vF0,vF0+sg*1.25),b,Math.max(vF0,vF0+sg*1.25),PADY+.003,6);a=null;}; // the set-back sidewalk,
+     const ra=r.a>uL0+.01&&r.ubL===null?r.a-3:null,rb=r.b<uL1-.01&&r.ubH===null?r.b+3:null; // carried on to the collector's sidewalk at the row ends
+     for(const l of Lp){if(!l.pk){strip();continue;}let u0=l.u-l.w/2,u1=l.u+l.w/2;if(ra!==null&&u0-r.a<2.6)u0=ra;if(rb!==null&&r.b-u1<2.6)u1=rb;if(a!==null&&u0<=b+.05)b=u1;else{strip();a=u0;b=u1;}}strip();}
     for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2+l.ex;
       if(nx){const g=r.side<0?Math.min(l.vf,nx.vf)-2.2:Math.max(l.vf,nx.vf)+2.2,ok=r.side<0?g>Math.max(l.vb,nx.vb)+.5:g<Math.min(l.vb,nx.vb)-.5;
         if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);

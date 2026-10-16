@@ -46,12 +46,14 @@ const VEH={};
 { const GLS=0x1f2a31,BUMP=0x4a4c4e,HEAD=0xeae4cc,TAIL=0xa3221b;
   const D=(name,len,wid,h,body,cab,wheels,wr,o)=>{o=o||{};const hw=wid/2,ch=hw-(o.tumble||.17),bump=o.bump===undefined?BUMP:o.bump,bl=len/2;
     const zone=(L,y,ny)=>((Math.abs(L)>bl-.14&&y<.62&&ny<.5)||(y<.36&&ny<-.2))?[bump,bump===null?1:0]:[0xffffff,1];
-    const mk=tier=>{const t=new CT(),pts=[];const lo=tier==='lo',lv=tier==='full'?0:lo?2:1,ns=tier==='full'?8:tier==='mid'?6:5,degs=tier==='full'?[0,50,90,130,180]:[0,60,120,180];
+    const mk=tier=>{const t=new CT(),pts=[];const lo=tier==='lo',lv=tier==='full'?0:lo?2:1,ns=tier==='full'?8:tier==='mid'?7:5,degs=tier==='full'?[0,50,90,130,180]:[0,60,120,180];
       // body: the outline runs from the front foot over the top to the rear foot, then back along the bottom through the arches
       for(const q of body)pts.push(q);const yb=body[body.length-1][1];
       if(!lo){const ws=wheels.slice().sort((p,q)=>p-q);for(const a of ws){const r=wr+.09;pts.push([a-r,yb]);const tmp=[];archPts(tmp,a,r,yb,degs);for(let k=tmp.length-2;k>0;k--)pts.push(tmp[k]);pts.push([a+r,yb]);}}
       // the closing edge back to the front foot is implicit
       const fixed=[];for(const q of pts)fixed.push(q);extrudeCT(t,fixed.slice().reverse(),hw,[0xffffff,1],zone);
+      // round the corners in plan: the nose and the tail are narrower than the flanks
+      const ik=(hw-(o.round===undefined?.16:o.round))/hw;for(let k=0;k<t.p.length/3;k++)if(Math.abs(t.p[3*k+2])>bl-.1)t.p[3*k]*=ik;
       // cabin: glass all round, roof in the second tone, B-pillars (and the A and C pillars on the full model)
       extrudeCT(t,cab.slice().reverse(),ch,[GLS,0],(L,y,ny)=>ny>.95?[0xffffff,2]:[GLS,0]);
       const cy0=cab[0][1],cy1=Math.max(...cab.map(q=>q[1]))-.04;if(!lo)for(const b of o.pillars||[])for(const s of [-1,1]){const x=s*(ch+.006);t.q([x,cy0,-(b+.07)],[x,cy0,-(b-.07)],[x,cy1,-(b-.07)],[x,cy1,-(b+.07)],s,0,0,0xffffff,2);}

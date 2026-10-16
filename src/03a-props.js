@@ -123,7 +123,7 @@ const pq=(E,a,b,c,d,col,uv,n)=>{n=n||[0,0,1];E.q(a,b,c,d,n[0],n[1],n[2],col,uv||
  bake(t.geo(),M.flat,boatSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
 { // clipped hedge along a house front (stretched along its length), boulders in gravel yards
  const t=new TB();taperE(t,0,0,0,1,.62,.96,.56,.78,0x3f6a32,0x557d3e);bake(t.geo(),M.flat,hedgeSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];o.scale.set(p[3],1,1);});
- const b=new GB();b.add(lumpy(new T.SphereGeometry(1,4,2),.25),0,0,0,0,0,0,1,.62,1,0xb7aa96,(x,y,z)=>.75+.3*clamp(y/.6,0,1));bake(b.build(),M.flat,rockSpots.filter(p=>!p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]);});
+ const b=new GB();b.add(lumpy(GEO.blobT,.22),0,0,0,0,0,0,1,.55,.85,0xb7aa96,(x,y,z)=>.75+.3*clamp(y/.6,0,1));bake(b.build(),M.flat,rockSpots.filter(p=>!p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]);});
  // barrel cactus: a ribbed green ball with a crown of yellow spines
  const c=new GB();c.add(new T.SphereGeometry(1,8,3),0,.55,0,0,0,0,.55,.62,.55,0x5f8a4a,(x,y,z)=>(.82+.18*Math.cos(Math.atan2(z,x)*8))*(.75+.35*clamp((y-.1)/1,0,1)));c.add(GEO.cone4,0,1.1,0,0,0,0,.18,.1,.18,0xc9b048);
  bake(c.build(),M.flat,rockSpots.filter(p=>p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]*1.3);});}
