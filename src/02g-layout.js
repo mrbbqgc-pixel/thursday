@@ -236,7 +236,7 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
     if(lt==='brown'||lt==='dirt'||lt==='xeri'){const m=lt==='brown'?M.dryO:lt==='dirt'?M.dirtO:M.gravelO;for(const q of ivs)rect(m,q[0],q[1],la,lb,PADY+.002);}
     if(lt==='patchy'||lt==='over'||(lt==='brown'&&rnd()<.5))for(let k=0;k<(lt==='patchy'?rr(1,3.4):1);k++){const p=spot();cutF(p[0],p[1],PADY+.007,rr(1.6,3.4),rr(1.4,3),rnd()*3,CUT.dryP);}
     if(lt==='over'||lt==='dirt')for(let k=0;k<(lt==='over'?rr(4,8):rr(1,3));k++){const p=spot();cutX(p[0],p[1],PADY,rr(.6,1.1),rr(.45,.9),CUT.weed,0xffffff,rnd()*3);}
-    if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,2.2);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3,rnd()<.45?1:0]);}
+    if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,1.7);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3,rnd()<.45?1:0]);}
       if(rnd()<.5)cutL(P(du+.7,v0+sg*.1),P(du+.7,vm-sg*.4),PADY,.2,CUT.rocks,0xffffff,2.2);}}
   // a sprinkler running on a few green lawns, the grass dark and wet round it
   if(lt==='lush'&&ivs.length&&rnd()<.06){const q=pick(ivs),p=P(rr(q[0]+.5,q[1]-.5),lerp(la,lb,rr(.3,.7)));cutX(p[0],p[1],PADY,rr(1.6,2.4),rr(1.2,1.6),CUT.spray,0xffffff,rnd()*3);stain(p[0],p[1],1.4,1.4,0,PADY);}

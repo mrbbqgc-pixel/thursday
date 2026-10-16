@@ -27,7 +27,7 @@ for(const s of signalArms){const [px,pz,dx,dz,L0,green]=s;
           else quadC(M.flat,[hx+ox,y-.12,hz+hw*sd],[hx+ox,y-.12,hz-hw*sd],[hx+ox,y+.12,hz-hw*sd],[hx+ox,y+.12,hz+hw*sd],sd,0,0,col);}}}});}
 { // wooden power poles with a crossarm; wires sag between neighbours. String lights over the Market Hall patio share the line mesh.
  const b=new GB(),w=0x6b5138;b.add(GEO.tube6,0,0,0,0,0,0,.13,9.5,.13,w);b.add(GEO.box,0,8.6,0,0,0,0,.12,.12,2.3,w);for(const s of [-1,0,1])b.add(GEO.rod,0,8.72,s*1,0,0,0,.05,.16,.05,0xd9d9d2);
- const b2=new GB();b2.add(GEO.tube6,0,0,0,0,0,0,.12,9.4,.12,w);b2.add(GEO.box,0,8.6,0,0,0,0,.11,.11,2.3,w);for(const s of [-1,1])b2.add(GEO.rod,0,8.72,s,0,0,0,.05,.16,.05,0xd9d9d2); // back-lot pole
+ const b2=new GB();b2.add(GEO.tube6,0,0,0,0,0,0,.12,9.4,.12,w);b2.add(GEO.box,0,8.6,0,0,0,0,.11,.11,2.3,w);for(const s of [-1,1])b2.add(GEO.rod3,0,8.72,s,0,0,0,.05,.16,.05,0xd9d9d2); // back-lot pole
  b.add(GEO.cyl6,.22,6.4,0,0,0,0,.24,.8,.24,0x8c9396);bake(b.build(),M.flat,poles.filter((p,k)=>!p[3]||k%5===0),(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});
  bake(b2.build(),M.flat,poles.filter((p,k)=>p[3]&&k%5!==0),(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});poles.forEach(p=>solid(p[0],p[1],.3,.3,9));
  const pts=[],cols=[];const seg=(a,b,c)=>{pts.push(...a,...b);cols.push(...c,...c);};

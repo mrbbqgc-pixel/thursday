@@ -123,7 +123,7 @@ isoR(()=>{M.gravelO=ground('#b3a08a',2600,.14,(g,w,h)=>{for(let k=0;k<420;k++){g
   M.lotF=L({polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,map:tex(256,512,(g,w,h)=>{g.drawImage(asphC,0,0,256,512,0,0,256,512);g.fillStyle='rgba(20,18,16,.08)';g.fillRect(0,0,w,h);const ku=256/11,kv=512/18.6;
     for(const r of [[0,5.5],[13.1,18.6]])for(let s=0;s<4;s++){let y=r[0]*kv;while(y<r[1]*kv){const l=rr(8,40);g.fillStyle='rgba(225,222,212,'+rr(.18,.5).toFixed(2)+')';g.fillRect(s*2.75*ku-1,y,3,Math.min(l,r[1]*kv-y));y+=l+rr(0,14);}}
     g.fillStyle='rgba(225,222,212,.3)';g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2);
-    for(let s=0;s<4;s++)for(const r of [2.6,15.9]){g.fillStyle='rgba(20,18,16,'+rr(.15,.4).toFixed(2)+')';g.beginPath();g.ellipse((s+.5)*2.75*ku+rr(-4,4),r*kv+rr(-8,8),rr(7,13),rr(12,20),rr(-.3,.3),0,7);g.fill();}},true)});});
+    for(let s=0;s<4;s++)for(const r of [2.6,15.9]){g.fillStyle='rgba(20,18,16,'+rr(.1,.28).toFixed(2)+')';g.beginPath();g.ellipse((s+.5)*2.75*ku+rr(-4,4),r*kv+rr(-8,8),rr(5,9),rr(8,14),rr(-.3,.3),0,7);g.fill();}},true)});});
 // cut-out pieces: a vertical quad facing ry (0 = +z) and visible from both sides, two crossed quads, a quad lying on the ground.
 // They are gathered in 256 m squares (one batch, one draw call, for four chunks): cutA(x,z) is the anchor of the square.
 const cutA=(x,z)=>[Math.floor(x/256)*256+64,Math.floor(z/256)*256+64];

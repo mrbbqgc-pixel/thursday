@@ -64,8 +64,8 @@ function treeGeo(type){const b=new GB();let nb=0;const BL=()=>lumpy(nb++?GEO.blo
   else if(type===6){for(const a of [0,3.1])b.add(GEO.rod,Math.cos(a)*.2,0,Math.sin(a)*.2,Math.sin(a)*.2,0,Math.cos(a)*.2,.07,1.8,.07,0x8a7766);b.add(BL(),0,2.3,0,0,rnd()*3,0,1.5,1.2,1.5,0xc8708e,lit(.65,1,1.4,3.2));}
   else if(type===7){for(let k=0;k<3;k++){const a=k*2.1+rr(-.3,.3),tl=rr(.12,.2);b.add(GEO.rod3,Math.cos(a)*.15,0,Math.sin(a)*.15,Math.sin(a)*tl,0,-Math.cos(a)*tl,rr(.07,.1),rr(4.6,6),.08,0xe9e5dc,(x,y,z)=>rnd()<.25?.55:1);}
     for(const q of [[.4,4.8,.2,1.4,1.8],[-.5,5.8,-.3,1.2,1.6]])b.add(lumpy(GEO.blobT,.25),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[3],0x8ea24e,lit(.6,1,3.6,7));}
-  else if(type===8){b.add(lumpy(GEO.blobT,.08),0,2.6,0,0,rnd()*3,0,.62,2.8,.62,0x2f4f2a,lit(.55,1,0,5.4));b.add(GEO.rod,0,0,0,0,0,0,.08,.4,.08,0x5a4a3c);}
-  else{b.add(GEO.rod,0,0,0,0,0,.03,.05,2.3,.05,0x6b5a44);for(const s of [-1,1])b.add(GEO.rod3,s*.28,0,0,0,0,0,.035,2,.035,0xc8b08a);
+  else if(type===8){b.add(lumpy(GEO.blobT,.08),0,2.6,0,0,rnd()*3,0,.62,2.8,.62,0x2f4f2a,lit(.55,1,0,5.4));}
+  else{b.add(GEO.rod3,0,0,0,0,0,.03,.06,2.3,.06,0x6b5a44);for(const s of [-1,1])b.add(GEO.rod3,s*.28,0,0,0,0,0,.035,2,.035,0xc8b08a);
     b.add(lumpy(GEO.blobT,.2),0,2.6,0,0,rnd()*3,0,.95,.85,.95,0x6f9a44,lit(.6,1,1.8,3.4));}
   return b.build();}
 trees.forEach(t=>solid(t[0],t[1],.45,.45,2.6*t[2]));
@@ -125,7 +125,7 @@ const pq=(E,a,b,c,d,col,uv,n)=>{n=n||[0,0,1];E.q(a,b,c,d,n[0],n[1],n[2],col,uv||
  const t=new TB();taperE(t,0,0,0,1,.62,.96,.56,.78,0x3f6a32,0x557d3e);bake(t.geo(),M.flat,hedgeSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];o.scale.set(p[3],1,1);});
  const b=new GB();b.add(lumpy(GEO.blobT,.22),0,0,0,0,0,0,1,.55,.85,0xb7aa96,(x,y,z)=>.75+.3*clamp(y/.6,0,1));bake(b.build(),M.flat,rockSpots.filter(p=>!p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]);});
  // barrel cactus: a ribbed green ball with a crown of yellow spines
- const c=new GB();c.add(new T.SphereGeometry(1,8,3),0,.55,0,0,0,0,.55,.62,.55,0x5f8a4a,(x,y,z)=>(.82+.18*Math.cos(Math.atan2(z,x)*8))*(.75+.35*clamp((y-.1)/1,0,1)));c.add(GEO.cone4,0,1.1,0,0,0,0,.18,.1,.18,0xc9b048);
+ const c=new GB();c.add(new T.SphereGeometry(1,7,3),0,.55,0,0,0,0,.55,.62,.55,0x5f8a4a,(x,y,z)=>(.82+.18*Math.cos(Math.atan2(z,x)*8))*(.75+.35*clamp((y-.1)/1,0,1)));c.add(GEO.cone4,0,1.1,0,0,0,0,.18,.1,.18,0xc9b048);
  bake(c.build(),M.flat,rockSpots.filter(p=>p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]*1.3);});}
 { // portable basketball hoop on a weighted base at the end of the driveway
  const t=new TB();boxE(t,0,0,0,.62,.3,.95,0x2b2d2c);taperE(t,0,.3,-.3,.11,.11,.08,.08,2.9,0x8c9396);boxE(t,0,2.55,-.06,1.12,.74,.05,0xf4f0e7);
@@ -139,8 +139,7 @@ isoR(()=>{for(const f of fans)if(rnd()<.28)for(let k=0;k<1+(rnd()<.4?1:0);k++){c
   t.q([-.98,1.25,.74],[.98,1.25,.74],[.98,1.34,.74],[-.98,1.34,.74],0,0,1,0x1c1b1a,WUV);for(const s of [-1,1])boxE(t,s*1.0,.55,0,.12,.25,.9,0x9a9a9a);for(const s of [-1,1])boxE(t,s*.7,0,0,.14,.1,1.2,0x2b2b2a);
   t.q([-.42,.6,.735],[.42,.6,.735],[.42,.98,.735],[-.42,.98,.735],0,0,1,0xffffff,DUV.noDump);const cs=[0x2f5a3a,0x2d4f7a,0x6a4a32];
   bakeC(t.geo(),M.wall,dumpSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];},p=>cs[p[3]]);}
-{ const t=new TB();boxE(t,0,.12,0,.5,.03,.82,0x9aa0a2);for(const s of [-1,1])boxE(t,s*.22,.16,.36,.03,.86,.03,0x9aa0a2);boxE(t,0,1.0,.42,.52,.04,.05,0xc8202a);boxE(t,0,.4,-.05,.46,.03,.7,0x9aa0a2);
-  for(const q of [[-.2,-.34],[.2,-.34],[-.2,.34],[.2,.34]])boxE(t,q[0],0,q[1],.04,.12,.08,0x1c1b1a);bake(t.geo(),M.flat,cartSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
+{ const t=new TB();taperE(t,0,0,0,.42,.7,.5,.82,.14,0x2b2b2a,0x9aa0a2);for(const s of [-1,1])taperE(t,s*.25,.14,.4,.03,.03,.03,.03,.84,0x9aa0a2);boxE(t,0,.98,.43,.54,.05,.06,0xc8202a);bake(t.geo(),M.flat,cartSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
 { const t=new TB();for(const s of [-1,1]){boxE(t,s*.55,.92,0,.06,.06,3.6,0x8c9396);boxE(t,s*.55,.5,0,.05,.05,3.6,0x8c9396);for(const e of [-1,1])taperE(t,s*.55,0,e*1.78,.07,.07,.06,.06,.95,0x8c9396);}
   boxE(t,0,.92,-1.8,1.16,.06,.06,0x8c9396);taperE(t,0,0,1.85,.06,.06,.05,.05,1.45,0x8c9396);t.q([-.32,1.12,1.88],[.32,1.12,1.88],[.32,1.42,1.88],[-.32,1.42,1.88],0,0,1,0xffffff,DUV.cart);
   t.q([.32,1.12,1.82],[-.32,1.12,1.82],[-.32,1.42,1.82],[.32,1.42,1.82],0,0,-1,0xffffff,DUV.cart);bake(t.geo(),M.wall,corralSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
