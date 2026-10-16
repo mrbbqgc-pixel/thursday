@@ -9,10 +9,11 @@
 // =====================================================================
 const HOOD={foot:[]};
 {
+const seed0=seed;seed=20261015; // the block has its own random sequence (stable whatever the other modules draw); restored at the end
 const B=HOODB,HW=5.5,CB=.5,PKW=1.9,SWK=1.2,WR=HW+CB+PKW+SWK,RB=11.5,AWI=5,YR=.032; // half asphalt, rolled curb, parkway, sidewalk; bulb radius; arterial wall inset
 // centre lines (game frame). IW = Ironwood St running on into Mesada St (one through street with the big curve), MN = Marine Ave north of
 // Ironwood, SG = Sago Ct (cul-de-sac), MS = Marine Ave south of its knuckle (cul-de-sac bulb at its west end). Ends past the block edge are
-// extended straight into the arterial; Sago Ct's bulb is pulled 45 m south so that it fits inside the block (the window ends at Base Line).
+// extended straight into the arterial; Sago Ct's bulb is pulled about 50 m south so that it fits inside the block (the window ends at Base Line).
 const RAW={IW:[[-252,-446.15],[-240.7,-446],[-186,-443.4],[-167.9,-442.6],[-151,-439.4],[-140.1,-436.3],[-131.4,-432.6],[-116.1,-424.6],[-104,-416.3],[-96.6,-411.3],[-89.7,-405.4],
     [-82.4,-397],[-74,-380.8],[-71.3,-373.5],[-70.9,-371.3],[-68.4,-358.1],[-66.8,-316.5],[-66.6,-260]],
   MN:[[-167.7,-500],[-167.8,-468.8],[-167.9,-442.6]],
@@ -101,9 +102,6 @@ for(const k of ['IW','MS'])for(const side of [-1,1])lotsAlong(k,side);
 const loc=(l,p)=>{const dx=p[0]-l.fm[0],dz=p[1]-l.fm[1];return[-dx*l.nz+dz*l.nx,dx*l.nx+dz*l.nz];};
 const wor=(l,u,v)=>[l.fm[0]-l.nz*u+l.nx*v,l.fm[1]+l.nx*u+l.nz*v];
 const uAt=(P,v)=>{const t=(v-P[0][1])/((P[1][1]-P[0][1])||1e-6);return lerp(P[0][0],P[1][0],t);};
-// the u range of the lot between its two side lines over the depths v0..v1
-function span(l,v0,v1){const A=[loc(l,l.F0),loc(l,l.R0)],Bq=[loc(l,l.F1),loc(l,l.R1)];let lo=-1e9,hi=1e9;
-  for(const v of [v0,(v0+v1)/2,v1]){const a=uAt(A,v),b=uAt(Bq,v);lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));}return[lo,hi,Math.min(A[1][1],Bq[1][1])];}
 // footprint boxes of template k in the lot frame (u0,u1,v0,v1), house centre (uc,vc)
 const boxesL=(k,uc,vc)=>HT[k].boxes.map(b=>[uc+b[0]-b[2]/2,uc+b[0]+b[2]/2,vc-b[1]-b[3]/2,vc-b[1]+b[3]/2,b[4]]);
 const one=[],two=[];for(let k=0;k<HT.length;k++)(HT[k].st>1?two:one).push(k);
@@ -143,7 +141,7 @@ for(const l of LOTS){if(!l.house)continue;const g=gateD(l)-.3,A=[loc(l,l.F0),loc
   bx=l.house.bx.filter(b=>g>b[2]&&g<b[3]),hu0=Math.min(...(bx.length?bx:l.house.bx).map(b=>b[0])),hu1=Math.max(...(bx.length?bx:l.house.bx).map(b=>b[1]));
   for(const e of [[Math.min(ua,ub),hu0],[hu1,Math.max(ua,ub)]])if(e[1]-e[0]>.3){const p=wor(l,e[0],g),q=wor(l,e[1],g);GATES.push([p[0],p[1],q[0],q[1]]);}}
 HOOD.S=S;HOOD.LOTS=LOTS;HOOD.BULB=BULB;HOOD.near=near;HOOD.at=at;HOOD.WALLS=WALLS;HOOD.GATES=GATES;HOOD.wor=wor;HOOD.loc=loc;
-//---8<--- (the layout above runs on its own in the layout test; below, the geometry)
+// ---------- (the layout above is plain arithmetic and runs without three.js; the geometry follows)
 // ---------- materials: worn, cracked and patched asphalt; decomposed granite for the dry yards
 M.hoodRoad=L({polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,map:tex(512,512,(g,w,h)=>{g.drawImage(asphC,0,0);g.fillStyle='rgba(95,90,82,.18)';g.fillRect(0,0,w,h);noise(g,w,h,5000,.07);
   const line=(x,y,n,st,col,lw)=>{g.strokeStyle=col;g.lineWidth=lw;g.beginPath();g.moveTo(x,y);let a=rnd()*TAU;for(let k=0;k<n;k++){a+=rr(-.7,.7);x+=Math.cos(a)*st;y+=Math.sin(a)*st;g.lineTo(x,y);}g.stroke();};
@@ -196,10 +194,12 @@ function region(outer,inner){const out=[];for(const A of outer){if(Math.abs(area
 function emitG(mat,R,y,rep){const Bt=bat(mat,0,0);for(const r of R){const k0=Bt.p.length/3;for(const p of r.V){Bt.p.push(p[0],y,p[1]);Bt.n.push(0,1,0);Bt.u.push(p[0]/rep,p[1]/rep);}for(const t of r.tris)Bt.i.push(k0+t[0],k0+t[1],k0+t[2]);}}
 {const ND=new Float32Array(FN);for(let j=0;j<FNZ;j++)for(let i=0;i<FNX;i++){const o=j*FNX+i,x=FX0+i*FH,z=FZ0+j*FH;ND[o]=inset(x,z)>0?-DF[o]:-99;}
  const asph=contours(ND,-HW),L1=contours(DF,HW),L2=contours(DF,HW+CB),L3=contours(DF,HW+CB+PKW),L4=contours(DF,WR);
- emitG(M.hoodRoad,region(asph,[]),YR,19); emitG(M.grass,region(L2,L3),PADY,8);emitG(M.walk,region(L3,L4),PADY,6);emitG(M.grass,region(L4,[]),PADY,8); // rolled curb: from the gutter (street level) up to the parkway, light concrete with a dirty gutter line; baked per chunk
+ emitG(M.hoodRoad,region(asph,[]),YR,19); emitG(M.grass,region(L2,L3),PADY,8);emitG(M.walk,region(L3,L4),PADY,6);emitG(M.grass,region(L4,[]),PADY,8);
+ // rolled curb: from the gutter (street level) up to the parkway, light concrete with a dirty gutter line; baked per chunk
  for(const r of region(L1,L2)){const V=r.V;for(const t of r.tris){const P=t.map(q=>V[q]),hi=t.map(q=>q>=r.nA),cx=(P[0][0]+P[1][0]+P[2][0])/3,cz=(P[0][1]+P[1][1]+P[2][1])/3,Bt=bat(M.flat,cx,cz),k=Bt.p.length/3;
    for(let q=0;q<3;q++){Bt.p.push(P[q][0],hi[q]?PADY+.004:YR+.002,P[q][1]);Bt.n.push(0,1,0);const c=hi[q]?0xc9c4b9:0x8f8a80;Bt.c.push((c>>16&255)/255,(c>>8&255)/255,(c&255)/255);Bt.u.push(WU,WV);}Bt.i.push(k,k+1,k+2);}}
- HOOD.asph=asph;HOOD.walk=[L3,L4];}// ---------- things at any angle. strips(): cover a convex polygon (world x,z) with axis-aligned boxes 'step' wide across its longer side
+ HOOD.asph=asph;HOOD.walk=[L3,L4];}
+// ---------- things at any angle. strips(): cover a convex polygon (world x,z) with axis-aligned boxes 'step' wide across its longer side
 function strips(P,h,kind,step,y0){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}
   // pieces are at least 'step' long: the nav grid only routes round colliders of 1.6 m or more, so walls use step 1.6
   const ax=x1-x0>=z1-z0;let a0=ax?x0:z0,a1=ax?x1:z1;if(a1-a0<step){const m=(a0+a1)/2;a0=m-step/2-.01;a1=m+step/2+.01;}const n=Math.max(1,Math.floor((a1-a0)/step+1e-6)),out=[];
@@ -247,7 +247,7 @@ M.gravelO=M.gravel.clone();M.gravelO.polygonOffsetFactor=M.gravelO.polygonOffset
 // small props, baked with put(): a young street tree on two stakes, a post mailbox, a cobra-head light on a concrete pole, wheeled bins
 function youngTree(x,z,s){s=s||1;anchor(x,z,()=>{put(M.flat,GEO.tube6,x,PADY,z,0,.05*s,2.3*s,.05*s,0x6e5c4a);for(const e of [-1,1])put(M.flat,GEO.box,x+e*.32,PADY,z,0,.05,1.9,.05,0xb49a74);
   put(M.flat,GEO.box,x,1.45,z,0,.66,.04,.04,0x3a3128);const g=pick([0x6f8f45,0x7a9a4c,0x8a9a52,0x66884a]);put(M.flat,GEO.sphLo,x,2.35*s+.2,z,rnd()*3,.72*s,.62*s,.72*s,g);put(M.flat,GEO.sphLo,x+.25,2.05*s+.2,z-.15,rnd()*3,.45*s,.4*s,.45*s,shade(g,.9));});solid(x,z,.2,.2,2.4,0,0);}
-function postBox(x,z,ry,col,deco){anchor(x,z,()=>{const c=Math.cos(ry),sn=Math.sin(ry);put(M.flat,GEO.box,x,PADY,z,ry,.1,1.05,.1,col);put(M.flat,GEO.box,x,PADY,z,ry,.3,.05,.3,shade(col,.92));
+function postBox(x,z,ry,col,deco){anchor(x,z,()=>{put(M.flat,GEO.box,x,PADY,z,ry,.1,1.05,.1,col);put(M.flat,GEO.box,x,PADY,z,ry,.3,.05,.3,shade(col,.92));
   put(M.flat,GEO.box,x,1.05+PADY,z,ry,.26,.26,.46,col);put(M.flat,GEO.cyl8,x,1.31+PADY,z,ry,.13,.04,.23,shade(col,.95),0,PI/2);
   if(deco){put(M.flat,GEO.box,x,1.42+PADY,z,ry,.32,.05,.52,col);put(M.flat,GEO.cone4,x,1.47+PADY,z,ry+PI/4,.26,.16,.26,col);put(M.flat,GEO.box,x,.55+PADY,z,ry,.14,.06,.3,col);}});solid(x,z,.32,.32,1.4,0,5);}
 function cobra(x,z,ry){anchor(x,z,()=>{const c=Math.sin(ry),s=Math.cos(ry);put(M.flat,GEO.taper,x,PADY,z,0,.17,8.6,.17,0xb8b3a8);put(M.flat,GEO.cyl8,x,PADY,z,0,.24,.5,.24,0xa9a49a);
@@ -283,14 +283,13 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
   for(let k=0;k<3;k++)if(rnd()<.7){const y=pick(yards),pu=rr(y[0]+.5,y[1]-.5),p=W(pu,h.set-.75);shrubs.push([p[0],p[1],rr(.5,.9)]);}
   if(rnd()<.42&&yards.length){const y=yards[yards.length>1&&rnd()<.5?1:0],p=W(rr(y[0]+1.6,y[1]-1.6),rr(2.4,Math.max(2.6,h.set-2.6)));if(rnd()<.08)fans.push([p[0],p[1],rr(9,14)]);else trees.push([p[0],p[1],rr(.75,1.05),pick([0,2,3,6,0,2,1])]);}
   {const su0=sideU(0),pu=ug>(su0[0]+su0[1])/2?Math.max(su0[0]+2,ug-7):Math.min(su0[1]-2,ug+7);if(rnd()<.62){const p=W(pu,-2.15);youngTree(p[0],p[1],rr(.85,1.1));}}
-  if(rnd()<.86){const s=ud<ug?-1:1,p=W(ug+s*3.95,-2.75);postBox(p[0],p[1],ry+(s<0?0:0),rnd()<.5?0x1d1d1e:0xf1efe8,rnd()<.25);}
+  if(rnd()<.86){const s=ud<ug?-1:1,p=W(ug+s*3.95,-2.75);postBox(p[0],p[1],ry,rnd()<.5?0x1d1d1e:0xf1efe8,rnd()<.25);}
   if(rnd()<.4){const s=ud<ug?1:-1,p=W(ug+s*4.3,-(SWK+PKW+CB+.45));bins(p[0],p[1],ry);}
   // cars in the driveway (nose to the garage), the odd one at the curb
   if(rnd()<.5){const two=rnd()<.35,o=two?1.45:rr(-.5,.5);for(const e of two?[-1,1]:[0]){const p=W(ug+o*e,vg-2.75-rr(0,.6));anyCar(p[0],p[1],ry+rr(-.04,.04),undefined,undefined,2);}}
   else if(rnd()<.12){const p=W(ug+(ud<ug?6.5:-6.5),-(SWK+PKW+CB+1.3));anyCar(p[0],p[1],ry+PI/2+(rnd()<.5?PI:0),undefined,undefined,1);}
   if(rnd()<.13){const p=W(ug,vg+.05),fa=ry;anchor(p[0],p[1],()=>{put(M.flat,GEO.box,p[0]+Math.sin(fa)*.25,3.05,p[1]+Math.cos(fa)*.25,fa,1.2,.8,.06,0xf4f1ea);put(M.flat,GEO.tube8,p[0]+Math.sin(fa)*.55,3.1,p[1]+Math.cos(fa)*.55,0,.23,.04,.23,0xd8412f);});}
   if(rnd()<.12){const p=W(h.uc+(ud<ug?-1:1)*(H.W/2-1.6),h.vc+H.D/2-.8);dishes.push([p[0],H.st*2.85-.2,p[1],ry+PI+rr(-.5,.5)]);}
-  // gates across the side yards (wood, now and then wrought iron)
 }
 // ---------- the start house, from the owner's reference photos (visual reference only): two stories of off-white stucco under a tall front
 // gable of brown concrete tile (the long north slope sweeps down over a single-story wing), charcoal half-timber trim, the two-car garage
@@ -394,7 +393,7 @@ for(const l of LOTS){if(l.start)continue;const h=l.house,W=(u,v)=>wor(l,u,v),A=[
  // street tree, the white post mailbox at the curb, and the two cars in the driveway (a white sedan and a silver SUV, nose to the garage)
  {const t=wor(l,-5.6,-2.15);youngTree(t[0],t[1],1);const m=wor(l,-1.35,-2.75);postBox(m[0],m[1],ry,0xf4f2ec,true);}
  {const a=P2(1.45,3.15),b=P2(4.6,2.95);anyCar(a[0],a[1],ry+.015,'sedan',0xf2f0ea,false,PADY);anyCar(b[0],b[1],ry-.01,'suv',0xb7bab9,false,PADY);}
- HOOD.spawn=(()=>{const p=P2(2.9,7.9);return[p[0],p[1],Math.atan2(l.nx,l.nz)];})();}
+ HOOD.spawn=(()=>{const p=P2(2.9,6.6);return[p[0],p[1],Math.atan2(l.nx,l.nz)];})();} // the mission's stage 1 spawn (08-mission.js) is this point
 for(const g of GATES){if(rnd()<.72)anyWall(g[0],g[1],g[2],g[3],1.8,0xb59a78,'barn',.12);else ironFence(g[0],g[1],g[2],g[3],1.6);}
 for(const w of WALLS)anyWall(w[0],w[1],w[2],w[3],1.85,w[4]==='rear'?C.greyWall:pick([C.greyWall,C.blockWall]),'wall8');
 // ---------- the arterial edges: block wall with pilasters (gaps where the streets come out), street trees in the parkway
@@ -420,7 +419,7 @@ mapR(B.x0,B.z0,B.x1,B.z1,'#c4cf9f');
 for(const l of LOTS)if(l.house&&l.house.foot)HOOD.foot.push(...l.house.foot);
 // the Aunt Ro's street area name now belongs on Mesada, round the start house
 {const i=AREAS.findIndex(a=>a[4]==='Aunt Ro\'s Street');if(i>=0)AREAS.splice(i,1);AREAS.unshift([-112,-425,-15,-330,'Aunt Ro\'s Street']);}
-}
+seed=seed0;}
 window.__hood=HOOD; // test hook: the start block's layout (lots, streets, the start house)
 // 03c hook: the block's streets and houses on the map image
 function hoodMap(g,X,Z){g.fillStyle='#77736c';for(const P of HOOD.asph){g.beginPath();P.forEach((p,k)=>k?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.closePath();g.fill();}

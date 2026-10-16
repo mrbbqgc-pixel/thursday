@@ -6,8 +6,8 @@
 // warp: a far stage. When the stage before it is done the screen fades to black on warpLine, and everyone is set down at its spawn (banner warpBan).
 // chase: the trail. Bobo follows on his scooter, chase metres behind the start; the bikes come from the bike module when it is there.
 const ST=[
- {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-78,z:-392,r:46,type:'eliminate',spawn:[-60.3,-366.6,1.758], // spawn: the start house's driveway, facing Mesada St
-  groups:[{x:-79,z:-394,r:9,units:{rifle:2}},{x:-100,z:-414,r:9,units:{rifle:1,rush:1}},{x:-68,z:-335,r:9,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[-1,0]},
+ {key:'street',title:'Clear the security patrol off Aunt Ro\'s street',x:-84,z:-404,r:46,type:'eliminate',spawn:[-60.3,-366.6,1.758], // spawn: the start house's driveway, facing Mesada St
+  groups:[{x:-82,z:-399,r:8,units:{rifle:2}},{x:-102,z:-416,r:9,units:{rifle:1,rush:1}},{x:-71,z:-428,r:8,units:{rifle:2}}],marks:0,reinf:{at:.5,n:3,kinds:['rifle','rush'],dir:[-1,0]},
   talk:[[0,'AUNT RO','Ray. Wake up. There are men in khakis on my street, and they are standing on the Hendersons\' lawn.'],[4,'RAY','It\'s seven in the morning.'],
    [7.5,'AUNT RO','It\'s Thursday. Get them off my street. Junebug, Mr. Pennington, go with him.'],[11.5,'JUNEBUG','Cuz! Welcome to the suburbs! It\'s not usually like this. Usually it\'s leaf blowers.']],
   outro:[[0,'AUNT RO','Street is clear. Now the cul-de-sac. The neighbours are trying to get their cars out.']]},
