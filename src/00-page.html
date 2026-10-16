@@ -109,17 +109,18 @@ body.touch .tb.on{background:rgba(255,178,62,.45);border-color:var(--sun)}
 #btnSwap{right:calc(170px + var(--sr));bottom:calc(102px + var(--sb))}
 #btnCrouch{right:calc(131px + var(--sr));bottom:calc(156px + var(--sb))}
 #btnView{right:calc(75px + var(--sr));bottom:calc(184px + var(--sb))} /* (mech) third/first person */
-#btnUse{right:calc(236px + var(--sr));bottom:calc(128px + var(--sb));width:auto!important;height:40px;border-radius:20px!important;padding:0 14px!important;border-color:var(--sun)!important;background:rgba(21,17,12,.4)!important;font-size:12px!important}
+#btnUse{right:calc(182px + var(--sr));bottom:calc(198px + var(--sb));width:auto!important;height:40px;border-radius:20px!important;padding:0 14px!important;border-color:var(--sun)!important;background:rgba(21,17,12,.4)!important;font-size:12px!important}
 body.touch #stick{display:block;position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;
   border:1.5px solid rgba(243,232,211,.3);background:rgba(21,17,12,.16)}
 #knob{position:absolute;left:50%;top:50%;width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;background:rgba(243,232,211,.45)}
 /* on a touch screen the weapon block moves left of the buttons, the subtitles sit just above it */
 body.touch #bc{right:calc(234px + var(--sr));bottom:calc(10px + var(--sb));min-width:0}
 body.touch #vit{width:100px}
-body.touch #feed{bottom:calc(66px + var(--sb));max-width:min(440px,48vw)}
-body.touch #feed p{font-size:12.5px}
+body.touch #feed{bottom:calc(66px + var(--sb));max-width:min(420px,47vw)}
+body.touch #feed p{font-size:12px}
+body.touch #prompt{left:auto;top:auto;right:calc(262px + var(--sr));bottom:calc(204px + var(--sb));transform:none;font-size:12.5px} /* next to the USE button */
 body.touch #kills{left:calc(50% + 40px)}
-#ver{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.5;pointer-events:none}
+#ver{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));margin:0;font-size:11px;letter-spacing:.1em;opacity:.55;pointer-events:none}
 .over{position:fixed;inset:0;display:flex;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 #menu{align-items:center;justify-content:flex-start;background:linear-gradient(90deg,rgba(21,17,12,.86) 0%,rgba(21,17,12,.55) 55%,rgba(21,17,12,.1) 100%)}
 #card{max-width:480px;min-width:0;margin-left:clamp(0px,5vw,64px);display:flex;flex-direction:column;gap:13px;align-items:flex-start;margin-block:auto}
