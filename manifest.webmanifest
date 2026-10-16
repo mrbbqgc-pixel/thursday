@@ -1,7 +1,7 @@
 {
- "name": "Operación Insurgentes",
- "short_name": "Insurgentes",
- "description": "A first-person shooter set in Ciudad Insurgentes, Baja California Sur, on the town’s real street grid. Plays in the browser on a phone or a computer, nothing to install.",
+ "name": "THURSDAY",
+ "short_name": "THURSDAY",
+ "description": "The day before the weekend. Nobody told the private army. A first-person shooter comedy in an alternate Rancho Cucamonga, around the year 2000. Plays in the browser on a phone or a computer, nothing to install.",
  "start_url": "./",
  "scope": "./",
  "display": "fullscreen",
