@@ -359,12 +359,10 @@ const TROADS=[STR.FH,AV.HAVEN,STR.BL,AV.MILL,AV.DAYC,STR.CH].map(r=>{const ns=NS
   for(const i of ISEC)if(ns?i.a===r:i.b===r)stops.push([ns?i.z:i.x,ns?i.b.hw:i.a.hw,0]);if(ns)stops.push([trailZ(r.x),TRW+1,1]);
   return{r,ns,lanes:q[1].map(v=>v*k),stops,s0:ns?Math.max(r.z0,BOUND.z0+8):Math.max(r.x0,BOUND.x0+8),s1:ns?Math.min(r.z1,BOUND.z1-8):Math.min(r.x1,fwEdge(r.z)-20)};});
 const tgCache={};
-// the parked cars' builder (02c) as one moving mesh: body, glass, roof, wheels, lights, bumpers
-function trafficGeo(type,col){const key=type+'/'+col;if(tgCache[key])return tgCache[key];const V=VEH[type],b=new GB(),A=(g,x,y,z,sx,sy,sz,c)=>b.add(g,x,y,z,0,0,0,sx,sy,sz,c);
-  A(V.body,0,0,0,1,1,1,col);A(V.glass,0,0,0,1,1,1,C.glass);const rf=V.roof;A(GEO.box,0,rf[1],-rf[0],rf[3],V.roofH||.05,rf[2],col);if(V.bed)A(GEO.box,0,V.bed[1],-V.bed[0],V.bed[3],.02,V.bed[2],0x1a1816);
-  for(const wz of V.wheels)for(const s of [-1,1]){A(GEO.wheel,s*(V.wid/2-.13),V.wr,-wz,.25,V.wr,V.wr,C.tire);A(GEO.hub,s*(V.wid/2-.01),V.wr,-wz,.03,V.wr*.5,V.wr*.5,0x9a9c9a);}
-  const fz=V.len/2-.02,ly=type==='sedan'?.66:.84;for(const s of [-1,1]){A(GEO.box,s*(V.wid/2-.32),ly,-fz,.34,.14,.06,0xf2ecd2);A(GEO.box,s*(V.wid/2-.3),ly,fz-.02,.3,.14,.06,0xa02018);}
-  A(GEO.box,0,.4,-fz-.04,V.wid-.1,.16,.12,0x3a3b3c);A(GEO.box,0,.4,fz+.02,V.wid-.1,.16,.12,0x3a3b3c);return tgCache[key]=b.build();}
+// the parked cars' builder (02c) as one moving mesh: its full-detail template, painted in one colour
+function trafficGeo(type,col){const key=type+'/'+col;if(tgCache[key])return tgCache[key];const B={p:[],n:[],c:[],i:[]};pushCar(B,VEH[type].full,0,0,0,0,col,col);
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(B.p,3));g.setAttribute('normal',new T.Float32BufferAttribute(B.n,3));
+  g.setAttribute('color',new T.Float32BufferAttribute(B.c,3));g.setIndex(B.i);return tgCache[key]=g;}
 for(let k=0;k<LIFE.carN;k++){const m=new T.Mesh(trafficGeo('sedan',carCols[0]),M.paint);m.castShadow=true;m.visible=false;scene.add(m);const col=solid(-9999,-9999,.1,.1,1.5,0,2);col.st=0;
   traffic.push({m,col,on:false,retry:R2(.5,3),type:'sedan',V:VEH.sedan,R0:TROADS[0],dir:1,off:0,s:0,x:0,z:0,yaw:0,spd:0,cruise:12,hold:false,stopS:null,stopD:null,dec:new Map(),chkT:0,cells:null,stopT:0,blockT:0,hornT:0,visT:0});}
 function binAddU(c){const i0=clamp(Math.floor((c.x0-1-BX0)/BS),0,BW-1),i1=clamp(Math.floor((c.x1+1-BX0)/BS),0,BW-1),j0=clamp(Math.floor((c.z0-1-BZ0)/BS),0,BH-1),j1=clamp(Math.floor((c.z1+1-BZ0)/BS),0,BH-1);

@@ -3,7 +3,7 @@
 // One player hosts; everyone else connects to the host only. The PeerJS library is bundled by the standalone page,
 // so on a page without it (the Claude artifact) NET.ok is false and multiplayer stays hidden.
 // =====================================================================
-const PV=1; // protocol version: only players on the same version can share a room
+const PV=2; // protocol version: only players on the same version can share a room
 const NET={ok:typeof window.Peer==='function',peer:null,host:false,code:'',up:null,state:'off',tries:0,onOpen:null,onFail:null,onData:null,onConn:null,onGone:null};
 // state: off | opening | open (host: the room exists; guest: connected to the host) | failed
 const CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I, O, 0 or 1: codes get read out loud
