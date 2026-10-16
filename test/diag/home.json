@@ -1,0 +1,5 @@
+[
+ {"click":"#btnStart"},{"wait":400},
+ {"eval":"(()=>{const g=window.__game;g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;g.gunRoot.visible=false;g.cam(-40,95,-430,-40,0,-429);return 1})()"},{"wait":600},{"shot":"diag/top-home"},
+ {"eval":"(()=>{const g=window.__game;g.cam(-90,160,-420,-90,0,-419);return 1})()"},{"wait":500},{"shot":"diag/top-home-wide"}
+]
