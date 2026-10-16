@@ -29,9 +29,9 @@ function wallLine(x0,z0,x1,z1,h,tint,pil){const ax=Math.abs(x1-x0)>=Math.abs(z1-
 // a wooden side-yard gate between two houses (a short wall in wood)
 function gateLine(x0,z0,x1,z1,iron){const ax=Math.abs(x1-x0)>=Math.abs(z1-z0),len=ax?Math.abs(x1-x0):Math.abs(z1-z0);if(len<.3)return;
   if(iron){const n=Math.max(1,Math.round(len/1.7)),cx=(x0+x1)/2,cz=(z0+z1)/2;anchor(cx,cz,()=>{for(let k=0;k<n;k++){const t=(k+.5)/n,px=lerp(x0,x1,t),pz=lerp(z0,z1,t);cutQ(px,pz,PADY,len/n+.02,1.65,ax?0:PI/2,CUT.iron,0xffffff);}
-      for(const e of [0,1])put(M.flat,GEO.box,e?x1:x0,PADY,e?z1:z0,0,.09,1.72,.09,0x1c1b1a);});const c=solid(cx,cz,ax?len:.12,ax?.12:len,1.8,0,0);c.see=true;return;}const cx=(x0+x1)/2,cz=(z0+z1)/2,w=ax?len:.12,d=ax?.12:len,u=cuv(CI.barn),uv=[u[0],u[1],u[0]+(u[2]-u[0])*Math.min(1,len/4),u[1]+(u[3]-u[1])*.45];
+      for(const e of [0,1])put(M.flat,GEO.box,e?x1:x0,PADY,e?z1:z0,0,.09,1.72,.09,0x1c1b1a);});const cl=Math.max(len,1.7),c=solid(cx,cz,ax?cl:.12,ax?.12:cl,1.8,0,0);c.see=true;return;}const cx=(x0+x1)/2,cz=(z0+z1)/2,w=ax?len:.12,d=ax?.12:len,u=cuv(CI.barn),uv=[u[0],u[1],u[0]+(u[2]-u[0])*Math.min(1,len/4),u[1]+(u[3]-u[1])*.45];
   anchor(cx,cz,()=>{for(const s of ax?[0,1]:[2,3])faceQuad(cx,cz,w,d,s,0,len,0,1.8,uv,.001,0xb59a78);quadC(M.flat,[cx-w/2,1.8,cz+d/2],[cx+w/2,1.8,cz+d/2],[cx+w/2,1.8,cz-d/2],[cx-w/2,1.8,cz-d/2],0,1,0,0x8a7258);});
-  solid(cx,cz,w,d,1.86,0,0);}
+  const cl=Math.max(len,1.7);solid(cx,cz,ax?cl:w,ax?d:cl,1.86,0,0);} // at least 1.7 m, so that the navigation grid closes the gap
 // white rail fence (trails, ranch edges): posts and three rails, no collider unless asked
 function railFence(x0,z0,x1,z1,col,coll){col=col===undefined?0xf1eee6:col;const L0=Math.hypot(x1-x0,z1-z0);if(L0<.5)return;const n=Math.max(1,Math.round(L0/2.6)),ang=Math.atan2(x1-x0,z1-z0),cx=(x0+x1)/2,cz=(z0+z1)/2;
   anchor(cx,cz,()=>{for(let k=0;k<=n;k++){const x=lerp(x0,x1,k/n),z=lerp(z0,z1,k/n);put(M.flat,GEO.box,x,0,z,ang,.12,1.25,.12,col);}

@@ -227,7 +227,7 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
   {const c=P(l.u,l.vf);if(c[0]<BOUND.x0||c[0]>BOUND.x1||c[1]<BOUND.z0||c[1]>BOUND.z1)return;} // lots beyond the playing area keep only their house's look
   // a boat on its trailer on a concrete pad beside the driveway
   let boatIv=null;if(!l.car&&rnd()<.04){const bu=gU+dside*1.35;boatIv=1;const p=P(bu,l.vf-sg*3.4);boatSpots.push([p[0],p[1],ry+(rnd()<.5?0:PI)]);solid(p[0],p[1],T.sw?6.8:2.3,T.sw?2.3:6.8,2.2,0,0);
-    if(rnd()<.5){const q=P(gU-dside*1.35,l.vf-sg*2.75);car(q[0],q[1],T.sw,undefined,undefined,2);}}
+    if(rnd()<.5){const ty=carType(),q=P(gU-dside*1.35,l.vf-sg*(VEH[ty].len/2+.04));car(q[0],q[1],T.sw,undefined,ty,2);}}
   // parkway: grass between the curb and a sidewalk set back from it, often with a young staked tree
   if(park){if(rnd()<.26){const c=cutIv(u0+1.2,u1-1.2,[[gU-3.8,gU+3.8]]);if(c.length){const q=pick(c),p=P(rr(q[0],q[1]),(curb+vF)/2);trees.push([p[0],p[1],rr(.8,1.1),rnd()<.75?9:pick([0,2,6,1])]);}}}
   // the lawn: lush, patchy, brown, dirt, gravel with agaves and boulders, or overgrown
@@ -243,7 +243,7 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
   if(lt==='lush'&&ivs.length&&rnd()<.06){const q=pick(ivs),p=P(rr(q[0]+.5,q[1]-.5),lerp(la,lb,rr(.3,.7)));cutX(p[0],p[1],PADY,rr(1.6,2.4),rr(1.2,1.6),CUT.spray,0xffffff,rnd()*3);stain(p[0],p[1],1.4,1.4,0,PADY);}
   // the driveway: oil stains, the family cars (often two side by side), a portable hoop at its edge
   if(rnd()<.55)for(let k=0;k<1+(rnd()<.4?1:0);k++){const p=P(gU+rr(-1.6,1.6),l.vf-sg*rr(1.4,4.2));stain(p[0],p[1],rr(.3,.7),rr(.3,.9),rnd()*3,PADY);}
-  if(!l.car&&!boatIv&&fy>5.4&&rnd()<(old?.2:.14)){for(const o of rnd()<.3?[-1.35,1.35]:[rr(-.4,.4)]){const p=P(gU+o,l.vf-sg*2.75);car(p[0],p[1],T.sw,undefined,undefined,2);}}
+  if(!l.car&&!boatIv&&fy>5.4&&rnd()<(old?.2:.14)){for(const o of rnd()<.3?[-1.35,1.35]:[rr(-.4,.4)]){const ty=carType(),p=P(gU+o,l.vf-sg*(VEH[ty].len/2+.04));car(p[0],p[1],T.sw,undefined,ty,2);}}
   if(!l.hoop&&rnd()<.07){const p=P(gU-dside*2.3,vF+sg*(park?1.7:.6));hoopPoles.push([p[0],p[1],ry+PI]);solid(p[0],p[1],.3,.3,3.1,0,0);}
   // the curb: a white post mailbox by the driveway, the bins out on trash day
   if(tk.post){const p=P(gU-dside*3.35,curb+sg*(park?.7:.35));postBoxes.push([p[0],p[1],ry]);solid(p[0],p[1],.3,.3,1.3,0,0);}
