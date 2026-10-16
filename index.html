@@ -122,6 +122,7 @@ body.touch .tb.on{background:rgba(255,178,62,.5)}
 #btnCrouch{right:calc(90px + var(--sr));bottom:calc(160px + var(--sb));width:50px;height:50px}
 #btnNade{right:calc(186px + var(--sr));bottom:calc(40px + var(--sb));width:50px;height:50px}
 #btnSwap{right:calc(184px + var(--sr));bottom:calc(104px + var(--sb));width:50px;height:50px}
+#btnView{right:calc(250px + var(--sr));bottom:calc(104px + var(--sb));width:44px;height:44px;font-size:10px!important} /* (mech) third/first person */
 #btnUse{right:calc(150px + var(--sr));bottom:calc(176px + var(--sb));width:auto;height:44px;border-radius:22px!important;padding:0 16px!important;border-color:var(--sun)!important;font-size:13px!important}
 body.touch #stick{display:block;position:absolute;width:112px;height:112px;margin:-56px 0 0 -56px;border-radius:50%;
   border:2px solid rgba(243,232,211,.4);background:rgba(21,17,12,.28)}
@@ -216,7 +217,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   <button class="tb" id="btnFire" type="button">FIRE</button><button class="tb" id="btnAds" type="button">AIM</button>
   <button class="tb" id="btnReload" type="button">RELOAD</button><button class="tb" id="btnJump" type="button">JUMP</button>
   <button class="tb" id="btnCrouch" type="button">CROUCH</button><button class="tb" id="btnNade" type="button">NADE</button>
-  <button class="tb" id="btnSwap" type="button">SWAP</button><button class="tb" id="btnUse" type="button" hidden>USE</button>
+  <button class="tb" id="btnSwap" type="button">SWAP</button><button class="tb" id="btnUse" type="button" hidden>USE</button><button class="tb" id="btnView" type="button">VIEW</button>
 </div>
 <div id="mapOver" class="over" hidden>
   <div id="mapHead"><h2>Ciudad Insurgentes</h2><button class="alt" id="btnMapClose" type="button">Close map</button></div>
@@ -1686,18 +1687,28 @@ function addPick(kind,x,z,o){o=o||{};let m;
   m.position.set(x,kind==='crate'?.4:.55,z);scene.add(m);const p={kind,x,z,m,t:kind==='crate'?1e9:(o.life||50),id:o.id||'',mag:o.mag||0,res:o.res||0};picks.push(p);return p;}
 function clearPicks(){for(const p of picks)scene.remove(p.m);picks.length=0;}
 // =====================================================================
-// 06b PLAYER: movement, stance, stamina, aiming, firing, recoil, reload, grenades, knife, damage
+// 06b PLAYER: movement, stance, stamina, aiming, firing, recoil, reload, grenades, knife, damage; first- and third-person camera
 // =====================================================================
 const P={x:3.5,z:446,y:0,vx:0,vz:0,vy:0,yaw:0,pitch:0,hp:100,stam:1,stamT:0,crouching:false,crouch:0,sprinting:false,ads:0,wantAds:false,bob:0,stepD:0,
   recoil:0,bloom:0,hurtT:9,fireT:0,reloading:false,reloadT:0,swapT:0,swapTo:-1,meleeT:0,meleeHit:true,nadeT:0,nades:3,slots:[],cur:0,ground:true,speed:0,
-  roll:0,punch:0,alive:true,sprintLock:0,kick:0,flashT:0,autoRl:0,stillT:0,stillX:0,stillZ:0,deadT:0,sens:1,baseFov:74};
+  roll:0,punch:0,alive:true,sprintLock:0,kick:0,flashT:0,autoRl:0,stillT:0,stillX:0,stillZ:0,deadT:0,sens:1,baseFov:74,stumT:0,bike:null};
 const IN={f:0,s:0,fire:false,firePressed:false,touchFire:false,sprint:false,jump:false,crouchT:false,reload:false,swap:false,nade:false,melee:false,use:false,useHeld:false};
 const curW=()=>P.slots[P.cur],curD=()=>WDEF[P.slots[P.cur].id];
-function giveLoadout(){P.slots=[{id:'m4',mag:30,res:150},{id:'pistol',mag:15,res:45}];P.cur=0;P.nades=3;showWeapon();}
+// ---------- view: third person over the right shoulder (default) or first person (T, the VIEW button; kept in SAVE.view)
+// VIEW.tp is the player's choice, VIEW.on what this frame shows (riding forces third person). Automated test browsers start in first
+// person unless the save says otherwise, because the bot and multiplayer tests aim from the eye; a scenario switches with __game.setViewMode.
+const VIEW={tp:null,on:false,d:2.9,px:0,py:0,pz:0,sc:0},AO=[0,0,0];
+function viewTP(){if(VIEW.tp===null){let v;try{v=SAVE.view;}catch(e){}VIEW.tp=v?v==='tp':!navigator.webdriver;}return VIEW.tp||!!P.bike;}
+function setViewMode(tp){viewTP();if(P.bike&&!tp){toast('THIRD PERSON WHILE RIDING');return;}VIEW.tp=!!tp;VIEW.d=.5;try{SAVE.view=tp?'tp':'fp';saveGame();}catch(e){}}
+function toggleView(){setViewMode(!viewTP());}
+// where a shot starts: the camera, or in third person the point of the camera ray level with the player (nothing behind them counts)
+function aimOrigin(f){const c=camera.position;let k=0;if(VIEW.on)k=Math.max(0,(VIEW.px-c.x)*f[0]+(VIEW.py-c.y)*f[1]+(VIEW.pz-c.z)*f[2]);AO[0]=c.x+f[0]*k;AO[1]=c.y+f[1]*k;AO[2]=c.z+f[2]*k;return AO;}
+const eyeH=()=>P.bike?1.45:lerp(1.65,1.05,P.crouch);
+function giveLoadout(){if(P.bike)dismountBike(2);P.slots=[{id:'m4',mag:30,res:150},{id:'pistol',mag:15,res:45}];P.cur=0;P.nades=3;showWeapon();}
 function showWeapon(){const id=curW().id;for(const k in VM)VM[k].visible=k===id;flash.position.set(0,.02,WDEF[id].mz-.06);}
 function lookDir(){const cp=Math.cos(P.pitch);return[-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp];}
 function toast(t,d){G.toasts.push({t,d:d||1.6});if(G.toasts.length>3)G.toasts.shift();}
-function curSpread(D){const mv=clamp(P.speed/5.2,0,1.5);
+function curSpread(D){const mv=P.bike?clamp(P.speed/16,0,.5):clamp(P.speed/5.2,0,1.5); // a bike is steadier than running
   return(lerp(D.hip,D.ads,P.ads)*(P.crouch>.5?.72:1))+D.hip*1.2*mv*(1-P.ads*.65)+(P.ground?0:.05)+P.bloom*(1-P.ads*.55);}
 function cancelReload(){P.reloading=false;P.reloadT=0;}
 function startReload(){const w=curW(),D=WDEF[w.id];if(P.reloading||w.mag>=D.mag||w.res<=0||P.swapT>0||P.meleeT>0)return;
@@ -1708,15 +1719,19 @@ function finishReload(){const w=curW(),D=WDEF[w.id];
   P.reloading=false;}
 const muz=new T.Vector3();
 function fire(){const w=curW(),D=WDEF[w.id];if(P.swapT>0||P.meleeT>0||P.fireT>0)return;
+  if(P.bike&&w.id!=='pistol'){P.fireT=.6;toast('PISTOL ONLY ON THE BIKE');return;} // riding: one hand on the bars
   if(P.reloading){if(D.shell&&w.mag>0)P.reloading=false;else return;}
   if(P.sprinting){P.sprinting=false;P.sprintLock=.3;P.fireT=.14;return;}
   if(w.mag<=0){if(w.res>0)startReload();else{sndUi('empty');P.fireT=.3;toast('NO AMMO. SWAP WEAPON');}return;}
   w.mag--;P.fireT=D.rate;G.stats.shots++;P.spawnT=0;
-  const f=lookDir(),spread=curSpread(D),ox=camera.position.x,oy=camera.position.y,oz=camera.position.z;
-  camera.updateMatrixWorld();muz.set(0,.02,D.mz);gunRoot.localToWorld(muz);
+  const f=lookDir(),spread=curSpread(D),tp=VIEW.on&&VIEW.sc<.5;aimOrigin(f);const ox=AO[0],oy=AO[1],oz=AO[2],ex=P.x,ey=P.y+eyeH(),ez=P.z;
+  if(tp)avMuzzle(muz,D);else{camera.updateMatrixWorld();muz.set(0,.02,D.mz);gunRoot.localToWorld(muz);}
   let any=false;
   for(let k=0;k<D.pellets;k++){let dx=f[0]+R2(-spread,spread),dy=f[1]+R2(-spread,spread),dz=f[2]+R2(-spread,spread);const l=Math.hypot(dx,dy,dz);dx/=l;dy/=l;dz/=l;
-    const tw=rayWorld(ox,oy,oz,dx,dy,dz,320),wc=RHc,nx=RHnx,ny=RHny,nzz=RHnz,hs=raySoldiers(hostList(),ox,oy,oz,dx,dy,dz,tw),t=hs?RS.t:tw,hx=ox+dx*t,hy=oy+dy*t,hz=oz+dz*t;
+    let tw=rayWorld(ox,oy,oz,dx,dy,dz,320),wc=RHc,nx=RHnx,ny=RHny,nzz=RHnz,hs=raySoldiers(hostList(),ox,oy,oz,dx,dy,dz,tw),t=hs?RS.t:tw,hx=ox+dx*t,hy=oy+dy*t,hz=oz+dz*t;
+    // third person: the camera ray picks the aim point, but a wall between the player's body and that point takes the shot
+    if(tp){const vx=hx-ex,vy=hy-ey,vz=hz-ez,vl=Math.hypot(vx,vy,vz);if(vl>.6){const tb=rayWorld(ex,ey,ez,vx/vl,vy/vl,vz/vl,vl-.3);
+      if(tb<vl-.3){hs=null;wc=RHc;nx=RHnx;ny=RHny;nzz=RHnz;hx=ex+vx/vl*tb;hy=ey+vy/vl*tb;hz=ez+vz/vl*tb;tw=t=Math.hypot(hx-ox,hy-oy,hz-oz);}}}
     if(k%3===0){tracer(muz.x,muz.y,muz.z,hx,hy,hz,0xfff0b0);if(MP.on)mpShot(hx,hy,hz);}
     if(hs){const fall=lerp(1,D.rng[2],clamp((t-D.rng[0])/(D.rng[1]-D.rng[0]),0,1));bloodPuff(hx,hy,hz);any=true;
       damageSoldier(hs,D.dmg*fall,RS.zone,P.x,P.z,true,false,D);}
@@ -1727,14 +1742,16 @@ function fire(){const w=curW(),D=WDEF[w.id];if(P.swapT>0||P.meleeT>0||P.fireT>0)
   const kk=D.kick*(1-P.ads*.3)*(P.crouch>.5?.8:1);P.pitch=Math.min(1.5,P.pitch+kk);P.recoil+=kk*.62;P.yaw+=(R()-.5)*2*D.kickH*(1-P.ads*.3);
   P.bloom=Math.min(.05,P.bloom+D.hip*.2);P.kick=Math.min(1,P.kick+.45+D.kick*9);P.flashT=.05;flash.material.rotation=R()*TAU;lightAt(muz.x,muz.y,muz.z,1.5,.06);
   sndShot(D.snd,0,0,true);
-  if(!D.shell){const rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);bit(ox+f[0]*.35+rx*.16,oy-.1,oz+f[2]*.35+rz*.16,rx*R2(1.5,2.6)+P.vx,R2(1.5,2.6),rz*R2(1.5,2.6)+P.vz,.02,.02,.055,brass,2.4);}
+  if(tp){tpFlash.position.copy(muz);tpFlash.material.rotation=flash.material.rotation;}
+  if(!D.shell){const rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);bit(tp?muz.x-f[0]*.45:ox+f[0]*.35+rx*.16,tp?muz.y:oy-.1,tp?muz.z-f[2]*.45:oz+f[2]*.35+rz*.16,rx*R2(1.5,2.6)+P.vx,R2(1.5,2.6),rz*R2(1.5,2.6)+P.vz,.02,.02,.055,brass,2.4);}
   noiseEvent(P.x,P.z,90,true);if(w.mag===0&&w.res>0&&!D.shell)P.autoRl=.3;}
 function meleeStrike(){const f=lookDir();let best=null,bd=2.4;
   for(const s of hostList()){if(!s.alive)continue;const dx=s.x-P.x,dz=s.z-P.z,d=Math.hypot(dx,dz);if(d<bd&&Math.abs(s.y0-P.y)<1.5&&(dx*f[0]+dz*f[2])/(d||1)>.55){bd=d;best=s;}}
   if(best){bloodPuff(best.x,chestY(best),best.z);damageSoldier(best,220,1,P.x,P.z,true,false,null);G.stats.hits++;}}
-function throwNade(){if(P.nades<=0||P.nadeT>0||P.swapT>0)return;P.nades--;P.nadeT=1;const f=lookDir(),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);
-  const n=spawnNade(camera.position.x+f[0]*.5+rx*.2,camera.position.y-.1+f[1]*.5,camera.position.z+f[2]*.5+rz*.2,f[0]*16+P.vx*.5,f[1]*16+4.2,f[2]*16+P.vz*.5,2.5,true);if(MP.on)mpNade(n);sndUi('pin');P.kick=Math.min(1,P.kick+.6);}
-function hurt(dmg,sx,sz){if(G.state!=='play'||!P.alive||(MP.on&&P.spawnT>0))return;dmg*=G.dmgK;P.hp-=dmg;P.hurtT=0;G.vig=Math.min(1,.35+dmg/40);P.punch+=R2(.008,.022)*Math.min(3,dmg/12);P.roll+=R2(-.03,.03);
+function throwNade(){if(P.nades<=0||P.nadeT>0||P.swapT>0)return;P.nades--;P.nadeT=1;const f=lookDir(),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw),
+    tp=VIEW.on,cx=tp?P.x:camera.position.x,cy=tp?P.y+eyeH()+.1:camera.position.y,cz=tp?P.z:camera.position.z; // third person: from the body
+  const n=spawnNade(cx+f[0]*.5+rx*.2,cy-.1+f[1]*.5,cz+f[2]*.5+rz*.2,f[0]*16+P.vx*.5,f[1]*16+4.2,f[2]*16+P.vz*.5,2.5,true);if(MP.on)mpNade(n);sndUi('pin');P.kick=Math.min(1,P.kick+.6);}
+function hurt(dmg,sx,sz){if(P.bike&&P.hp-dmg*G.dmgK<=0&&G.state==='play'&&P.alive&&!(MP.on&&P.spawnT>0))dismountBike(1);if(G.state!=='play'||!P.alive||(MP.on&&P.spawnT>0))return;dmg*=G.dmgK;P.hp-=dmg;P.hurtT=0;G.vig=Math.min(1,.35+dmg/40);P.punch+=R2(.008,.022)*Math.min(3,dmg/12);P.roll+=R2(-.03,.03);
   G.arcs.push({x:sx,z:sz,t:1.3});if(G.arcs.length>3)G.arcs.shift();sndUi('hurt');if(P.hp<=0){P.hp=0;P.alive=false;P.deadT=0;G.stats.deaths++;onPlayerDeath();}}
 function takeWeapon(p){const w=curW();if(P.swapT>0)return;cancelReload();addPick('w',P.x+R2(-.6,.6),P.z+R2(-.6,.6),{id:w.id,mag:w.mag,res:w.res,life:90});
   P.slots[P.cur]={id:p.id,mag:p.mag,res:p.res};scene.remove(p.m);picks.splice(picks.indexOf(p),1);showWeapon();P.swapT=.3;P.swapTo=-1;sndUi('pick');toast(WDEF[p.id].name);}
@@ -1749,7 +1766,7 @@ function updPicks(dt){let near=null,nd=1.9;
       else if(p.kind==='crate'){resupply();take=true;}
       else if(p.kind==='w'){const same=P.slots.find(w=>w.id===p.id);
         if(same){const D=WDEF[p.id],add=p.mag+p.res;if(same.res<D.max&&add>0){same.res=Math.min(D.max,same.res+add);toast('+'+D.name+' AMMO');take=true;}}
-        else if(d<nd){nd=d;near=p;}}}
+        else if(d<nd&&!P.bike){nd=d;near=p;}}}
     if(take){sndUi('pick');scene.remove(p.m);picks.splice(k,1);}else if(p.t<=0){scene.remove(p.m);picks.splice(k,1);}}
   if(near){G.prompt='<b>'+(isTouch?'USE':'F')+'</b> swap '+curD().name+' for '+WDEF[near.id].name;if(IN.use){IN.use=false;takeWeapon(near);}}}
 // touch only: the view is drawn gently towards a hostile that is already close to the sights
@@ -1757,23 +1774,24 @@ function aimAssist(dt){P.asT=(P.asT||0)-dt;const cx=camera.position.x,cy=camera.
   if(P.asT<=0){P.asT=.12;P.asTgt=null;const f=lookDir(),HL=hostList();let best=.13;for(let k=0;k<HL.length;k++){const s=HL[k];if(!s.alive)continue;const dx=s.x-cx,dy=chestY(s)-cy,dz=s.z-cz,d=Math.hypot(dx,dy,dz);if(d>75||d<1)continue;
       const ang=Math.acos(clamp((dx*f[0]+dy*f[1]+dz*f[2])/d,-1,1));if(ang<best&&los(cx,cy,cz,s.x,chestY(s),s.z)){best=ang;P.asTgt=s;}}}
   const s=P.asTgt;if(s&&s.alive){const dx=s.x-cx,dz=s.z-cz,d=Math.hypot(dx,dz),k=Math.min(1,dt*(IN.fire||P.ads>.5?3.2:1.5));P.yaw+=angDiff(Math.atan2(-dx,-dz),P.yaw)*k;P.pitch+=(Math.atan2(chestY(s)-cy,d)-P.pitch)*k;}}
-function updPlayer(dt){const w=curW(),D=WDEF[w.id];
-  if(IN.crouchT){IN.crouchT=false;P.crouching=!P.crouching;}
+function updPlayer(dt){const w=curW(),D=WDEF[w.id],bk=P.bike;
+  if(IN.crouchT){IN.crouchT=false;if(!bk)P.crouching=!P.crouching;}
   let f=IN.f,s=IN.s;const m=Math.hypot(f,s);if(m>1){f/=m;s/=m;}
+  if(P.stumT>0){P.stumT-=dt;f*=.15;s*=.15;} // knocked off a bike
   if(P.sprintLock>0)P.sprintLock-=dt;
-  const ws=IN.sprint&&f>.6&&!P.wantAds&&P.ground&&P.sprintLock<=0&&P.stam>(P.sprinting?.01:.15);
+  const ws=!bk&&IN.sprint&&f>.6&&!P.wantAds&&P.ground&&P.sprintLock<=0&&P.stam>(P.sprinting?.01:.15);
   P.sprinting=ws;
   if(ws){P.crouching=false;if(P.reloading)cancelReload();P.stam=Math.max(0,P.stam-dt/7);P.stamT=.9;}else if(P.stamT>0)P.stamT-=dt;else P.stam=Math.min(1,P.stam+dt/3.5);
   P.crouch+=clamp((P.crouching?1:0)-P.crouch,-dt*5.5,dt*5.5);
   const canAds=!P.sprinting&&!P.reloading&&P.swapT<=0&&P.meleeT<=0;P.ads+=clamp(((P.wantAds&&canAds)?1:0)-P.ads,-dt/D.adsT,dt/D.adsT);
   let sp=(P.sprinting?7.6:5.1)*D.speed;if(P.crouch>.5)sp=2.7;sp*=1-P.ads*.45;
-  const sy=Math.sin(P.yaw),cy=Math.cos(P.yaw),tx=(-sy*f+cy*s)*sp,tz=(-cy*f-sy*s)*sp,acc=(P.ground?55:9)*dt;
-  let ax=tx-P.vx,az=tz-P.vz;const al=Math.hypot(ax,az);if(al>acc){ax*=acc/al;az*=acc/al;}P.vx+=ax;P.vz+=az;
-  const px=P.x,pz=P.z;P.x=clamp(P.x+P.vx*dt,BOUND.x0,BOUND.x1);P.z=clamp(P.z+P.vz*dt,BOUND.z0,BOUND.z1);pushOut(P,.45,P.y);
+  if(bk)rideMove(dt,f,s);else{const sy=Math.sin(P.yaw),cy=Math.cos(P.yaw),tx=(-sy*f+cy*s)*sp,tz=(-cy*f-sy*s)*sp,acc=(P.ground?55:9)*dt;
+    let ax=tx-P.vx,az=tz-P.vz;const al=Math.hypot(ax,az);if(al>acc){ax*=acc/al;az*=acc/al;}P.vx+=ax;P.vz+=az;}
+  const px=P.x,pz=P.z;P.x=clamp(P.x+P.vx*dt,BOUND.x0,BOUND.x1);P.z=clamp(P.z+P.vz*dt,BOUND.z0,BOUND.z1);pushOut(P,.45,P.y);if(bk)rideCollide(px,pz,dt);
   const moved=Math.hypot(P.x-px,P.z-pz);P.speed=moved/Math.max(dt,1e-4);
   const fl=floorAt(P.x,P.z,P.y);P.vy-=16*dt;P.y+=P.vy*dt;if(P.y<=fl){P.y=fl;P.vy=0;P.ground=true;}else P.ground=false;
-  if(IN.jump){IN.jump=false;if(P.ground){if(P.crouching)P.crouching=false;else{P.vy=5.4;P.ground=false;}}}
-  if(P.ground&&moved>0){P.bob+=moved*(P.sprinting?1.9:2.3);P.stepD+=moved;
+  if(IN.jump){IN.jump=false;if(P.ground&&!bk){if(P.crouching)P.crouching=false;else{P.vy=5.4;P.ground=false;}}}
+  if(P.ground&&moved>0&&!bk){P.bob+=moved*(P.sprinting?1.9:2.3);P.stepD+=moved;
     if(P.stepD>(P.sprinting?2.6:2.1)){P.stepD=0;sndStep(Math.abs(P.x)<10.5||(P.x>0&&Math.abs(P.z)<5),P.crouch>.5?.05:P.sprinting?.24:.14);if(P.sprinting)noiseEvent(P.x,P.z,14,true);}}
   P.hurtT+=dt;if(P.hurtT>4.5&&P.hp<100)P.hp=Math.min(100,P.hp+20*dt);
   if(isTouch&&G.assist)aimAssist(dt);
@@ -1785,18 +1803,20 @@ function updPlayer(dt){const w=curW(),D=WDEF[w.id];
   if(IN.reload){IN.reload=false;startReload();}
   if(P.autoRl>0){P.autoRl-=dt;if(P.autoRl<=0&&curW().mag===0)startReload();}
   if(P.reloading){P.reloadT-=dt;if(P.reloadT<=0)finishReload();}
-  if(IN.melee){IN.melee=false;if(P.meleeT<=0&&P.swapT<=0){cancelReload();P.meleeT=.5;P.meleeHit=false;sndUi('knife');}}
+  if(IN.melee){IN.melee=false;if(P.meleeT<=0&&P.swapT<=0&&!P.bike){cancelReload();P.meleeT=.5;P.meleeHit=false;sndUi('knife');}}
   if(P.meleeT>0){P.meleeT-=dt;if(!P.meleeHit&&P.meleeT<.36){P.meleeHit=true;meleeStrike();}}
   if(IN.nade){IN.nade=false;throwNade();}
   const D2=curD();let want=false;
   if(IN.fire)want=D2.auto||IN.firePressed||(IN.touchFire&&P.fireT<-D2.rate*.7);
-  else if(isTouch&&G.assist&&P.fireT<-(D2.auto?0:D2.rate*.7)){const fd=lookDir(),tw=rayWorld(camera.position.x,camera.position.y,camera.position.z,fd[0],fd[1],fd[2],D2.rng[1]);
-    if(raySoldiers(hostList(),camera.position.x,camera.position.y,camera.position.z,fd[0],fd[1],fd[2],tw))want=true;}
+  else if(isTouch&&G.assist&&P.fireT<-(D2.auto?0:D2.rate*.7)&&!(P.bike&&curW().id!=='pistol')){const fd=lookDir(),o=aimOrigin(fd),tw=rayWorld(o[0],o[1],o[2],fd[0],fd[1],fd[2],D2.rng[1]);
+    if(raySoldiers(hostList(),o[0],o[1],o[2],fd[0],fd[1],fd[2],tw))want=true;}
   IN.firePressed=false;if(want)fire();
   if(P.recoil>0){const r=Math.min(P.recoil,dt*.42);P.pitch-=r;P.recoil-=r;}
   P.bloom=Math.max(0,P.bloom-dt*.09);P.kick*=Math.exp(-dt*13);P.punch*=Math.exp(-dt*7);P.roll*=Math.exp(-dt*6);
-  if(P.flashT>0){P.flashT-=dt;}flash.visible=P.flashT>0&&!(D2.scope&&P.ads>.9);}
-function updCamera(dt){const D=curD(),eye=lerp(1.65,1.05,P.crouch),amp=(P.sprinting?.055:.03)*(1-P.ads*.75)*clamp(P.speed/4,0,1);
+  if(P.flashT>0){P.flashT-=dt;}flash.visible=P.flashT>0&&!(D2.scope&&P.ads>.9);tpFlash.visible=P.flashT>0&&VIEW.on&&VIEW.sc<.5;
+  updBikes(dt);}
+function updCamera(dt){const D=curD();VIEW.on=viewTP();if(VIEW.on){tpCamera(dt,D);updAvatar(dt);return;}VIEW.sc=0;updAvatar(dt);
+  const eye=lerp(1.65,1.05,P.crouch),amp=(P.sprinting?.055:.03)*(1-P.ads*.75)*clamp(P.speed/4,0,1);
   camera.position.set(P.x+(shake?R2(-1,1)*shake*.07:0),P.y+eye+Math.sin(P.bob)*amp+(shake?R2(-1,1)*shake*.07:0),P.z+(shake?R2(-1,1)*shake*.07:0));
   camera.rotation.set(P.pitch+P.punch,P.yaw,P.roll+Math.sin(P.bob*.5)*amp*.25);
   const e=P.ads*P.ads*(3-2*P.ads),fov=lerp(P.baseFov+(P.sprinting?4:0),D.adsFov*(P.baseFov>80?1.15:1),e);
@@ -1808,6 +1828,284 @@ function updCamera(dt){const D=curD(),eye=lerp(1.65,1.05,P.crouch),amp=(P.sprint
   gunRoot.position.set(lerp(.2,0,e)+bobx*(1-e)+sp*.06-ml*.1,lerp(-.19,-D.sight*.8-.016,e)+boby*(1-e)-rl*.16-sw*.22-sp*.05,lerp(-.42,-.4,e)+P.kick*.07*(1-e*.5)-ml*.22);
   gunRoot.rotation.set(P.kick*.09*(1-e*.6)-rl*.85-sw*.9-sp*.25+ml*.5,sp*.55+ml*.7,rl*.35);
   gunRoot.visible=!(D.scope&&P.ads>.9);}
+// third person: over the right shoulder, pulled in along the ray when a wall is behind; aiming moves in tighter and zooms.
+// Scoped rifles still look through the scope from the eye.
+function tpCamera(dt,D){const e=P.ads*P.ads*(3-2*P.ads),sc=D.scope?e:0,bk=P.bike,cr=P.crouch;
+  const cyw=Math.cos(P.yaw),syw=Math.sin(P.yaw),cp=Math.cos(P.pitch),sp=Math.sin(P.pitch),fx=-syw*cp,fy=sp,fz=-cyw*cp,rx=cyw,rz=-syw,ux=syw*sp,uy=cp,uz=cyw*sp;
+  const px=P.x,py=P.y+(bk?1.4:lerp(1.58,1.08,cr)),pz=P.z;VIEW.px=px;VIEW.py=py;VIEW.pz=pz;
+  const r=bk?.4:lerp(.8,.7,e),u=bk?.32:lerp(.34,.16,e),b=bk?3.5:lerp(3.3,1.75,e);
+  let dx=rx*r+ux*u-fx*b,dy=uy*u-fy*b,dz=rz*r+uz*u-fz*b;const Lb=Math.hypot(dx,dy,dz);dx/=Lb;dy/=Lb;dz/=Lb;
+  const t=rayWorld(px,py,pz,dx,dy,dz,Lb+.3),want=t<Lb+.3?Math.max(.15,t-.3):Lb;
+  if(want<VIEW.d)VIEW.d=want;else VIEW.d+=(want-VIEW.d)*Math.min(1,dt*5);
+  let cx=px+dx*VIEW.d,cy=py+dy*VIEW.d,cz=pz+dz*VIEW.d;
+  if(sc>0){cx=lerp(cx,P.x,sc);cy=lerp(cy,P.y+lerp(1.65,1.05,cr),sc);cz=lerp(cz,P.z,sc);}VIEW.sc=sc;
+  const sh=shake?shake*.07:0;camera.position.set(cx+(sh?R2(-sh,sh):0),cy+(sh?R2(-sh,sh):0),cz+(sh?R2(-sh,sh):0));
+  camera.rotation.set(P.pitch+P.punch,P.yaw,P.roll*.6);
+  const fov=lerp(P.baseFov*.88+(P.sprinting?4:0)+(bk?clamp(Math.abs(bk.v)/9,0,1)*7:0),D.scope?D.adsFov*(P.baseFov>80?1.15:1):lerp(P.baseFov*.88,D.adsFov,.5),e);
+  if(Math.abs(camera.fov-fov)>.02){camera.fov+=(fov-camera.fov)*Math.min(1,dt*14);camera.updateProjectionMatrix();}
+  gunRoot.visible=false;}
+// =====================================================================
+// 06c AVATAR: the player's own body for the third-person view: the soldier rig and its animation, dressed as a person
+// =====================================================================
+// The whole look comes from AVATAR, so that a real person's look (from photos) can be dropped in later with setAvatar({...}):
+// colours, hair (short, buzz, braids, bald), shirt (tee, jersey, flannel), hat (null or {type:'cap',col}) and face: a square picture
+// of the face (a canvas, an image, or a data: URL; never a link to another site), eyes about 45% down, shown on the front of the head.
+// face:null draws a plain placeholder face.
+const AVATAR={name:'RAY',skin:0x8d5a3b,hair:0x15110c,hairStyle:'short',shirt:0xf2efe6,shirtStyle:'tee',pants:0x2b3a55,shoes:0xf4f0e7,hat:null,face:null};
+// one texture for the whole body: cloth weave (left), a plain white strip (skin, hair, shoes, the gun) and the face (right half)
+const avCv=document.createElement('canvas');avCv.width=256;avCv.height=128;
+const avTex=new T.CanvasTexture(avCv);avTex.anisotropy=MAXA;
+const avMat=L({vertexColors:true,map:avTex,skinning:true});
+function avFacePlain(g,A){const sk=A.skin,dk=c=>css(shade(sk,c)),X=x=>192-x*60,Y=y=>64-y*60;
+  g.fillStyle=css(sk);g.fillRect(128,0,128,128);
+  const gr=g.createRadialGradient(192,60,20,192,64,66);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.16)');g.fillStyle=gr;g.fillRect(128,0,128,128);
+  for(const s of [-1,1]){g.fillStyle=dk(.78);g.beginPath();g.ellipse(X(s*.36),Y(.15),9,5,0,0,TAU);g.fill(); // eye socket
+    g.fillStyle='#efe9df';g.beginPath();g.ellipse(X(s*.36),Y(.12),6.5,3.4,0,0,TAU);g.fill();
+    g.fillStyle='#3a2416';g.beginPath();g.arc(X(s*.36)+s*.5,Y(.12),3,0,TAU);g.fill();g.fillStyle='#0d0907';g.beginPath();g.arc(X(s*.36)+s*.5,Y(.12),1.4,0,TAU);g.fill();
+    g.strokeStyle=css(shade(A.hair,1.2));g.lineWidth=1.6;g.beginPath();g.moveTo(X(s*.36)-7,Y(.15));g.quadraticCurveTo(X(s*.36),Y(.2),X(s*.36)+7,Y(.15));g.stroke(); // lid
+    g.fillStyle=css(A.hair);g.beginPath();g.moveTo(X(s*.14),Y(.31));g.lineTo(X(s*.58),Y(.33));g.lineTo(X(s*.58),Y(.38));g.lineTo(X(s*.14),Y(.37));g.closePath();g.fill();} // flat brows
+  g.fillStyle=dk(.84);g.beginPath();g.moveTo(X(-.05),Y(.08));g.lineTo(X(-.1),Y(-.2));g.lineTo(X(.1),Y(-.2));g.lineTo(X(.05),Y(.08));g.closePath();g.fill(); // nose
+  g.fillStyle=dk(.62);for(const s of [-1,1]){g.beginPath();g.ellipse(X(s*.07),Y(-.21),2.6,1.6,0,0,TAU);g.fill();}
+  g.fillStyle=dk(.6);g.fillRect(X(.22),Y(-.42)-1.5,X(-.22)-X(.22),3);g.fillStyle=dk(.8);g.fillRect(X(.16),Y(-.42)+1.5,X(-.16)-X(.16),2.5); // mouth
+  g.fillStyle=dk(.9);g.fillRect(X(.12),Y(-.66),X(-.12)-X(.12),2);}
+let avFaceSrc=null;
+function avPaint(){const g=avCv.getContext('2d'),A=AVATAR;g.fillStyle='#f3f3f3';g.fillRect(0,0,128,128);
+  g.fillStyle='rgba(0,0,0,.035)';for(let y=0;y<104;y+=2)g.fillRect(0,y,128,1);for(let x=1;x<128;x+=3)g.fillRect(x,0,1,104);
+  for(let k=0;k<500;k++){g.fillStyle=R()<.5?'rgba(255,255,255,.3)':'rgba(0,0,0,.05)';g.fillRect(R()*128,R()*104,1+R()*2,1);}
+  g.fillStyle='#fff';g.fillRect(0,105,128,23);
+  avFacePlain(g,A);const f=A.face;
+  if(f){if(typeof f==='string'){if(/^data:image\//.test(f)){if(!avFaceSrc||avFaceSrc.src!==f){const im=new Image();im.onload=()=>{if(AVATAR.face===f)avPaint();};im.src=f;avFaceSrc=im;}
+        if(avFaceSrc.complete&&avFaceSrc.naturalWidth)g.drawImage(avFaceSrc,128,0,128,128);}}
+    else if(f.width)try{g.drawImage(f,128,0,128,128);}catch(e){}}
+  avTex.needsUpdate=true;}
+// geometry: low-poly pieces; uv mode 0 = plain white, 1 = cloth, 2 = the face (its own uv)
+const AG={j:new T.SphereGeometry(1,6,4),head:new T.SphereGeometry(1,10,7),cap:new T.SphereGeometry(1,10,5,0,TAU,0,PI/2),
+  limb:new T.CylinderGeometry(1,.85,1,7,1,true),torso:new T.CylinderGeometry(1,.82,1,9,1),hem:new T.CylinderGeometry(.85,1,1,9,1,true),face:new T.SphereGeometry(1,8,5,PI*1.5-1.2,2.4,.98,1.54)};
+AG.limb.translate(0,-.5,0);AG.torso.translate(0,.5,0);AG.hem.translate(0,-.5,0);
+{const p=AG.face.attributes.position,u=AG.face.attributes.uv;for(let i=0;i<p.count;i++)u.setXY(i,.75-p.getX(i)*.235,.5+p.getY(i)*.47);}
+function avAdd(b,mode,geo,x,y,z,rx,ry,rz,sx,sy,sz,col){const k=b.u.length;b.add(geo,x,y,z,rx,ry,rz,sx,sy,sz,col);const u=b.u;
+  for(let i=k;i<u.length;i+=2){if(mode===1){u[i]=.01+u[i]*.48;u[i+1]=.2+u[i+1]*.78;}else if(mode===0){u[i]=.25;u[i+1]=.05;}}}
+// a piece from point a to point c (pieces grow along +y from their base)
+const _sq=new T.Quaternion(),_sq2=new T.Quaternion(),_sv=new T.Vector3(),_sy=new T.Vector3(0,1,0),SE=new T.Euler();
+function segRot(ax,ay,az,bx,by,bz,spin){_sv.set(bx-ax,by-ay,bz-az);const l=_sv.length()||1e-6;_sv.multiplyScalar(1/l);_sq.setFromUnitVectors(_sy,_sv);
+  if(spin){_sq2.setFromAxisAngle(_sy,spin);_sq.multiply(_sq2);}SE.setFromQuaternion(_sq,'YXZ');return l;}
+function avParts(){const A=AVATAR,sk=A.skin,sh=A.shirt,pa=A.pants,st=A.shirtStyle,hr=A.hair,o={};
+  const trim=st==='jersey'?(((sh>>16&255)+(sh>>8&255)+(sh&255))>380?0x1d3f7a:0xf2efe6):0;
+  let b=new GB(); // upper body, origin at the waist
+  avAdd(b,1,AG.torso,0,0,0,0,0,0,.235,.53,.145,sh);
+  for(const s of [-1,1])avAdd(b,st==='jersey'?0:1,AG.j,s*.255,.45,0,0,0,0,.084,.076,.088,st==='jersey'?sk:sh);
+  if(st==='jersey'){for(const s of [-1,1])avAdd(b,1,GEO.box,s*.2,.08,0,0,0,s*.08,.02,.4,.2,trim);
+    avAdd(b,1,AG.limb,0,.555,0,0,0,0,.075,.04,.07,trim);}
+  if(st==='flannel'){avAdd(b,1,GEO.box,0,.06,-.128,0,0,0,.15,.44,.03,0xf2efe6);for(const s of [-1,1])avAdd(b,1,GEO.box,s*.085,.04,-.132,0,0,0,.028,.46,.03,shade(sh,.78));}
+  avAdd(b,0,AG.limb,0,.62,0,0,0,0,.055,.11,.055,sk);                                       // neck
+  avAdd(b,0,AG.head,0,.69,0,0,0,0,.108,.128,.118,sk);avAdd(b,2,AG.face,0,.69,0,0,0,0,.1092,.1294,.1194,0xffffff);
+  for(const s of [-1,1])avAdd(b,0,AG.j,s*.108,.685,.005,0,0,0,.02,.034,.026,shade(sk,.94)); // ears
+  const hs=A.hairStyle;
+  if(hs==='short')avAdd(b,0,AG.cap,0,.69,.006,.5,0,0,.117,.139,.128,hr);
+  else if(hs==='buzz')avAdd(b,0,AG.cap,0,.69,.004,.52,0,0,.117,.139,.127,mixc(hr,sk,.3));
+  else if(hs==='braids'){avAdd(b,0,AG.cap,0,.69,.005,.5,0,0,.116,.138,.127,hr);
+    for(let k=0;k<5;k++){const x=-.07+k*.035,l=segRot(x,.72,.08,x*1.25,.5,.15);avAdd(b,0,GEO.rod,x,.72,.08,SE.x,SE.y,SE.z,.013,l,.013,shade(hr,1.15));}}
+  if(A.hat&&A.hat.type==='cap'){const c=A.hat.col===undefined?0x1d3f7a:A.hat.col;avAdd(b,1,AG.cap,0,.73,.005,.16,0,0,.122,.095,.132,c);avAdd(b,1,GEO.box,0,.728,-.14,-.1,0,0,.19,.012,.12,shade(c,.85));}
+  o.up=b.build();
+  b=new GB();avAdd(b,1,AG.torso,0,-.13,0,0,0,0,.215,.23,.148,pa);                          // jeans
+  if(st==='flannel'||st==='tee')avAdd(b,1,AG.hem,0,.07,0,0,0,0,.226,.15,.158,st==='tee'?sh:shade(sh,.9));  // untucked hem
+  else avAdd(b,0,AG.torso,0,.03,0,0,0,0,.222,.04,.152,0x2a2420);                          // belt under the jersey
+  o.hips=b.build();
+  b=new GB();
+  if(st==='tee'){avAdd(b,1,AG.j,0,-.07,0,0,0,0,.067,.125,.07,sh);avAdd(b,0,AG.limb,0,0,0,0,0,0,.054,.36,.054,sk);avAdd(b,0,AG.j,0,-.36,0,0,0,0,.048,.05,.048,sk);}
+  else if(st==='jersey'){avAdd(b,0,AG.limb,0,.02,0,0,0,0,.058,.38,.058,sk);avAdd(b,0,AG.j,0,-.36,0,0,0,0,.048,.05,.048,sk);}
+  else{avAdd(b,1,AG.limb,0,.02,0,0,0,0,.07,.38,.07,sh);avAdd(b,1,AG.j,0,-.36,0,0,0,0,.058,.058,.058,sh);}
+  o.arm=b.build();
+  b=new GB();if(st==='flannel'){avAdd(b,1,AG.limb,0,0,0,0,0,0,.058,.25,.058,sh);avAdd(b,1,AG.limb,0,-.2,0,0,0,0,.054,.05,.054,shade(sh,.75));}
+  else avAdd(b,0,AG.limb,0,0,0,0,0,0,.048,.27,.048,sk);
+  avAdd(b,0,AG.j,0,-.31,0,0,0,0,.042,.062,.05,sk);o.fore=b.build();
+  b=new GB();avAdd(b,1,AG.limb,0,.04,0,0,0,0,.118,.49,.122,pa);avAdd(b,1,AG.j,0,-.45,-.012,0,0,0,.095,.085,.098,pa);o.thigh=b.build(); // baggy jeans
+  b=new GB();avAdd(b,1,AG.limb,0,0,0,0,0,0,.098,.33,.102,pa);avAdd(b,1,AG.limb,0,-.27,0,0,0,0,.108,.13,.112,shade(pa,.9)); // stacked at the shoe
+  avAdd(b,0,AG.j,0,-.425,-.045,0,0,0,.064,.055,.135,A.shoes);avAdd(b,0,GEO.box,0,-.485,-.04,0,0,0,.13,.03,.27,shade(A.shoes,.86));o.shin=b.build(); // sneakers
+  return o;}
+// skinned geometry like rigGeo (05), with this module's parts and uv
+const avGeoC={};let avP=null;
+function avRig(wid){if(avGeoC[wid])return avGeoC[wid];if(!avP)avP=avParts();const G0=avP,W=[];for(let k=0;k<11;k++){const p=JOINT[k].slice(),q=PARENT[k];if(q>=0){p[0]+=W[q][0];p[1]+=W[q][1];p[2]+=W[q][2];}W.push(p);}
+  const list=[[G0.hips,0,[0,.98,0]],[G0.up,1],[G0.arm,2],[G0.fore,3],[G0.arm,4],[G0.fore,5],[weaponGeo(wid),6],[G0.thigh,7],[G0.shin,8],[G0.thigh,9],[G0.shin,10]];
+  const p=[],n=[],c=[],u=[],si=[],sw=[],ix=[];
+  for(const it of list){const g=it[0],b=it[1],o=it[2]||W[b],Pp=g.attributes.position,N=g.attributes.normal,Cc=g.attributes.color,U=g.attributes.uv,k=p.length/3;
+    for(let i=0;i<Pp.count;i++){p.push(Pp.getX(i)+o[0],Pp.getY(i)+o[1],Pp.getZ(i)+o[2]);n.push(N.getX(i),N.getY(i),N.getZ(i));c.push(Cc.getX(i),Cc.getY(i),Cc.getZ(i));
+      if(b===6)u.push(.25,.05);else u.push(U.getX(i),U.getY(i));si.push(b,0,0,0);sw.push(1,0,0,0);}
+    for(let i=0;i<g.index.count;i++)ix.push(k+g.index.getX(i));}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('normal',new T.Float32BufferAttribute(n,3));g.setAttribute('color',new T.Float32BufferAttribute(c,3));
+  g.setAttribute('uv',new T.Float32BufferAttribute(u,2));g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));g.setIndex(ix);
+  g.boundingSphere=new T.Sphere(new T.Vector3(0,1,0),2.2);return avGeoC[wid]=g;}
+// the figure: same bones as a soldier, so animSoldier poses it
+const AV=(()=>{const g=new T.Group();g.rotation.order='YXZ';const B=[];
+  for(let k=0;k<11;k++){const b=new T.Bone();b.position.set(JOINT[k][0],JOINT[k][1],JOINT[k][2]);B.push(b);if(PARENT[k]>=0)B[PARENT[k]].add(b);}
+  g.add(B[0]);g.updateMatrixWorld(true);avPaint();const mesh=new T.SkinnedMesh(avRig('m4'),avMat);mesh.castShadow=true;g.add(mesh);mesh.bind(new T.Skeleton(B));
+  const sh=new T.Mesh(footGeo,footShade);sh.position.y=.03;sh.renderOrder=2;g.add(sh);g.visible=false;scene.add(g);
+  return{g,mesh,body:B[0],up:B[1],aL:B[2],fL:B[3],aR:B[4],fR:B[5],wp:B[6],lL:B[7],kL:B[8],lR:B[9],kR:B[10],wid:'m4',yaw:0,ph:0,moveAmt:0,crouch:0,run:false,lowered:true,aimP:0,flinch:0,deadT:0,sc:1};})();
+function setAvatar(cfg){Object.assign(AVATAR,cfg||{});avP=null;for(const k in avGeoC){avGeoC[k].dispose();delete avGeoC[k];}AV.mesh.geometry=avRig(AV.wid);avPaint();}
+// muzzle flash at the avatar's gun
+const tpFlash=new T.Sprite(flash.material);tpFlash.scale.set(.42,.42,1);tpFlash.visible=false;scene.add(tpFlash);
+function avMuzzle(v,D){AV.g.updateMatrixWorld(true);v.set(0,.01,D.mz*.95);AV.wp.localToWorld(v);return v;}
+// called from updCamera every frame of play
+function updAvatar(dt){const show=VIEW.on&&VIEW.sc<.5&&VIEW.d>.6&&P.alive;AV.g.visible=show;if(!show)return;
+  const wid=curW().id;if(AV.wid!==wid){AV.wid=wid;AV.mesh.geometry=avRig(wid);}
+  AV.g.rotation.x=0;AV.g.rotation.z=0;AV.deadT=0;AV.body.rotation.set(0,0,0);AV.up.rotation.set(0,0,0);AV.wp.scale.setScalar(1);AV.wp.position.set(JOINT[6][0],JOINT[6][1],JOINT[6][2]);AV.wp.rotation.set(0,0,0);AV.lL.rotation.z=AV.lR.rotation.z=0;
+  if(P.bike){rideAvatar(dt);return;}
+  const mv=P.speed>.5,aim=P.ads>.05||P.wantAds||P.fireT>-.9||P.nadeT>.4||P.meleeT>0,my=Math.atan2(-P.vx,-P.vz);
+  // facing: where the player aims, else where they walk; standing still keeps the last heading (turn the camera to see the face)
+  const ty=aim?P.yaw:mv?my:AV.yaw;AV.yaw+=angDiff(ty,AV.yaw)*Math.min(1,dt*(aim?18:9));
+  // the legs walk in the direction of travel: the hips turn towards it, the chest keeps the aim, backwards plays the gait in reverse
+  let rel=mv?angDiff(my,AV.yaw):0,dir=1;if(rel>1.8){rel-=PI;dir=-1;}else if(rel<-1.8){rel+=PI;dir=-1;}
+  AV.ph+=P.speed*dt*(P.sprinting?2.1:2.6)*dir;AV.moveAmt=lerp(AV.moveAmt,clamp(P.speed/3,0,1),Math.min(1,dt*10));
+  AV.crouch=lerp(AV.crouch,Math.max(P.crouch,P.ground?0:.35,P.stumT>0?.4:0),Math.min(1,dt*12));
+  AV.run=P.sprinting;AV.lowered=P.sprinting||!aim;AV.aimP=aim?clamp(P.pitch,-.8,.8):0;AV.flinch=(P.stumT>0||P.hurtT<.12)?1:0;
+  animSoldier(AV,dt);
+  const tw=clamp(rel,-.9,.9)*AV.moveAmt;AV.body.rotation.y=tw;AV.up.rotation.y=-tw;
+  if(P.reloading){AV.wp.rotation.x-=.4;AV.aL.rotation.x-=.35;AV.fL.rotation.x+=.6;}
+  if(P.meleeT>0){const ml=Math.sin(clamp(P.meleeT/.5,0,1)*PI);AV.aL.rotation.set(.5+ml*1.2,0,.25);AV.fL.rotation.x=.2;}
+  if(P.nadeT>.5){const k=Math.sin(clamp((1-P.nadeT)/.5,0,1)*PI);AV.aL.rotation.set(-2.2*k+.8*(1-k),0,.3);AV.fL.rotation.x=.4;}
+  AV.g.position.set(P.x,P.y,P.z);AV.g.rotation.y=AV.yaw;}
+// called from the frame loop in every state: hides the figure outside play; when the player is down it falls and the camera looks at it
+function avatarFrame(dt){const st=G.state;if(st==='menu'||st==='win'||st==='lost'){AV.g.visible=false;tpFlash.visible=false;if(P.bike)dismountBike(2);return;}
+  if(P.alive||!VIEW.on||(st!=='dead'&&st!=='play'))return;
+  AV.deadT+=dt;const k=Math.min(1,AV.deadT/.45),e=k*k*(3-2*k),a=AV.yaw,c=Math.cos(a),s=Math.sin(a);AV.g.visible=true;tpFlash.visible=false;
+  AV.g.position.set(P.x,P.y+e*.13,P.z);AV.g.rotation.set(e*1.5,a,0);AV.body.position.y=0;AV.body.rotation.set(0,0,0);AV.up.rotation.set(0,0,0);
+  AV.aL.rotation.set(.4,0,-e*1.1);AV.aR.rotation.set(.3,0,e*.9);AV.fL.rotation.x=.2;AV.fR.rotation.x=.3;AV.lL.rotation.x=e*.3;AV.kL.rotation.x=0;AV.lR.rotation.x=0;AV.kR.rotation.x=-e*.7;
+  // camera: up and to the side of the body, pulled in if a wall is in the way
+  const lx=2.2,ly=2.4+e*.8,lz=-1.8,wx=lx*c+lz*s,wz=-lx*s+lz*c,hx=P.x+.9*s,hz=P.z+.9*c,d=Math.hypot(wx,ly,wz),t=rayWorld(hx,P.y+.4,hz,wx/d,ly/d,wz/d,d),q=Math.min(1,Math.max(.2,t-.3)/d);
+  camera.position.set(hx+wx*q,P.y+.4+ly*q,hz+wz*q);camera.lookAt(hx,P.y+.25,hz);}
+// =====================================================================
+// 06d RIDE: lowrider bicycles: parked bikes to ride, riding and crashing, and a bike model for AI riders
+// =====================================================================
+// API for the mission code:
+//   spawnBike(x,z,yaw,col) -> bike (parked; "Hold USE to ride" when close; no collider)   mountBike(b)   dismountBike()   P.bike (or null)
+//   bikeMesh(col) -> a standalone bike for under an AI rider: s.g.add(m); every frame rideAnim(s,crank) poses the rider and
+//   bikeSpin(m,dist,crank,steer) turns its wheels (dist: metres rolled this frame)   updBikes(dt): runs from updPlayer every frame
+//   clearBikes(): removes every bike (for a mission reset)
+// Riding (single player and local in multiplayer; other players see the usual soldier figure): W pedals up to about 9 m/s with
+// momentum, S brakes (then walks the bike back), the bike steers towards where you look and A/D or the stick also turn the view;
+// while aiming the bike holds its line and A/D steer it. Only the pistol fires, one-handed, and firing stops the pedalling (you coast).
+// No sprint, jump, crouch or knife. Third person while riding. A wall hit above about 5 m/s throws you off with a short stumble.
+const bikes=[],RIDE={hold:0,prev:-1,near:null,on:'Hold <b>'+(isTouch?'USE':'F')+'</b> to ride',off:'<b>'+(isTouch?'USE':'F')+'</b> get off'},BIKE_COLS=[0x9c1236,0x1557a8,0x6a2a93,0x16805a,0xc4901c];
+// one texture: a spoked wheel with whitewalls (cut out between the spokes) on the left, plain white on the right
+const bikeTex=tex(256,128,(g)=>{g.clearRect(0,0,256,128);g.fillStyle='#fff';g.fillRect(128,0,128,128);
+  const ring=(r1,r0,c)=>{g.fillStyle=c;g.beginPath();g.arc(64,64,r1,0,TAU);g.arc(64,64,r0,0,TAU,true);g.fill();};
+  ring(63,52,'#1c1c1e');ring(52,44.5,'#f4f2ec');ring(44.5,39,'#e3e8ec');ring(41,40,'#9aa3aa');
+  g.strokeStyle='#eef2f5';g.lineWidth=1.3;for(let k=0;k<40;k++){const a=k/40*TAU,b=a+(k%2?.6:-.6);g.beginPath();g.moveTo(64+Math.cos(a)*7,64+Math.sin(a)*7);g.lineTo(64+Math.cos(b)*40,64+Math.sin(b)*40);g.stroke();}
+  g.fillStyle='#eef2f5';g.beginPath();g.arc(64,64,9,0,TAU);g.fill();g.fillStyle='#8f989f';g.beginPath();g.arc(64,64,3.5,0,TAU);g.fill();});
+const bikeMat=new T.MeshPhongMaterial({vertexColors:true,map:bikeTex,alphaTest:.45,skinning:true,shininess:70,specular:0x8a8a8a});
+// bike frame: faces -z, ground at y 0; rear axle z .62, front axle z -.72, wheels 20 inch; bones 0 frame, 1 bars and fork, 2 front wheel, 3 rear wheel, 4 cranks
+const BK={R:.255,BB:[0,.25,-.05],ZR:.2,FA:[0,.255,-.72],RA:[0,.255,.62],ST:[0,.6,-.56]},bikeGeoC={};
+function bkSeg(b,geo,a,c,r,col,n,tw){if(!n){const l=segRot(a[0],a[1],a[2],c[0],c[1],c[2]);b.add(geo,a[0],a[1],a[2],SE.x,SE.y,SE.z,r,l,r,col);return;}
+  for(let k=0;k<n;k++){const t0=k/n,t1=(k+1)/n,p0=[lerp(a[0],c[0],t0),lerp(a[1],c[1],t0),lerp(a[2],c[2],t0)],p1=[lerp(a[0],c[0],t1),lerp(a[1],c[1],t1),lerp(a[2],c[2],t1)];
+    const l=segRot(p0[0],p0[1],p0[2],p1[0],p1[1],p1[2],k*tw);b.add(geo,p0[0],p0[1],p0[2],SE.x,SE.y,SE.z,r,l,r,col);}}
+function bkPlain(b){for(let i=0;i<b.u.length;i+=2){b.u[i]=.75;b.u[i+1]=.5;}}
+function bkWheel(b){const R=BK.R;b.add(GEO.tube8,-.026,0,0,0,0,-PI/2,R*.985,.052,R*.985,0x1c1c1e);bkPlain(b);const k=b.u.length;
+  for(const s of [-1,1])b.add(bkDisc,s*.027,0,0,0,s*PI/2,0,R*2,R*2,1,0xffffff);for(let i=k;i<b.u.length;i+=2)b.u[i]*=.5;return b;}
+const bkDisc=new T.PlaneGeometry(1,1);
+function bikeGeo(col){if(bikeGeoC[col])return bikeGeoC[col];
+  const CH=0xd8dde2,CD=0x9aa2a8,seat=0xf1ebdf,BB=BK.BB,rod=GEO.rod,bx=GEO.box,parts=[];let b=new GB();
+  // frame in candy paint: head tube, cantilever top tube sweeping down to the rear axle, curved down tube, seat tube, stays
+  bkSeg(b,rod,[0,.5,-.585],[0,.71,-.535],.026,col);
+  const top=[[0,.67,-.545],[0,.61,-.26],[0,.54,.04],[0,.43,.36],[0,.3,.6]];for(let k=0;k<4;k++)bkSeg(b,rod,top[k],top[k+1],.021,col);
+  bkSeg(b,rod,[0,.53,-.575],[0,.34,-.33],.023,col);bkSeg(b,rod,[0,.34,-.33],BB,.023,col);bkSeg(b,rod,BB,[0,.6,.12],.02,col);
+  for(const s of [-1,1]){bkSeg(b,rod,[s*.035,BB[1],BB[2]],[s*.045,.26,.62],.014,col);bkSeg(b,rod,[s*.03,.6,.12],[s*.045,.27,.6],.013,col);}
+  b.add(bx,.06,.19,.27,0,0,0,.012,.11,.64,col);b.add(bx,.06,.25,.27,0,0,0,.016,.012,.64,CH);                // chain guard with a chrome edge
+  // banana seat on a chrome strut, and the tall twisted sissy bar
+  bkSeg(b,rod,[0,.58,.1],[0,.64,.24],.012,CH);b.add(AG.j,0,.66,.24,-.1,0,0,.105,.048,.27,seat);b.add(GEO.box,0,.62,.24,-.1,0,0,.2,.02,.44,col);
+  for(const s of [-1,1]){bkSeg(b,bx,[s*.075,.64,.42],[s*.07,1.27,.55],.018,CH,2,.8);bkSeg(b,rod,[s*.075,.64,.42],[s*.05,.27,.62],.01,CH);}
+  bkSeg(b,rod,[-.07,1.27,.55],[0,1.33,.56],.012,CH);bkSeg(b,rod,[.07,1.27,.55],[0,1.33,.56],.012,CH);
+  // rear fender
+  b.add(bkFend,0,BK.RA[1],BK.RA[2],0,0,-PI/2,.3,.075,.3,CH);
+  bkPlain(b);parts.push([b,0]);
+  // bars and springer fork (turn with the steering)
+  b=new GB();for(const s of [-1,1]){bkSeg(b,rod,[s*.052,.62,-.56],[s*.052,.3,-.7],.014,CH);bkSeg(b,rod,[s*.055,.69,-.62],[s*.055,.26,-.75],.012,CH);
+    bkSeg(b,bx,[s*.14,.8,-.5],[s*.26,1.1,-.42],.02,CH,2,.8);bkSeg(b,rod,[s*.26,1.1,-.42],[s*.26,1.1,-.25],.019,seat);}
+  b.add(bx,0,.6,-.57,0,0,0,.14,.04,.07,CH);bkSeg(b,rod,[0,.6,-.6],[0,.71,-.62],.026,CD);bkSeg(b,rod,[0,.7,-.535],[0,.8,-.5],.017,CH);bkSeg(b,rod,[-.14,.8,-.5],[.14,.8,-.5],.014,CH);
+  b.add(bkFendF,0,BK.FA[1],BK.FA[2],0,0,-PI/2,.29,.07,.29,CH);bkPlain(b);parts.push([b,1]);
+  parts.push([bkWheel(new GB()),2,BK.FA]);parts.push([bkWheel(new GB()),3,BK.RA]);
+  // cranks and pedals (bind pose: right crank forward)
+  b=new GB();bkSeg(b,rod,[-.075,BB[1],BB[2]],[.075,BB[1],BB[2]],.016,CD);
+  bkSeg(b,rod,[.075,BB[1],BB[2]],[.075,BB[1],BB[2]-.14],.012,CH);bkSeg(b,rod,[-.075,BB[1],BB[2]],[-.075,BB[1],BB[2]+.14],.012,CH);
+  b.add(bx,.12,BB[1]-.015,BB[2]-.14,0,0,0,.08,.03,.05,0x2a2a2c);b.add(bx,-.12,BB[1]-.015,BB[2]+.14,0,0,0,.08,.03,.05,0x2a2a2c);bkPlain(b);parts.push([b,4]);
+  const p=[],n=[],c=[],u=[],si=[],sw=[],ix=[];
+  for(const it of parts){const g=it[0],bo=it[1],o=it[2]||[0,0,0],k=p.length/3;
+    for(let i=0;i<g.p.length/3;i++){p.push(g.p[i*3]+o[0],g.p[i*3+1]+o[1],g.p[i*3+2]+o[2]);n.push(g.n[i*3],g.n[i*3+1],g.n[i*3+2]);c.push(g.c[i*3],g.c[i*3+1],g.c[i*3+2]);u.push(g.u[i*2],g.u[i*2+1]);si.push(bo,0,0,0);sw.push(1,0,0,0);}
+    for(let i=0;i<g.i.length;i++)ix.push(k+g.i[i]);}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('normal',new T.Float32BufferAttribute(n,3));g.setAttribute('color',new T.Float32BufferAttribute(c,3));
+  g.setAttribute('uv',new T.Float32BufferAttribute(u,2));g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));g.setIndex(ix);
+  g.boundingSphere=new T.Sphere(new T.Vector3(0,.6,0),1.3);return bikeGeoC[col]=g;}
+const bkFend=new T.CylinderGeometry(1,1,1,9,1,true,PI*4/3,2.4),bkFendF=new T.CylinderGeometry(1,1,1,6,1,true,PI*1.5-.85,1.7);
+// a bike model: a group facing -z with the skinned mesh and its bones (one draw call)
+function bikeModel(col){const g=new T.Group();g.rotation.order='YXZ';const B=[];
+  const pos=[[0,0,0],[BK.ST[0],BK.ST[1],BK.ST[2]],[BK.FA[0]-BK.ST[0],BK.FA[1]-BK.ST[1],BK.FA[2]-BK.ST[2]],BK.RA,BK.BB],par=[-1,0,1,0,0];
+  for(let k=0;k<5;k++){const b=new T.Bone();b.position.set(pos[k][0],pos[k][1],pos[k][2]);B.push(b);if(par[k]>=0)B[par[k]].add(b);}
+  g.add(B[0]);g.updateMatrixWorld(true);const m=new T.SkinnedMesh(bikeGeo(col),bikeMat);m.castShadow=true;g.add(m);m.bind(new T.Skeleton(B));
+  const sh=new T.Mesh(footGeo,footShade);sh.scale.set(.75,1,1.45);sh.position.y=.03;sh.renderOrder=2;g.add(sh);g.userData.B=B;return g;}
+function bikeMesh(col){const o=new T.Group(),m=bikeModel(col===undefined?RP(BIKE_COLS):col);m.position.z=-BK.ZR;o.add(m);o.userData.B=m.userData.B;return o;}
+function bikeSpin(m,dist,crank,steer){const B=m.userData.B;B[2].rotation.x-=dist/BK.R;B[3].rotation.x-=dist/BK.R;if(crank!==undefined)B[4].rotation.x=crank;if(steer!==undefined)B[1].rotation.y=steer;}
+function spawnBike(x,z,yaw,col){const b={g:bikeModel(col===undefined?RP(BIKE_COLS):col),x,z,y:0,yaw:yaw||0,col,v:0,steer:0,lean:0,wr:0,cr:0,fallen:false,riding:false};
+  b.B=b.g.userData.B;scene.add(b.g);bikes.push(b);bikePose(b);return b;}
+function clearBikes(){if(P.bike)dismountBike(2);for(const b of bikes)scene.remove(b.g);bikes.length=0;}
+function bikePose(b){const lean=b.riding?b.lean:b.fallen?1.42:.11;b.g.position.set(b.x,b.y+(b.fallen&&!b.riding?.04:0),b.z);b.g.rotation.set(0,b.yaw,lean);
+  b.B[1].rotation.y=b.riding?b.steer*.45:b.fallen?0:.35;b.B[2].rotation.x=b.B[3].rotation.x=b.wr;b.B[4].rotation.x=b.cr;}
+function mountBike(b){if(!b||P.bike||!P.alive||b.riding)return;P.bike=b;b.riding=true;b.fallen=false;b.v=0;b.steer=0;b.lean=0;RIDE.hold=0;
+  P.x=b.x;P.z=b.z;P.vx=P.vz=0;P.yaw=b.yaw;P.pitch=-.08;P.crouching=false;P.sprinting=false;P.stumT=0;pushOut(P,.45,P.y);
+  RIDE.prev=P.cur;let pi=-1;for(let k=0;k<P.slots.length;k++)if(P.slots[k].id==='pistol')pi=k;
+  if(pi>=0&&pi!==P.cur){cancelReload();P.swapT=0;P.swapTo=-1;P.cur=pi;showWeapon();}VIEW.d=Math.min(VIEW.d,1.5);sndUi('click');}
+// how: 0 step off to the left, 1 thrown off (crash, or down), 2 just let go (teleport, reset)
+function dismountBike(how){const b=P.bike;if(!b)return;how=how|0;P.bike=null;b.riding=false;b.steer=0;b.lean=0;
+  if(how!==2){b.x=P.x;b.z=P.z;}b.v=0;
+  if(how===1){b.fallen=true;P.stumT=.85;P.punch+=.05;P.roll+=R2(-.12,.12);shake=Math.max(shake,.45);sndUi('hurt');const fx=-Math.sin(b.yaw),fz=-Math.cos(b.yaw);P.vx=-fx*1.6;P.vz=-fz*1.6;}
+  else if(how===0){const lx=-Math.cos(b.yaw),lz=Math.sin(b.yaw);P.x+=lx*.75;P.z+=lz*.75;pushOut(P,.45,P.y);P.vx=P.vz=0;sndUi('click');}
+  if(RIDE.prev>=0&&RIDE.prev<P.slots.length&&RIDE.prev!==P.cur&&P.alive){cancelReload();P.cur=RIDE.prev;showWeapon();}RIDE.prev=-1;bikePose(b);}
+// pedalling, braking and steering (from updPlayer, instead of walking)
+function rideMove(dt,f,s){const b=P.bike,aim=P.ads>.1||P.wantAds||IN.fire||P.fireT>-.35,pedal=f>.1&&!IN.fire&&P.stumT<=0;
+  let a=pedal?4.6*f*(1-b.v/9.3):f<-.1?(b.v>.15?-9*-f:-1.8*-f):0;a-=(.16+.0055*b.v*b.v)*(b.v>0?1:b.v<0?-1:0);
+  b.v=clamp(b.v+a*dt,-1.3,9.3);if(!pedal&&f>=-.1&&Math.abs(b.v)<.06)b.v=0;
+  const sf=clamp(Math.abs(b.v)/1.2,0,1),rate=lerp(2.5,1.2,clamp(Math.abs(b.v)/9.3,0,1))*sf;
+  let st;if(aim)st=-s;else{P.yaw-=s*1.7*dt*(.35+.65*sf);st=clamp(angDiff(P.yaw,b.yaw)*2.4,-1,1);}
+  b.steer+=(clamp(st,-1,1)-b.steer)*Math.min(1,dt*8);const yr=b.steer*rate*(b.v<0?-1:1);b.yaw+=yr*dt;
+  b.lean+=(clamp(yr*b.v*.045,-.38,.38)-b.lean)*Math.min(1,dt*5);
+  P.vx=-Math.sin(b.yaw)*b.v;P.vz=-Math.cos(b.yaw)*b.v;
+  b.wr-=b.v*dt/BK.R;if(pedal)b.cr+=Math.max(0,b.v)*dt*1.5+dt*1.2;}
+// walls: the front wheel is kept out too; a hard hit throws the rider off, a glancing one costs speed
+const bkProbe={x:0,z:0};
+function rideCollide(px,pz,dt){const b=P.bike,fx=-Math.sin(b.yaw),fz=-Math.cos(b.yaw);bkProbe.x=P.x+fx*.75;bkProbe.z=P.z+fz*.75;pushOut(bkProbe,.26,P.y);
+  P.x+=bkProbe.x-(P.x+fx*.75);P.z+=bkProbe.z-(P.z+fz*.75);pushOut(P,.45,P.y);
+  const want=b.v*dt,got=(P.x-px)*fx+(P.z-pz)*fz;if(Math.abs(want)<1e-5)return;
+  if(b.v>5.2&&got<want*.35){b.x=P.x;b.z=P.z;dismountBike(1);toast('CRASHED');return;}
+  if(got<want*.92)b.v=b.v>0?Math.max(0,got/dt):Math.min(0,got/dt);}
+// seated rider: two-bone reach in the side plane (thigh/shin, arm/forearm)
+function ik2(a,b,L1,L2,dy,dz,arm){const d=clamp(Math.hypot(dy,dz),Math.abs(L1-L2)+.02,L1+L2-.005),al=Math.atan2(-dz,-dy),
+  c1=Math.acos(clamp((L1*L1+d*d-L2*L2)/(2*L1*d),-1,1)),c2=Math.acos(clamp((L1*L1+L2*L2-d*d)/(2*L1*L2),-1,1));
+  if(arm){a.rotation.x=al-c1;b.rotation.x=PI-c2;}else{a.rotation.x=al+c1;b.rotation.x=-(PI-c2);}}
+// pose any soldier-rig figure (s: body, up, aL, fL, aR, fR, lL, kL, lR, kR, wp) on a bike at crank angle cr; its origin sits BK.ZR behind the bike's
+const RO={footDown:false,aim:undefined,twist:0},RO0={};
+function rideAnim(s,cr,o){o=o||RO0;const lean=-.3,hy=.755,by=BK.BB[1],bz=BK.BB[2]-BK.ZR,sn=Math.sin(cr),cs=Math.cos(cr);
+  s.body.position.y=hy-.9;s.body.rotation.set(0,0,0);s.up.rotation.set(lean,o.twist||0,0);
+  if(o.footDown){s.lL.rotation.set(.08,0,.22);s.kL.rotation.x=-.08;}else ik2(s.lL,s.kL,.46,.42,by-sn*.14+.06-hy,bz+cs*.14,false);
+  ik2(s.lR,s.kR,.46,.42,by+sn*.14+.06-hy,bz-cs*.14,false);
+  // hands on the grips; shoulders are 0.47 up the leaned chest
+  const shy=hy-.9+1+.47*Math.cos(lean),shz=.47*Math.sin(lean),gy=1.1,gz=-.33-BK.ZR;
+  ik2(s.aL,s.fL,.36,.33,gy-shy,gz-shz,true);s.aL.rotation.x-=lean;s.aL.rotation.y=0;s.aL.rotation.z=.12;
+  if(o.aim!==undefined){const a=PI/2+o.aim-lean;s.aR.rotation.set(a,0,-.12);s.fR.rotation.x=.06;s.wp.scale.setScalar(1);s.wp.position.set(.28,.47-.64*Math.cos(a),-.64*Math.sin(a));s.wp.rotation.set(a-PI/2,0,0);}
+  else{ik2(s.aR,s.fR,.36,.33,gy-shy,gz-shz,true);s.aR.rotation.x-=lean;s.aR.rotation.y=0;s.aR.rotation.z=-.12;s.wp.scale.setScalar(.001);}}
+function rideAvatar(dt){const b=P.bike,c=Math.cos(b.yaw),s=Math.sin(b.yaw),pis=curW().id==='pistol',aim=pis&&(P.ads>.1||P.wantAds||IN.fire||P.fireT>-.6);
+  AV.yaw=b.yaw;AV.g.position.set(b.x+s*BK.ZR,b.y,b.z+c*BK.ZR);AV.g.rotation.set(0,b.yaw,b.lean);
+  const tw=aim?clamp(angDiff(P.yaw,b.yaw),-1.1,1.1):0;
+  RO.footDown=Math.abs(b.v)<.35&&IN.f<.1;RO.aim=aim?clamp(P.pitch,-.9,.9):undefined;RO.twist=tw;rideAnim(AV,b.cr,RO);}
+// every frame of play: the ridden bike follows the player; near a parked one, hold USE to get on
+function updBikes(dt){const b=P.bike;
+  if(b){if(!P.alive){dismountBike(1);return;}
+    if(Math.hypot(P.x-b.x,P.z-b.z)>4){dismountBike(2);return;} // moved by a restart or a respawn: the bike stays where it was
+    b.x=P.x;b.z=P.z;b.y=P.y;bikePose(b);
+    G.prompt=RIDE.off;if(IN.use){IN.use=false;dismountBike(0);}return;}
+  if(!P.alive||!bikes.length)return;let near=null,nd=1.9;
+  for(let k=0;k<bikes.length;k++){const q=bikes[k];if(q.riding)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<nd&&Math.abs(q.y-P.y)<1.2){nd=d;near=q;}}
+  RIDE.near=near;if(!near){RIDE.hold=0;return;}
+  G.prompt=RIDE.on;if(IN.useHeld){RIDE.hold+=dt;if(RIDE.hold>.35)mountBike(near);}else RIDE.hold=0;}
+// test and debugging hooks (added to window.__game by the frame-loop module)
+const MECH={rayWorld,VIEW,setViewMode,toggleView,AV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes};
 // =====================================================================
 // 07a AI CORE: hearing, sight, damage, death, shooting, cover search
 // =====================================================================
@@ -2703,10 +3001,10 @@ function hud(dt){const w=curW(),D=WDEF[w.id];hudK++;
   for(const a of allies){if(!a.row)continue;const v=Math.round(clamp(a.hp/a.maxHp,0,1)*100);if(a.bar._v!==v){a.bar._v=v;a.bar.style.width=v+'%';}const dn=!!a.down;if(a.row._d!==dn){a.row._d=dn;a.row.classList.toggle('down',dn);}}
   const hp=Math.max(0,Math.ceil(P.hp));if(el.hpFill._v!==hp){el.hpFill._v=hp;el.hpFill.style.width=hp+'%';el.hpFill.classList.toggle('low',hp<35);}
   const st=Math.round(P.stam*100);if(el.stFill._v!==st){el.stFill._v=st;el.stFill.style.width=st+'%';}
-  setT(el.stance,P.sprinting?'SPRINTING':P.crouch>.5?'CROUCHED':'STANDING');setT(el.weapon,D.name+(P.reloading?' · RELOADING':''));setT(el.mag,String(w.mag));
+  setT(el.stance,P.bike?'RIDING':P.sprinting?'SPRINTING':P.crouch>.5?'CROUCHED':'STANDING');setT(el.weapon,D.name+(P.reloading?' · RELOADING':''));setT(el.mag,String(w.mag));
   const low=w.mag<=D.mag*.25;if(el.mag._l!==low){el.mag._l=low;el.mag.classList.toggle('low',low);}setT(el.res,'/ '+w.res);setT(el.nades,'GRENADES '+P.nades);
-  // crosshair follows the real spread
-  const scoped=D.scope&&P.ads>.9,showX=!scoped&&P.ads<.6&&!P.sprinting&&P.alive,showC=!scoped&&P.alive&&!P.sprinting;if(el.cross._s!==showC){el.cross._s=showC;el.cross.hidden=!showC;}
+  // crosshair follows the real spread ((mech) in third person the lines stay up while aiming: there are no sights)
+  const scoped=D.scope&&P.ads>.9,showX=!scoped&&(P.ads<.6||VIEW.on)&&!P.sprinting&&P.alive,showC=!scoped&&P.alive&&!P.sprinting;if(el.cross._s!==showC){el.cross._s=showC;el.cross.hidden=!showC;}
   if(el.cross._t!==showX){el.cross._t=showX;for(let k=0;k<4;k++)el.cross.children[k].hidden=!showX;}if(el.scope._s!==scoped){el.scope._s=scoped;el.scope.hidden=!scoped;}
   if(showX){const gap=Math.round(clamp(curSpread(D)*window.innerHeight/(camera.fov*PI/180),4,60));if(el.cross._g!==gap){el.cross._g=gap;const c=el.cross.children;
       c[0].style.top=(-gap-8)+'px';c[1].style.top=gap+'px';c[2].style.left=(-gap-8)+'px';c[3].style.left=gap+'px';}}
@@ -2819,6 +3117,7 @@ window.addEventListener('keydown',e=>{if(e.repeat){if(G.state==='play'&&(e.code=
   if(G.state!=='play'||G.menuUp)return;const c=e.code;
   if(c==='Space'){IN.jump=true;e.preventDefault();}else if(c==='KeyR')IN.reload=true;else if(c==='KeyQ'||c==='Digit1'||c==='Digit2'){if(c==='KeyQ'||(c==='Digit1')!==(P.cur===0))IN.swap=true;}
   else if(c==='KeyC'||c==='ControlLeft')IN.crouchT=true;else if(c==='KeyG')IN.nade=true;else if(c==='KeyV')IN.melee=true;else if(c==='KeyF'||c==='KeyE'){IN.use=true;IN.useHeld=true;}
+  else if(c==='KeyT')toggleView(); // (mech) third/first person
   else if(c==='KeyP'){unlock();pause();}else if(c==='Escape'&&!locked)pause();else if(c.indexOf('Arrow')===0||c==='Tab')e.preventDefault();});
 window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyF'||e.code==='KeyE')IN.useHeld=false;});
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;IN.fire=false;IN.useHeld=false;P.wantAds=false;});
@@ -2846,6 +3145,7 @@ function tap(id,fn,up){const b=$(id);b.addEventListener('touchstart',e=>{e.preve
 tap('btnReload',()=>{IN.reload=true;});tap('btnSwap',()=>{IN.swap=true;});tap('btnJump',()=>{IN.jump=true;});tap('btnCrouch',()=>{IN.crouchT=true;});tap('btnNade',()=>{IN.nade=true;});
 tap('btnAds',()=>{P.wantAds=!P.wantAds;});tap('btnUse',()=>{IN.use=true;IN.useHeld=true;},()=>{IN.useHeld=false;});
 tap('btnPause',()=>{unlock();pause();});tap('btnMap',()=>{unlock();openMap();});
+tap('btnView',toggleView); // (mech) VIEW: third/first person
 
 // ---------- frame loop
 function resize(){const w=window.innerWidth||640,h=window.innerHeight||360;renderer.setSize(w,h,false);camera.aspect=w/h;P.baseFov=w<h?88:74;if(G.state!=='play'){camera.fov=P.baseFov;}camera.updateProjectionMatrix();}
@@ -2874,10 +3174,12 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
   else if(G.state==='dead'){P.deadT+=raw;G.time+=dt;camera.position.y+=(P.y+.35-camera.position.y)*Math.min(1,dt*3);camera.rotation.z+=(.9-camera.rotation.z)*Math.min(1,dt*2.5);gunRoot.visible=false;
     updAI(dt);updNades(dt);updProps(dt);if(P.deadT>1.7&&el.menu.hidden){el.hud.hidden=true;
       showMenu('dead','You are down',G.mode==='mission'?'Halcón, regroup. You restart at the last checkpoint with your squad.':'You held the Glorieta through wave '+(MS.surv?MS.surv.wave:0)+'.',statList());}}
+  avatarFrame(dt); // (mech) the player's figure outside play, and when down in third person
   fxUpdate(dt);sky.position.copy(camera.position);sierra.position.set(camera.position.x,0,camera.position.z);sunSprite.position.copy(camera.position).addScaledVector(SUN,2000);if(Q.shadows)sunFollow(camera.position.x,camera.position.z);
   cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);}
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);}};
+Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests
 el.btnStart.disabled=false;el.btnMapMenu.hidden=false;toMain();mpAuto();requestAnimationFrame(tick);
 })();
 },60);</script>

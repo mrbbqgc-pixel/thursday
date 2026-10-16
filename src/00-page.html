@@ -92,6 +92,7 @@ body.touch .tb.on{background:rgba(255,178,62,.5)}
 #btnCrouch{right:calc(90px + var(--sr));bottom:calc(160px + var(--sb));width:50px;height:50px}
 #btnNade{right:calc(186px + var(--sr));bottom:calc(40px + var(--sb));width:50px;height:50px}
 #btnSwap{right:calc(184px + var(--sr));bottom:calc(104px + var(--sb));width:50px;height:50px}
+#btnView{right:calc(250px + var(--sr));bottom:calc(104px + var(--sb));width:44px;height:44px;font-size:10px!important} /* (mech) third/first person */
 #btnUse{right:calc(150px + var(--sr));bottom:calc(176px + var(--sb));width:auto;height:44px;border-radius:22px!important;padding:0 16px!important;border-color:var(--sun)!important;font-size:13px!important}
 body.touch #stick{display:block;position:absolute;width:112px;height:112px;margin:-56px 0 0 -56px;border-radius:50%;
   border:2px solid rgba(243,232,211,.4);background:rgba(21,17,12,.28)}
@@ -186,7 +187,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   <button class="tb" id="btnFire" type="button">FIRE</button><button class="tb" id="btnAds" type="button">AIM</button>
   <button class="tb" id="btnReload" type="button">RELOAD</button><button class="tb" id="btnJump" type="button">JUMP</button>
   <button class="tb" id="btnCrouch" type="button">CROUCH</button><button class="tb" id="btnNade" type="button">NADE</button>
-  <button class="tb" id="btnSwap" type="button">SWAP</button><button class="tb" id="btnUse" type="button" hidden>USE</button>
+  <button class="tb" id="btnSwap" type="button">SWAP</button><button class="tb" id="btnUse" type="button" hidden>USE</button><button class="tb" id="btnView" type="button">VIEW</button>
 </div>
 <div id="mapOver" class="over" hidden>
   <div id="mapHead"><h2>Rancho Cucamonga</h2><button class="alt" id="btnMapClose" type="button">Close map</button></div>
@@ -232,8 +233,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       <label for="optDiff" id="lOptDiff">Difficulty <select id="optDiff"><option value="0">Recruit</option><option value="1">Regular</option><option value="2">Veteran</option></select></label>
     </div>
     <div id="controls">
-      <div><h2>Keyboard and mouse</h2><p>WASD move, Shift sprint, C crouch, Space jump. Left click fire, right click aim. R reload, Q swap, G grenade, V knife, F pick up or use, M map, Esc pause.</p></div>
-      <div><h2>Phone or tablet</h2><p>Left thumb moves, right thumb aims. Push the stick all the way forward to sprint. FIRE can be dragged to keep aiming, and it fires by itself when your sights are on a hostile. Turn the phone sideways.</p></div>
+      <div><h2>Keyboard and mouse</h2><p>WASD move, Shift sprint, C crouch, Space jump. Left click fire, right click aim. R reload, Q swap, G grenade, V knife, F pick up or use (hold F by a bike to ride it), T switch view, M map, Esc pause.</p></div>
+      <div><h2>Phone or tablet</h2><p>Left thumb moves, right thumb aims. Push the stick all the way forward to sprint. FIRE can be dragged to keep aiming, and it fires by itself when your sights are on a hostile. VIEW switches the camera; USE by a bike rides it. Turn the phone sideways.</p></div>
     </div>
     <p class="fine">Inspired by Southern California suburbs. All characters and businesses are fictional. Main streets follow the real Rancho Cucamonga grid at about 30% of real distances; landmarks carry made-up names, and houses and shops are generated (place data: Google Maps).</p>
   </div>

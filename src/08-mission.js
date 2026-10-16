@@ -245,7 +245,7 @@ function stageUpdate(dt){const st=MS.st;if(!st)return;
     MS.prog=clamp(1-Math.hypot(P.x-st.x,P.z-st.z)/Math.hypot(st.spawn[0]-st.x,st.spawn[1]-st.z),0,1);if(inZone&&MS.knockT<=0)stageDone();}
   else if(st.type==='reach'){OBJ.sub='';if(inZone)stageDone();}
   OBJ.prog=clamp(MS.prog,0,1);}
-function resetWorldState(){clearSoldiers();clearPicks();for(const n of nades)scene.remove(n.m);nades.length=0;waveQ.length=0;hideHeli();G.arcs.length=0;G.lkp.age=99;G.vig=0;G.supp=0;
+function resetWorldState(){clearSoldiers();clearPicks();if(typeof clearBikes==='function')clearBikes();for(const n of nades)scene.remove(n.m);nades.length=0;waveQ.length=0;hideHeli();G.arcs.length=0;G.lkp.age=99;G.vig=0;G.supp=0;
   P.vx=P.vz=P.vy=0;P.hp=100;P.alive=true;P.stam=1;P.crouching=false;P.crouch=0;P.ads=0;P.wantAds=false;P.reloading=false;P.swapT=0;P.swapTo=-1;P.meleeT=0;P.recoil=0;P.pitch=0;P.punch=0;P.roll=0;P.hurtT=9;
   IN.fire=false;IN.useHeld=false;P.spawnT=0;MS.q.length=0;MS.boss=null;MS.bossDown=false;if(MS.npc){removeSoldier(MS.npc);MS.npc=null;}if(el.fade){el.fade.style.transition='none';el.fade.style.opacity='0';}MS.fading=false;
   chaseEnd(false);offBike();if(MS.parkS){scene.remove(MS.parkS);MS.parkS=null;}MS.chasePos=null;}
