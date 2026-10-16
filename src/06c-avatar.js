@@ -90,40 +90,40 @@ function avRig(wid){if(avGeoC[wid])return avGeoC[wid];if(!avP)avP=avParts();cons
   g.setAttribute('uv',new T.Float32BufferAttribute(u,2));g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));g.setIndex(ix);
   g.boundingSphere=new T.Sphere(new T.Vector3(0,1,0),2.2);return avGeoC[wid]=g;}
 // the figure: same bones as a soldier, so animSoldier poses it
-const AV=(()=>{const g=new T.Group();g.rotation.order='YXZ';const B=[];
+const PAV=(()=>{const g=new T.Group();g.rotation.order='YXZ';const B=[];
   for(let k=0;k<11;k++){const b=new T.Bone();b.position.set(JOINT[k][0],JOINT[k][1],JOINT[k][2]);B.push(b);if(PARENT[k]>=0)B[PARENT[k]].add(b);}
   g.add(B[0]);g.updateMatrixWorld(true);avPaint();const mesh=new T.SkinnedMesh(avRig('m4'),avMat);mesh.castShadow=true;g.add(mesh);mesh.bind(new T.Skeleton(B));
   const sh=new T.Mesh(footGeo,footShade);sh.position.y=.03;sh.renderOrder=2;g.add(sh);g.visible=false;scene.add(g);
   return{g,mesh,body:B[0],up:B[1],aL:B[2],fL:B[3],aR:B[4],fR:B[5],wp:B[6],lL:B[7],kL:B[8],lR:B[9],kR:B[10],wid:'m4',yaw:0,ph:0,moveAmt:0,crouch:0,run:false,lowered:true,aimP:0,flinch:0,deadT:0,sc:1};})();
-function setAvatar(cfg){Object.assign(AVATAR,cfg||{});avP=null;for(const k in avGeoC){avGeoC[k].dispose();delete avGeoC[k];}AV.mesh.geometry=avRig(AV.wid);avPaint();}
+function setAvatar(cfg){Object.assign(AVATAR,cfg||{});avP=null;for(const k in avGeoC){avGeoC[k].dispose();delete avGeoC[k];}PAV.mesh.geometry=avRig(PAV.wid);avPaint();}
 // muzzle flash at the avatar's gun
 const tpFlash=new T.Sprite(flash.material);tpFlash.scale.set(.42,.42,1);tpFlash.visible=false;scene.add(tpFlash);
-function avMuzzle(v,D){AV.g.updateMatrixWorld(true);v.set(0,.01,D.mz*.95);AV.wp.localToWorld(v);return v;}
+function avMuzzle(v,D){PAV.g.updateMatrixWorld(true);v.set(0,.01,D.mz*.95);PAV.wp.localToWorld(v);return v;}
 // called from updCamera every frame of play
-function updAvatar(dt){const show=VIEW.on&&VIEW.sc<.5&&VIEW.d>.6&&P.alive;AV.g.visible=show;if(!show)return;
-  const wid=curW().id;if(AV.wid!==wid){AV.wid=wid;AV.mesh.geometry=avRig(wid);}
-  AV.g.rotation.x=0;AV.g.rotation.z=0;AV.deadT=0;AV.body.rotation.set(0,0,0);AV.up.rotation.set(0,0,0);AV.wp.scale.setScalar(1);AV.wp.position.set(JOINT[6][0],JOINT[6][1],JOINT[6][2]);AV.wp.rotation.set(0,0,0);AV.lL.rotation.z=AV.lR.rotation.z=0;
+function updAvatar(dt){const show=VIEW.on&&VIEW.sc<.5&&VIEW.d>.6&&P.alive;PAV.g.visible=show;if(!show)return;
+  const wid=curW().id;if(PAV.wid!==wid){PAV.wid=wid;PAV.mesh.geometry=avRig(wid);}
+  PAV.g.rotation.x=0;PAV.g.rotation.z=0;PAV.deadT=0;PAV.body.rotation.set(0,0,0);PAV.up.rotation.set(0,0,0);PAV.wp.scale.setScalar(1);PAV.wp.position.set(JOINT[6][0],JOINT[6][1],JOINT[6][2]);PAV.wp.rotation.set(0,0,0);PAV.lL.rotation.z=PAV.lR.rotation.z=0;
   if(P.bike){rideAvatar(dt);return;}
   const mv=P.speed>.5,aim=P.ads>.05||P.wantAds||P.fireT>-.9||P.nadeT>.4||P.meleeT>0,my=Math.atan2(-P.vx,-P.vz);
   // facing: where the player aims, else where they walk; standing still keeps the last heading (turn the camera to see the face)
-  const ty=aim?P.yaw:mv?my:AV.yaw;AV.yaw+=angDiff(ty,AV.yaw)*Math.min(1,dt*(aim?18:9));
+  const ty=aim?P.yaw:mv?my:PAV.yaw;PAV.yaw+=angDiff(ty,PAV.yaw)*Math.min(1,dt*(aim?18:9));
   // the legs walk in the direction of travel: the hips turn towards it, the chest keeps the aim, backwards plays the gait in reverse
-  let rel=mv?angDiff(my,AV.yaw):0,dir=1;if(rel>1.8){rel-=PI;dir=-1;}else if(rel<-1.8){rel+=PI;dir=-1;}
-  AV.ph+=P.speed*dt*(P.sprinting?2.1:2.6)*dir;AV.moveAmt=lerp(AV.moveAmt,clamp(P.speed/3,0,1),Math.min(1,dt*10));
-  AV.crouch=lerp(AV.crouch,Math.max(P.crouch,P.ground?0:.35,P.stumT>0?.4:0),Math.min(1,dt*12));
-  AV.run=P.sprinting;AV.lowered=P.sprinting||!aim;AV.aimP=aim?clamp(P.pitch,-.8,.8):0;AV.flinch=(P.stumT>0||P.hurtT<.12)?1:0;
-  animSoldier(AV,dt);
-  const tw=clamp(rel,-.9,.9)*AV.moveAmt;AV.body.rotation.y=tw;AV.up.rotation.y=-tw;
-  if(P.reloading){AV.wp.rotation.x-=.4;AV.aL.rotation.x-=.35;AV.fL.rotation.x+=.6;}
-  if(P.meleeT>0){const ml=Math.sin(clamp(P.meleeT/.5,0,1)*PI);AV.aL.rotation.set(.5+ml*1.2,0,.25);AV.fL.rotation.x=.2;}
-  if(P.nadeT>.5){const k=Math.sin(clamp((1-P.nadeT)/.5,0,1)*PI);AV.aL.rotation.set(-2.2*k+.8*(1-k),0,.3);AV.fL.rotation.x=.4;}
-  AV.g.position.set(P.x,P.y,P.z);AV.g.rotation.y=AV.yaw;}
+  let rel=mv?angDiff(my,PAV.yaw):0,dir=1;if(rel>1.8){rel-=PI;dir=-1;}else if(rel<-1.8){rel+=PI;dir=-1;}
+  PAV.ph+=P.speed*dt*(P.sprinting?2.1:2.6)*dir;PAV.moveAmt=lerp(PAV.moveAmt,clamp(P.speed/3,0,1),Math.min(1,dt*10));
+  PAV.crouch=lerp(PAV.crouch,Math.max(P.crouch,P.ground?0:.35,P.stumT>0?.4:0),Math.min(1,dt*12));
+  PAV.run=P.sprinting;PAV.lowered=P.sprinting||!aim;PAV.aimP=aim?clamp(P.pitch,-.8,.8):0;PAV.flinch=(P.stumT>0||P.hurtT<.12)?1:0;
+  animSoldier(PAV,dt);
+  const tw=clamp(rel,-.9,.9)*PAV.moveAmt;PAV.body.rotation.y=tw;PAV.up.rotation.y=-tw;
+  if(P.reloading){PAV.wp.rotation.x-=.4;PAV.aL.rotation.x-=.35;PAV.fL.rotation.x+=.6;}
+  if(P.meleeT>0){const ml=Math.sin(clamp(P.meleeT/.5,0,1)*PI);PAV.aL.rotation.set(.5+ml*1.2,0,.25);PAV.fL.rotation.x=.2;}
+  if(P.nadeT>.5){const k=Math.sin(clamp((1-P.nadeT)/.5,0,1)*PI);PAV.aL.rotation.set(-2.2*k+.8*(1-k),0,.3);PAV.fL.rotation.x=.4;}
+  PAV.g.position.set(P.x,P.y,P.z);PAV.g.rotation.y=PAV.yaw;}
 // called from the frame loop in every state: hides the figure outside play; when the player is down it falls and the camera looks at it
-function avatarFrame(dt){const st=G.state;if(st==='menu'||st==='win'||st==='lost'){AV.g.visible=false;tpFlash.visible=false;if(P.bike)dismountBike(2);return;}
+function avatarFrame(dt){const st=G.state;if(st==='menu'||st==='win'||st==='lost'){PAV.g.visible=false;tpFlash.visible=false;if(P.bike)dismountBike(2);return;}
   if(P.alive||!VIEW.on||(st!=='dead'&&st!=='play'))return;
-  AV.deadT+=dt;const k=Math.min(1,AV.deadT/.45),e=k*k*(3-2*k),a=AV.yaw,c=Math.cos(a),s=Math.sin(a);AV.g.visible=true;tpFlash.visible=false;
-  AV.g.position.set(P.x,P.y+e*.13,P.z);AV.g.rotation.set(e*1.5,a,0);AV.body.position.y=0;AV.body.rotation.set(0,0,0);AV.up.rotation.set(0,0,0);
-  AV.aL.rotation.set(.4,0,-e*1.1);AV.aR.rotation.set(.3,0,e*.9);AV.fL.rotation.x=.2;AV.fR.rotation.x=.3;AV.lL.rotation.x=e*.3;AV.kL.rotation.x=0;AV.lR.rotation.x=0;AV.kR.rotation.x=-e*.7;
+  PAV.deadT+=dt;const k=Math.min(1,PAV.deadT/.45),e=k*k*(3-2*k),a=PAV.yaw,c=Math.cos(a),s=Math.sin(a);PAV.g.visible=true;tpFlash.visible=false;
+  PAV.g.position.set(P.x,P.y+e*.13,P.z);PAV.g.rotation.set(e*1.5,a,0);PAV.body.position.y=0;PAV.body.rotation.set(0,0,0);PAV.up.rotation.set(0,0,0);
+  PAV.aL.rotation.set(.4,0,-e*1.1);PAV.aR.rotation.set(.3,0,e*.9);PAV.fL.rotation.x=.2;PAV.fR.rotation.x=.3;PAV.lL.rotation.x=e*.3;PAV.kL.rotation.x=0;PAV.lR.rotation.x=0;PAV.kR.rotation.x=-e*.7;
   // camera: up and to the side of the body, pulled in if a wall is in the way
   const lx=2.2,ly=2.4+e*.8,lz=-1.8,wx=lx*c+lz*s,wz=-lx*s+lz*c,hx=P.x+.9*s,hz=P.z+.9*c,d=Math.hypot(wx,ly,wz),t=rayWorld(hx,P.y+.4,hz,wx/d,ly/d,wz/d,d),q=Math.min(1,Math.max(.2,t-.3)/d);
   camera.position.set(hx+wx*q,P.y+.4+ly*q,hz+wz*q);camera.lookAt(hx,P.y+.25,hz);}

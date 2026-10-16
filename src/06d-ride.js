@@ -116,9 +116,9 @@ function rideAnim(s,cr,o){o=o||RO0;const lean=-.3,hy=.755,by=BK.BB[1],bz=BK.BB[2
   if(o.aim!==undefined){const a=PI/2+o.aim-lean;s.aR.rotation.set(a,0,-.12);s.fR.rotation.x=.06;s.wp.scale.setScalar(1);s.wp.position.set(.28,.47-.64*Math.cos(a),-.64*Math.sin(a));s.wp.rotation.set(a-PI/2,0,0);}
   else{ik2(s.aR,s.fR,.36,.33,gy-shy,gz-shz,true);s.aR.rotation.x-=lean;s.aR.rotation.y=0;s.aR.rotation.z=-.12;s.wp.scale.setScalar(.001);}}
 function rideAvatar(dt){const b=P.bike,c=Math.cos(b.yaw),s=Math.sin(b.yaw),pis=curW().id==='pistol',aim=pis&&(P.ads>.1||P.wantAds||IN.fire||P.fireT>-.6);
-  AV.yaw=b.yaw;AV.g.position.set(b.x+s*BK.ZR,b.y,b.z+c*BK.ZR);AV.g.rotation.set(0,b.yaw,b.lean);
+  PAV.yaw=b.yaw;PAV.g.position.set(b.x+s*BK.ZR,b.y,b.z+c*BK.ZR);PAV.g.rotation.set(0,b.yaw,b.lean);
   const tw=aim?clamp(angDiff(P.yaw,b.yaw),-1.1,1.1):0;
-  RO.footDown=Math.abs(b.v)<.35&&IN.f<.1;RO.aim=aim?clamp(P.pitch,-.9,.9):undefined;RO.twist=tw;rideAnim(AV,b.cr,RO);}
+  RO.footDown=Math.abs(b.v)<.35&&IN.f<.1;RO.aim=aim?clamp(P.pitch,-.9,.9):undefined;RO.twist=tw;rideAnim(PAV,b.cr,RO);}
 // every frame of play: the ridden bike follows the player; near a parked one, hold USE to get on
 function updBikes(dt){const b=P.bike;
   if(b){if(!P.alive){dismountBike(1);return;}
@@ -130,4 +130,4 @@ function updBikes(dt){const b=P.bike;
   RIDE.near=near;if(!near){RIDE.hold=0;return;}
   G.prompt=RIDE.on;if(IN.useHeld){RIDE.hold+=dt;if(RIDE.hold>.35)mountBike(near);}else RIDE.hold=0;}
 // test and debugging hooks (added to window.__game by the frame-loop module)
-const MECH={rayWorld,VIEW,setViewMode,toggleView,AV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes};
+const MECH={rayWorld,VIEW,setViewMode,toggleView,PAV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes};
