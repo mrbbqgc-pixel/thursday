@@ -38,7 +38,7 @@ const fanLeaf=(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new
  const t2=new GB();t2.add(tg,0,0,0,0,0,0,1,1,1,0x8a7355,(x,y,z)=>(Math.round(y*8)%2?.82:1.04)+rr(-.04,.04));t2.add(GEO.blob,0,1,0,0,0,0,.55,.22,.55,0x6a6a3a);const trunk=t2.build();
  palms.forEach(p=>{p[2]=rr(5,7.5);p[3]=rnd()*TAU;solid(p[0],p[1],.7,.7,p[2]);});
  bake(trunk,M.flat,palms,(o,p)=>{o.position.set(p[0],0,p[1]);o.scale.set(1,p[2],1);});
- bake(crown,M.frond,palms,(o,p,k)=>{o.position.set(p[0],p[2],p[1]);o.rotation.y=k*1.7;const s=.95+(k%5)*.06;o.scale.set(s,s,s);});}
+ palms.forEach(p=>anchor(...cutA(p[0],p[1]),()=>bake(crown,M.frond,[p],(o,q)=>{const k=palms.indexOf(p);o.position.set(p[0],p[2],p[1]);o.rotation.y=k*1.7;const s=.95+(k%5)*.06;o.scale.set(s,s,s);})));}
 { // Mexican fan palms: tall thin trunk, a skirt of dead fronds, a round head of fans
  const t=new GB(),tg=new T.CylinderGeometry(.62,1,1,6,1,true);tg.translate(0,.5,0);t.add(tg,0,0,0,0,0,0,.24,1,.24,0x8f7b62,(x,y,z)=>.9+rr(-.06,.06));const trunk=t.build();
  const sk=new GB();sk.add(GEO.taper,0,-.9,0,0,0,0,.46,1,.46,0x9a8460,(x,y,z)=>.75+.25*clamp((y+1.15)/1.25,0,1));const skirt=sk.build();
@@ -47,7 +47,7 @@ const fanLeaf=(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new
  fans.forEach(p=>solid(p[0],p[1],.5,.5,p[2]));
  bake(trunk,M.flat,fans,(o,p,k)=>{o.position.set(p[0],0,p[1]);o.scale.set(1,p[2],1);o.rotation.z=((k%7)-3)*.006;});
  bake(skirt,M.flat,fans,(o,p)=>{o.position.set(p[0],p[2],p[1]);});
- bake(crown,M.frond,fans,(o,p,k)=>{o.position.set(p[0],p[2]+.1,p[1]);o.rotation.y=k*2.3;const s=1+(k%4)*.08;o.scale.set(s,s,s);});}
+ fans.forEach((p,k)=>anchor(...cutA(p[0],p[1]),()=>bake(crown,M.frond,[p],o=>{o.position.set(p[0],p[2]+.1,p[1]);o.rotation.y=k*2.3;const s=1+(k%4)*.08;o.scale.set(s,s,s);})));}
 // ---------- trees: 0 round shade tree, 1 jacaranda (in flower), 2 pepper tree, 3 magnolia, 4 pine, 5 eucalyptus, 6 crape myrtle,
 // 7 multi-trunk white birch, 8 Italian cypress, 9 young street tree tied to two stakes
 function lumpy(geo,k){const g=geo.clone(),P=g.attributes.position,seen={};for(let i=0;i<P.count;i++){const key=Math.round(P.getX(i)*50)+','+Math.round(P.getY(i)*50)+','+Math.round(P.getZ(i)*50),f=seen[key]||(seen[key]=1+rr(-k,k));P.setXYZ(i,P.getX(i)*f,P.getY(i)*f,P.getZ(i)*f);}
@@ -123,7 +123,10 @@ const pq=(E,a,b,c,d,col,uv,n)=>{n=n||[0,0,1];E.q(a,b,c,d,n[0],n[1],n[2],col,uv||
  bake(t.geo(),M.flat,boatSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
 { // clipped hedge along a house front (stretched along its length), boulders in gravel yards
  const t=new TB();taperE(t,0,0,0,1,.62,.96,.56,.78,0x3f6a32,0x557d3e);bake(t.geo(),M.flat,hedgeSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];o.scale.set(p[3],1,1);});
- const b=new GB();b.add(lumpy(new T.SphereGeometry(1,4,2),.25),0,0,0,0,0,0,1,.62,1,0xb7aa96,(x,y,z)=>.75+.3*clamp(y/.6,0,1));bake(b.build(),M.flat,rockSpots,(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]);});}
+ const b=new GB();b.add(lumpy(new T.SphereGeometry(1,4,2),.25),0,0,0,0,0,0,1,.62,1,0xb7aa96,(x,y,z)=>.75+.3*clamp(y/.6,0,1));bake(b.build(),M.flat,rockSpots.filter(p=>!p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]);});
+ // barrel cactus: a ribbed green ball with a crown of yellow spines
+ const c=new GB();c.add(new T.SphereGeometry(1,8,3),0,.55,0,0,0,0,.55,.62,.55,0x5f8a4a,(x,y,z)=>(.82+.18*Math.cos(Math.atan2(z,x)*8))*(.75+.35*clamp((y-.1)/1,0,1)));c.add(GEO.cone4,0,1.1,0,0,0,0,.18,.1,.18,0xc9b048);
+ bake(c.build(),M.flat,rockSpots.filter(p=>p[4]),(o,p)=>{o.position.set(p[0],PADY-.05,p[1]);o.rotation.y=p[3];o.scale.setScalar(p[2]*1.3);});}
 { // portable basketball hoop on a weighted base at the end of the driveway
  const t=new TB();boxE(t,0,0,0,.62,.3,.95,0x2b2d2c);taperE(t,0,.3,-.3,.11,.11,.08,.08,2.9,0x8c9396);boxE(t,0,2.55,-.06,1.12,.74,.05,0xf4f0e7);
  t.q([-.16,2.62,-.03],[.16,2.62,-.03],[.16,2.86,-.03],[-.16,2.86,-.03],0,0,1,0xd8412f,WUV);boxE(t,0,2.8,.2,.46,.03,.4,0xd8412f);

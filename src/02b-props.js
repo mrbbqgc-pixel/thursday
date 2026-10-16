@@ -107,8 +107,7 @@ isoR(()=>{const g=FRT.image.getContext('2d'),T6=(n,c,r,fn)=>{const x=c*64,y=128+
   T6('petals',0,1,()=>{for(let i=0;i<520;i++){const a=rnd()*TAU,r=Math.sqrt(rnd())*31;if(rnd()>1.15-r/31)continue;E(32+Math.cos(a)*r,32+Math.sin(a)*r,rr(.8,1.8),rr(.6,1.3),rnd()*3,pick(['#8a62c8','#9a72d8','#7a56b4','#a888e0']));}});
   T6('frondD',1,1,()=>{g.strokeStyle='#8a6a42';g.lineWidth=3;g.beginPath();g.moveTo(32,63);g.lineTo(32,40);g.stroke();for(let a=0;a<=26;a++){const an=PI*(.1+.8*a/26),r1=rr(.8,1);g.strokeStyle=pick(['#a8875a','#9a7a4e','#b8986a','#8a6a42']);
     g.lineWidth=rr(2,3.4);g.beginPath();g.moveTo(32,40);g.lineTo(32+Math.cos(an)*30*r1,40-Math.sin(an)*38*r1);g.stroke();}});
-  T6('crack',2,1,()=>{g.strokeStyle='rgba(46,42,38,1)';for(let k=0;k<2;k++){g.lineWidth=k?1:1.6;g.beginPath();let x=0,y=rr(20,44);g.moveTo(x,y);while(x<64){x+=rr(3,7);y+=rr(-3,3);g.lineTo(x,y);
-      if(rnd()<.12){g.stroke();g.beginPath();g.moveTo(x,y);let bx=x,by=y;for(let s=0;s<4;s++){bx+=rr(1,4);by+=rr(-5,5);g.lineTo(bx,by);}g.stroke();g.beginPath();g.moveTo(x,y);}}g.stroke();}});
+  T6('crack',2,1,()=>{for(const q of [[1.15,'rgba(38,35,32,1)',30],[.8,'rgba(48,45,41,1)',36]]){g.strokeStyle=q[1];g.lineWidth=q[0];g.beginPath();let x=0,y=q[2]+rr(-3,3);g.moveTo(x,y);while(x<64){x+=rr(2,5);y=clamp(y+rr(-2.2,2.2),12,52);g.lineTo(x,y);}g.stroke();}});
   T6('tar',3,1,()=>{g.strokeStyle='rgba(14,12,10,1)';g.lineWidth=3.2;g.lineCap='round';for(let k=0;k<5;k++){g.beginPath();let x=rr(0,64),y=rr(0,64);g.moveTo(x,y);for(let s=0;s<6;s++){x+=rr(-12,12);y+=rr(-12,12);g.lineTo(x,y);}g.stroke();}});
   T6('iron',0,2,()=>{g.fillStyle='#1c1b1a';g.fillRect(0,10,64,3);g.fillRect(0,52,64,3);g.fillRect(0,60,64,3);for(let x=2;x<64;x+=8){g.fillRect(x,6,2.4,57);g.beginPath();g.moveTo(x-1.5,7);g.lineTo(x+1.2,1);g.lineTo(x+3.9,7);g.fill();}
     g.strokeStyle='#1c1b1a';g.lineWidth=1.6;for(let x=6;x<64;x+=16){g.beginPath();g.arc(x+1.2,20,3.4,0,7);g.stroke();}});
@@ -125,11 +124,13 @@ isoR(()=>{M.gravelO=ground('#b3a08a',2600,.14,(g,w,h)=>{for(let k=0;k<420;k++){g
     for(const r of [[0,5.5],[13.1,18.6]])for(let s=0;s<4;s++){let y=r[0]*kv;while(y<r[1]*kv){const l=rr(8,40);g.fillStyle='rgba(225,222,212,'+rr(.18,.5).toFixed(2)+')';g.fillRect(s*2.75*ku-1,y,3,Math.min(l,r[1]*kv-y));y+=l+rr(0,14);}}
     g.fillStyle='rgba(225,222,212,.3)';g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2);
     for(let s=0;s<4;s++)for(const r of [2.6,15.9]){g.fillStyle='rgba(20,18,16,'+rr(.15,.4).toFixed(2)+')';g.beginPath();g.ellipse((s+.5)*2.75*ku+rr(-4,4),r*kv+rr(-8,8),rr(7,13),rr(12,20),rr(-.3,.3),0,7);g.fill();}},true)});});
-// cut-out pieces: a vertical quad facing ry (0 = +z) and visible from both sides, two crossed quads, a quad lying on the ground
-function cutQ(x,z,y,w,h,ry,uv,col){const c=Math.cos(ry)*w/2,s=Math.sin(ry)*w/2;quadC(M.frond,[x-c,y,z+s],[x+c,y,z-s],[x+c,y+h,z-s],[x-c,y+h,z+s],Math.sin(ry),0,Math.cos(ry),col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);}
+// cut-out pieces: a vertical quad facing ry (0 = +z) and visible from both sides, two crossed quads, a quad lying on the ground.
+// They are gathered in 256 m squares (one batch, one draw call, for four chunks): cutA(x,z) is the anchor of the square.
+const cutA=(x,z)=>[Math.floor(x/256)*256+64,Math.floor(z/256)*256+64];
+function cutQ(x,z,y,w,h,ry,uv,col){const c=Math.cos(ry)*w/2,s=Math.sin(ry)*w/2,o=ANCH;ANCH=cutA(x,z);quadC(M.frond,[x-c,y,z+s],[x+c,y,z-s],[x+c,y+h,z-s],[x-c,y+h,z+s],Math.sin(ry),0,Math.cos(ry),col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);ANCH=o;}
 function cutX(x,z,y,w,h,uv,col,ry){ry=ry||0;cutQ(x,z,y,w,h,ry,uv,col);cutQ(x,z,y,w,h,ry+PI/2,uv,col);}
-function cutF(x,z,y,w,d,ry,uv,col){const c=Math.cos(ry),s=Math.sin(ry),ax=c*w/2,az=-s*w/2,bx=s*d/2,bz=c*d/2;
-  quadC(M.frond,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);}
+function cutF(x,z,y,w,d,ry,uv,col){const c=Math.cos(ry),s=Math.sin(ry),ax=c*w/2,az=-s*w/2,bx=s*d/2,bz=c*d/2,o=ANCH;ANCH=cutA(x,z);
+  quadC(M.frond,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);ANCH=o;}
 // dark decals in the contact-shadow batch: an oil stain or a grease spot (round), a tyre mark (a long thin smear)
 function stain(x,z,rx,rz,ry,y){y=(y===undefined?PADY:y)+.016;const c=Math.cos(ry),s=Math.sin(ry),ax=c*rx,az=-s*rx,bx=s*rz,bz=c*rz;
   quadC(M.shade,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,0,.02,.02,.48,.98);}

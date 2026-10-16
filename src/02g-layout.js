@@ -124,7 +124,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
   // arterial parkway: a row of trees in front of the wall
   for(let s=0;s<4;s++){if(K[s]!=='A')continue;const along=s<2,fix=s===0?V0+SWA+pk[0]/2:s===1?V1-SWA-pk[1]/2:s===2?U0+SWA+pk[2]/2:U1-SWA-pk[3]/2,a=along?uL0:vL0,b=along?uL1:vL1,ty=o.wind&&o.wind.indexOf('NSWE'[sw?[2,3,0,1][s]:s])>=0?5:-1;
     for(let t=a+6;t<b-4;t+=ty===5?13:rr(24,32)){const u=along?t:fix,v=along?fix:t;let skip=false;for(const g of (along?(s===0?(cex[0]?gapsU:[]):(cex[1]?gapsU:[])):gapsV(s-2)))if(t>g[0]-3&&t<g[1]+3)skip=true;if(skip)continue;
-      if(ty===5)tree(u,v,rr(.9,1.15),5);else if(rnd()<.18){const p=P(u,v);fans.push([p[0],p[1],rr(11,17)]);}else tree(u,v,rr(.85,1.15),pick([0,2,3,0,6]));}}
+      if(ty===5)tree(u,v,rr(.9,1.15),5);else if(rnd()<.18){const p=P(u,v);fans.push([p[0],p[1],rr(11,17)]);}else{tree(u,v,rr(.85,1.15),pick([0,2,3,0,6]));isoR(()=>{const t=trees[trees.length-1];if(rnd()<.2){t[3]=1;cutF(t[0]+rr(-1,1),t[1]+rr(-1,1),PADY+.008,rr(2.6,3.6),rr(2.2,3),rnd()*3,CUT.petals);}});}}}
   // ---------- lots
   const tintN=()=>pick(wallCols),roofN=()=>pick(roofCols),only1=!!o.older,lotsAll=[];
   const TK=isoR(()=>({park:PKW,post:only1||rnd()<.3,old:only1})); // dressing: parkway strips, curbside post mailboxes
@@ -176,7 +176,8 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
     for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2+l.ex;
       if(nx){const g=r.side<0?Math.min(l.vf,nx.vf)-2.2:Math.max(l.vf,nx.vf)+2.2,ok=r.side<0?g>Math.max(l.vb,nx.vb)+.5:g<Math.min(l.vb,nx.vb)-.5;
         if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);
-          isoR(()=>{if(rnd()<.24){const p=P(bnd,g+sg*rr(.6,2.5));cutX(p[0],p[1],PADY,rr(1.5,2.3),rr(1.9,2.5),CUT.boug,0xffffff,rnd());}});}
+          isoR(()=>{if(rnd()<.24){const p=P(bnd,g+sg*rr(.6,2.5));cutX(p[0],p[1],PADY,rr(1.5,2.3),rr(1.9,2.5),CUT.boug,0xffffff,rnd());}
+            if(rnd()<.05){const p=P((l.u+l.W/2+nx.u-nx.W/2)/2,g-sg*.08);anchor(p[0],p[1],()=>boardQ(DUV.dog,p[0],1.15,p[1],rw(fr)*PI/2,.6,.24,false));}});}
         else wallL(bnd,l.vF+sg*1,bnd,vR,0,C.greyWall);}
       if(k===0){const e=l.u-l.w/2,g=l.vf+sg*2.2;if(!l.aunt)gateL(e,g,l.u-l.W/2,g);wallL(e,g,e,vR,0,C.greyWall);}
       if(k===Lp.length-1){const e=l.u+l.w/2+l.ex,g=r.side<0?l.vf-2.2:l.vf+2.2;if(!l.aunt)gateL(l.u+l.W/2,g,e,g);wallL(e,g,e,vR,0,C.greyWall);}}
@@ -193,6 +194,8 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
     for(const s of [-1,1]){const rv=s<0?(()=>{for(let i=rear.length-1;i>=0;i--)if(rear[i]<bb[1])return rear[i];return vL0;})():(()=>{for(const q of rear)if(q>bb[1])return q;return vL1;})();
       gateL(ug,bb[1]+s*H.W/2,ug,bb[1]+s*(H.W/2+1.4));wallL(ug,bb[1]+s*(H.W/2+1.4),ug,rv,0,C.greyWall);}
     if(rnd()<.6)tree(uc+dir*(H.D/2+3),bb[1]+rr(-6,6),rr(.9,1.2),pick([0,4,2]));}
+  isoR(()=>{vs.forEach((v,i)=>{for(const e of [0,1]){if(ends[i][e]!=='open'||rnd()>.6)continue;const p=P(e?uL1-3:uL0+3,v+(rnd()<.5?-1:1)*(HWL+.6));if(p[0]>-249&&p[0]<0&&p[1]>-504&&p[1]<-260)continue;
+    postSign(DUV.watch,p[0],p[1],rw(e?1:3)*PI/2,1.1,.2,1.9);}});});
   // stop signs where the streets meet the collector, a light at each corner
   for(const uc of coll)for(const v of vs)for(const s of [-1,1]){const p=P(uc+s*(HWC+SWC*.5),v+s*(HWL+SWL*.6));stopSigns.push([p[0],p[1],rw(s<0?3:1)*PI/2]);}
   for(const uc of coll){for(let v=V0+20;v<V1-10;v+=48){const p=P(uc+HWC+.6,v);lamps.push([p[0],p[1],5,rw(3)*PI/2,1]);}
@@ -232,7 +235,7 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
     if(lt==='brown'||lt==='dirt'||lt==='xeri'){const m=lt==='brown'?M.dryO:lt==='dirt'?M.dirtO:M.gravelO;for(const q of ivs)rect(m,q[0],q[1],la,lb,PADY+.002);}
     if(lt==='patchy'||lt==='over'||(lt==='brown'&&rnd()<.5))for(let k=0;k<(lt==='patchy'?rr(1,3.4):1);k++){const p=spot();cutF(p[0],p[1],PADY+.007,rr(1.6,3.4),rr(1.4,3),rnd()*3,CUT.dryP);}
     if(lt==='over'||lt==='dirt')for(let k=0;k<(lt==='over'?rr(4,8):rr(1,3));k++){const p=spot();cutX(p[0],p[1],PADY,rr(.6,1.1),rr(.45,.9),CUT.weed,0xffffff,rnd()*3);}
-    if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,2.2);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3]);}
+    if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,2.2);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3,rnd()<.45?1:0]);}
       if(rnd()<.5)cutL(P(du+.7,v0+sg*.1),P(du+.7,vm-sg*.4),PADY,.2,CUT.rocks,0xffffff,2.2);}}
   // a sprinkler running on a few green lawns, the grass dark and wet round it
   if(lt==='lush'&&ivs.length&&rnd()<.06){const q=pick(ivs),p=P(rr(q[0]+.5,q[1]-.5),lerp(la,lb,rr(.3,.7)));cutX(p[0],p[1],PADY,rr(1.6,2.4),rr(1.2,1.6),CUT.spray,0xffffff,rnd()*3);stain(p[0],p[1],1.4,1.4,0,PADY);}
@@ -259,6 +262,7 @@ function backPoles(P,sw,rv,a,b,coll){const c=P((a+b)/2,rv);if(c[0]<BOUND.x0||c[0
 function streetWear(roads,P,sw,park){for(const r of roads){const alongU=!r.c,a=alongU?r.u0:r.v0,b=alongU?r.u1:r.v1,c=alongU?(r.v0+r.v1)/2:(r.u0+r.u1)/2,hw=alongU?(r.v1-r.v0)/2:(r.u1-r.u0)/2,
     m=P(alongU?(a+b)/2:c,alongU?c:(a+b)/2);if(m[0]<BOUND.x0-30||m[0]>BOUND.x1+30||m[1]<BOUND.z0-30||m[1]>BOUND.z1+30)continue;if(m[0]>-249&&m[0]<0&&m[1]>-504&&m[1]<-260)continue;
   const ry0=(alongU!==sw)?0:PI/2,at=(t,o)=>alongU?P(t,c+o):P(c+o,t);
+  for(const s of [-1,1]){const g0=at(a,s*hw),g1=at(b,s*(hw-.45));flat(M.concO,Math.min(g0[0],g1[0]),Math.min(g0[1],g1[1]),Math.max(g0[0],g1[0]),Math.max(g0[1],g1[1]),.033,4);}
   for(let t=a+rr(2,8);t<b-2;t+=rr(7,15)){const k=rnd(),o=rr(-hw+.8,hw-.8),p=at(t,o);
     if(k<.42)cutF(p[0],p[1],.034,rr(2.2,4.2),rr(.5,.9),ry0+rr(-.35,.35),CUT.crack,0xffffff);
     else if(k<.55)cutF(p[0],p[1],.034,rr(1.8,3),rr(1.6,2.6),ry0+rr(-.2,.2),CUT.tar,0xffffff);
