@@ -4,14 +4,16 @@
 // starts. A few cars drive the arterials, a flock of crows and a hawk, neighbourhood sound. Nothing here exists in a multiplayer game
 // (lifeUpdate clears it when MP.on); resetWorldState clears it through lifeReset. None of it is on the minimap; the AI ignores it.
 // =====================================================================
-const civs=[],dogs=[],traffic=[],LIFE={on:false,test:false,alarm:99,nx:0,nz:0,hurtN:0,killN:0,hurtAll:0,killAll:0,stage:-9,failT:0,spawnT:0,nearT:0,near:[],
+const LIFE_T0=performance.now(),civs=[],dogs=[],traffic=[],LIFE={on:false,test:false,alarm:99,nx:0,nz:0,hurtN:0,killN:0,hurtAll:0,killAll:0,stage:-9,failT:0,spawnT:0,nearT:0,near:[],
   shoutT:0,sayT:0,scareT:0,civN:isTouch?6:10,dogN:isTouch?1:2,carN:isTouch?3:4,chase:false,spr:null,sprT:0,emit:{},yard:{water:null,wash:null,gard:null}};
 // gunfire and explosions (hook in noiseEvent, 07a): everybody in earshot runs for it
 function lifeNoise(x,z,rad){if(!LIFE.on||rad<30)return;LIFE.alarm=0;LIFE.nx=x;LIFE.nz=z;}
 const onArt=(x,z)=>{for(const a of NSA)if(Math.abs(x-a.x)<a.hw&&z>a.z0&&z<a.z1)return true;for(const b of EWA)if(Math.abs(z-b.z)<b.hw&&x>b.x0&&x<b.x1)return true;return false;};
 const nearTrail=(x,z)=>Math.abs(z-trailZ(x))<17;
-// out of the player's sight: behind the camera, or hidden by the town
-function unseen(x,z){const c=camera.position,dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz)||1;if((dx*-Math.sin(P.yaw)+dz*-Math.cos(P.yaw))/d<.3)return true;return!los(c.x,c.y,c.z,x,1.6,z);}
+// out of the player's sight: behind the camera, or hidden by the town. Sight lines are long rays, so there are only a few per frame;
+// when they run out the answer is 'seen' (nothing is spawned or removed in view)
+let lifeRays=0;
+function unseen(x,z){const c=camera.position,dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz)||1;if((dx*-Math.sin(P.yaw)+dz*-Math.cos(P.yaw))/d<.3)return true;if(lifeRays<=0)return false;lifeRays--;return!los(c.x,c.y,c.z,x,1.6,z);}
 
 // ---------- lanes: straight walking lines, joined where they cross or meet end to end
 const LANES=[];
@@ -253,11 +255,12 @@ function updCiv(c,dt){c.mx=0;c.mz=0;c.spd=0;if(c.flinch>0)c.flinch-=dt;const dn=
       c.probeT-=dt;if(c.probeT<=0){c.probeT=.2;if(rayWorld(c.x,c.y0+.9,c.z,c.mx,0,c.mz,.9)<.9)c.gone=true;}}}
   else if(st==='away'){const ax=c.x-LIFE.nx,az=c.z-LIFE.nz,al=Math.hypot(ax,az)||1;c.mx=ax/al;c.mz=az/al;c.spd=c.cruise;face(c,c.x+c.mx,c.z+c.mz,dt,8);c.t-=dt;if(c.t<=0||dn>70){c.st='leave';c.run=false;}}
   else if(st==='hide'){c.crouch=Math.min(.8,c.crouch+dt*3);face(c,LIFE.nx,LIFE.nz,dt,3);c.t-=dt;if(LIFE.alarm<.5&&dn<25){c.crouch=0;c.st='away';c.t=R2(4,7);}else if(LIFE.alarm>10&&c.t<=0){c.crouch=0;c.st='leave';c.run=false;c.cruise=1.6;}}
-  stepCiv(c,dt);if(c.L&&(c.st==='walk'||c.st==='flee'||c.st==='leave'))civLaneAdvance(c);animCiv(c,dt);}
+  stepCiv(c,dt);if(c.L&&(c.st==='walk'||c.st==='flee'||c.st==='leave'))civLaneAdvance(c);
+  const dp=Math.abs(c.x-P.x)+Math.abs(c.z-P.z);c.animN=(c.animN||0)+1;if(dp<45||c.animN>=(dp<90?2:4)){c.animN=0;animCiv(c,dt);}}
 function stepCiv(c,dt){let mx=c.mx,mz=c.mz;const sp=c.spd,still=c.st==='sit';
   if(!still)for(let k=0;k<civs.length;k++){const o=civs[k];if(o===c||!o.alive||o===c.lead||o.lead===c)continue;const ax=c.x-o.x,az=c.z-o.z,a2=ax*ax+az*az;if(a2<.7&&a2>1e-4){const a=Math.sqrt(a2);mx+=ax/a*.5;mz+=az/a*.5;}}
   let px=0,pz=0;if(!still){if(P.alive){const ax=c.x-P.x,az=c.z-P.z,a2=ax*ax+az*az;if(a2<4.8&&a2>1e-4){const a=Math.sqrt(a2);px=ax/a*2.4;pz=az/a*2.4;}}   // step aside for the player
-    for(const L1 of [allies,foes])for(let k=0;k<L1.length;k++){const o=L1[k];if(!o.alive)continue;const ax=c.x-o.x,az=c.z-o.z,a2=ax*ax+az*az;if(a2<1.6&&a2>1e-4){const a=Math.sqrt(a2);px+=ax/a*1.8;pz+=az/a*1.8;}}}
+    for(let q=0;q<2;q++){const L1=q?foes:allies;for(let k=0;k<L1.length;k++){const o=L1[k];if(!o.alive)continue;const ax=c.x-o.x,az=c.z-o.z,a2=ax*ax+az*az;if(a2<1.6&&a2>1e-4){const a=Math.sqrt(a2);px+=ax/a*1.8;pz+=az/a*1.8;}}}}
   const ox=c.x,oz=c.z;if(sp>0&&(mx||mz)){const l=Math.max(1,Math.hypot(mx,mz));c.x+=mx/l*sp*dt;c.z+=mz/l*sp*dt;}if(px||pz){c.x+=px*dt;c.z+=pz*dt;}
   if(c.x!==ox||c.z!==oz){pushOut(c,c.bike?.4:.34,0);for(let k=0;k<traffic.length;k++)if(traffic[k].on)carPush(traffic[k],c,.35);c.x=clamp(c.x,BOUND.x0,BOUND.x1);c.z=clamp(c.z,BOUND.z0,BOUND.z1);}
   const moved=Math.hypot(c.x-ox,c.z-oz);c.moveAmt=lerp(c.moveAmt,clamp(moved/Math.max(dt,1e-4)/(c.run?3.4:1.5),0,1),Math.min(1,dt*8));if(moved>0){c.ph+=moved*(c.run?2.1:2.6);if(c.bike)c.crank+=moved*2.4;}
@@ -300,7 +303,7 @@ function wpick(L1){let s=0;for(const q of L1)s+=q[1];let r=R()*s;for(const q of 
 function spotOK(x,z,d,fx,fz){if(d<(LIFE.test?4:38)||d>(LIFE.test?70:105))return false;if(!freeSpot(fx===undefined?x:fx,fz===undefined?z:fz)||lifeBusy(x,z)||(LIFE.chase&&nearTrail(x,z)))return false;
   for(const c of civs)if(Math.abs(c.x-x)<4&&Math.abs(c.z-z)<4)return false;return LIFE.test||unseen(x,z);}
 function trySpawnLane(){const N=LIFE.near;if(!N.length)return false;
-  for(let k=0;k<12;k++){const L0=RP(N),t=R()*L0.len,off=R2(-.25,.25),x=lnX(L0,t,off),z=lnZ(L0,t,off);if(!spotOK(x,z,Math.hypot(x-P.x,z-P.z)))continue;
+  for(let k=0;k<8;k++){const L0=RP(N),t=R()*L0.len,off=R2(-.25,.25),x=lnX(L0,t,off),z=lnZ(L0,t,off);if(!spotOK(x,z,Math.hypot(x-P.x,z-P.z)))continue;
     let role=wpick(ROLE_BY[L0.k]);if(role==='dog'&&!dogs.some(d=>!d.on))role='walk';if(role==='bike'&&LIFE.chase)continue;
     const c=addCiv(x,z,role==='pair'?'walk':role);c.L=L0;c.lt=t;c.off=off;c.dir=R()<.5?1:-1;c.y0=c.yW=L0.y;c.yaw=c.dir>0?Math.atan2(-L0.dx,-L0.dz):Math.atan2(L0.dx,L0.dz);c.g.rotation.y=c.yaw;
     if(role==='pair'){const o=addCiv(x+R2(-.4,.4),z+R2(-.4,.4),'walk');o.lead=c;o.st='follow';o.pside=c.off>0?-1:1;o.L=L0;o.lt=t;o.y0=o.yW=L0.y;o.yaw=c.yaw;c.mate=o;c.cruise=Math.min(c.cruise,1.3);}
@@ -362,7 +365,7 @@ function trafficGeo(type,col){const key=type+'/'+col;if(tgCache[key])return tgCa
   for(const wz of V.wheels)for(const s of [-1,1]){A(GEO.wheel,s*(V.wid/2-.13),V.wr,-wz,.25,V.wr,V.wr,C.tire);A(GEO.hub,s*(V.wid/2-.01),V.wr,-wz,.03,V.wr*.5,V.wr*.5,0x9a9c9a);}
   const fz=V.len/2-.02,ly=type==='sedan'?.66:.84;for(const s of [-1,1]){A(GEO.box,s*(V.wid/2-.32),ly,-fz,.34,.14,.06,0xf2ecd2);A(GEO.box,s*(V.wid/2-.3),ly,fz-.02,.3,.14,.06,0xa02018);}
   A(GEO.box,0,.4,-fz-.04,V.wid-.1,.16,.12,0x3a3b3c);A(GEO.box,0,.4,fz+.02,V.wid-.1,.16,.12,0x3a3b3c);return tgCache[key]=b.build();}
-for(let k=0;k<LIFE.carN;k++){const m=new T.Mesh(trafficGeo('sedan',carCols[0]),vcMat);m.castShadow=true;m.visible=false;scene.add(m);const col=solid(-9999,-9999,.1,.1,1.5,0,2);col.st=0;
+for(let k=0;k<LIFE.carN;k++){const m=new T.Mesh(trafficGeo('sedan',carCols[0]),M.paint);m.castShadow=true;m.visible=false;scene.add(m);const col=solid(-9999,-9999,.1,.1,1.5,0,2);col.st=0;
   traffic.push({m,col,on:false,retry:R2(.5,3),type:'sedan',V:VEH.sedan,R0:TROADS[0],dir:1,off:0,s:0,x:0,z:0,yaw:0,spd:0,cruise:12,hold:false,stopS:null,stopD:null,dec:new Map(),chkT:0,cells:null,stopT:0,blockT:0,hornT:0,visT:0});}
 function binAddU(c){const i0=clamp(Math.floor((c.x0-1-BX0)/BS),0,BW-1),i1=clamp(Math.floor((c.x1+1-BX0)/BS),0,BW-1),j0=clamp(Math.floor((c.z0-1-BZ0)/BS),0,BH-1),j1=clamp(Math.floor((c.z1+1-BZ0)/BS),0,BH-1);
   for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const l=bins[j*BW+i];if(l.indexOf(c)<0)l.push(c);}}
@@ -379,6 +382,9 @@ function carSolid(c){if(c.cells)return;const q=c.col,ns=c.R0.ns,hl=c.V.len/2,hw=
 // push someone out of a moving car's two end circles
 function carPush(c,e,r){const fx=-Math.sin(c.yaw),fz=-Math.cos(c.yaw),L0=c.V.len/4,rr0=c.V.wid/2+r;if(Math.abs(e.x-c.x)>4||Math.abs(e.z-c.z)>4)return;
   for(const s of [-1,1]){const cx=c.x+fx*L0*s,cz=c.z+fz*L0*s,dx=e.x-cx,dz=e.z-cz,d2=dx*dx+dz*dz;if(d2<rr0*rr0&&d2>1e-6){const d=Math.sqrt(d2);e.x=cx+dx/d*rr0;e.z=cz+dz/d*rr0;}}}
+// anything in the lane ahead of the car in CK.c: the nearest gap
+const CK={c:null,fx:0,fz:0,gap:99,who:false};
+function carChk(x,z,len,p){const c=CK.c,dx=x-c.x,dz=z-c.z,a=dx*CK.fx+dz*CK.fz;if(a<=0||a>28||Math.abs(-dx*CK.fz+dz*CK.fx)>2.1)return;const g=a-c.V.len/2-len;if(g<CK.gap){CK.gap=g;CK.who=p;}}
 // the next stop line ahead: a red light now and then at the big intersections; the trail crossing stays closed during the chase
 function carNext(c){c.stopS=null;c.stopD=null;let best=1e9;for(const X of c.R0.stops){const S=X[0]-c.dir*(X[1]+4.6+c.V.len/2+.3),g=(S-c.s)*c.dir;if(g<-.3||g>55)continue;
     let d=c.dec.get(X);if(!d){d={red:!X[2]&&R()<.35,t:R2(3,7)};c.dec.set(X,d);}if((X[2]?LIFE.chase:d.red)&&g<best){best=g;c.stopS=S;c.stopD=d;}}}
@@ -389,14 +395,13 @@ function updCar(c,dt){if(!c.on){c.retry-=dt;if(c.retry<=0){c.retry=R2(.6,1.2);ca
   c.chkT-=dt;if(c.chkT<=0){c.chkT=.25;carNext(c);}
   let want=c.hold?0:c.cruise,who=false;
   if(c.stopS!==null){const g=(c.stopS-c.s)*c.dir;if(g<.6){want=0;if(c.spd<.5&&c.stopD&&c.stopD.red){c.stopD.t-=dt;if(c.stopD.t<=0)c.stopD.red=false;}}else want=Math.min(want,Math.sqrt(9*g));}
-  const fx=-Math.sin(c.yaw),fz=-Math.cos(c.yaw),hl=c.V.len/2;let gap=99;
-  const chk=(x,z,len,p)=>{const dx=x-c.x,dz=z-c.z,a=dx*fx+dz*fz;if(a<=0||a>28||Math.abs(-dx*fz+dz*fx)>2.1)return;const g=a-hl-len;if(g<gap){gap=g;who=p;}};
-  if(P.alive)chk(P.x,P.z,.4,true);for(const L1 of [civs,foes,allies])for(let k=0;k<L1.length;k++){const e=L1[k];if(e.alive)chk(e.x,e.z,.4,true);}
-  for(const d of dogs)if(d.on)chk(d.x,d.z,.4,true);for(const o of traffic)if(o!==c&&o.on)chk(o.x,o.z,o.V.len/2,false);
-  if(gap<99)want=Math.min(want,Math.max(0,(gap-2.2)*1.4));
+  CK.c=c;CK.fx=-Math.sin(c.yaw);CK.fz=-Math.cos(c.yaw);CK.gap=99;CK.who=false;
+  if(P.alive)carChk(P.x,P.z,.4,true);for(let q=0;q<3;q++){const L1=q===0?civs:q===1?foes:allies;for(let k=0;k<L1.length;k++){const e=L1[k];if(e.alive)carChk(e.x,e.z,.4,true);}}
+  for(let k=0;k<dogs.length;k++)if(dogs[k].on)carChk(dogs[k].x,dogs[k].z,.4,true);for(let k=0;k<traffic.length;k++){const o=traffic[k];if(o!==c&&o.on)carChk(o.x,o.z,o.V.len/2,false);}
+  const gap=CK.gap;who=CK.who;if(gap<99)want=Math.min(want,Math.max(0,(gap-2.2)*1.4));
   if(who&&gap<8&&c.spd<1&&!c.hold){c.blockT+=dt;if(c.blockT>4&&c.hornT<=0){c.hornT=R2(5,9);sndHorn(c.x,c.z);}}else c.blockT=0;if(c.hornT>0)c.hornT-=dt;
   c.spd+=clamp(want-c.spd,-dt*8,dt*2.6);if(c.spd<.02)c.spd=0;if(c.spd>0){c.s+=c.dir*c.spd*dt;carPos(c);}
-  if(P.alive)carPush(c,P,.45);for(const L1 of [allies,foes])for(let k=0;k<L1.length;k++){const e=L1[k];if(e.alive&&e.y0<.5)carPush(c,e,.4);}
+  if(P.alive)carPush(c,P,.45);for(let q=0;q<2;q++){const L1=q?foes:allies;for(let k=0;k<L1.length;k++){const e=L1[k];if(e.alive&&e.y0<.5)carPush(c,e,.4);}}
   if(c.spd<.3){c.stopT+=dt;if(c.stopT>.8)carSolid(c);}else{c.stopT=0;if(c.cells)carFree(c);}}
 
 // ---------- birds: one point cloud (a flock of crows on a wire, a roof edge or a lawn, scattering at gunshots and circling back) and a hawk up high.
@@ -411,7 +416,7 @@ const birdMat=new T.ShaderMaterial({uniforms:{map:{value:birdTex},k:{value:400}}
   fragmentShader:'uniform sampler2D map;varying float vf;void main(){vec4 c=texture2D(map,vec2((gl_PointCoord.x+floor(vf+.5))*.25,1.0-gl_PointCoord.y));if(c.a<.45)discard;gl_FragColor=vec4(c.rgb,1.0);}'});
 {const n=BIRD.n+1,g=new T.BufferGeometry();BIRD.pos=new Float32Array(n*3);BIRD.fr=new Float32Array(n);const ps=new Float32Array(n);for(let k=0;k<n;k++){ps[k]=k<BIRD.n?R2(.38,.48):1.6;BIRD.pos[k*3+1]=-50;}
  g.setAttribute('position',new T.BufferAttribute(BIRD.pos,3));g.setAttribute('fr',new T.BufferAttribute(BIRD.fr,1));g.setAttribute('ps',new T.BufferAttribute(ps,1));
- const p=new T.Points(g,birdMat);p.frustumCulled=false;p.visible=false;scene.add(p);BIRD.pts=p;for(let k=0;k<BIRD.n;k++)BIRD.b.push({x:0,y:-50,z:0,tx:0,ty:0,tz:0,t:R2(.5,3),ph:R()*TAU,r:R2(6,12),h:R2(5,10),hop:0});}
+ const p=new T.Points(g,birdMat);p.frustumCulled=false;scene.add(p);BIRD.pts=p;/* always drawn (parked under the ground when idle): its shader is ready before play */for(let k=0;k<BIRD.n;k++)BIRD.b.push({x:0,y:-50,z:0,tx:0,ty:0,tz:0,t:R2(.5,3),ph:R()*TAU,r:R2(6,12),h:R2(5,10),hop:0});}
 function birdSpot(){const r=R();BIRD.wire=null;BIRD.roof=null;
   if(r<.38){const W=[];for(let k=0;k<poles.length-1;k++){const A=poles[k],B=poles[k+1];if(A[2]!==B[2]||Math.hypot(A[0]-B[0],A[1]-B[1])>50)continue;const d=Math.hypot((A[0]+B[0])/2-P.x,(A[1]+B[1])/2-P.z);if(d>18&&d<80)W.push([A,B]);}
     if(W.length){BIRD.mode='wire';BIRD.wire=RP(W);BIRD.cx=(BIRD.wire[0][0]+BIRD.wire[1][0])/2;BIRD.cz=(BIRD.wire[0][1]+BIRD.wire[1][1])/2;BIRD.cy=8.5;}}
@@ -440,11 +445,11 @@ function updBirds(dt){const pos=BIRD.pos,fr=BIRD.fr,n=BIRD.n;birdMat.uniforms.k.
 // ---------- water and dust: one point cloud (hoses, a sprinkler, car-wash drips, grass clippings); hoses and leads: one line batch; soft contact shadows: one mesh
 const LP={n:96,k:0,pts:null,pos:new Float32Array(96*3),col:new Float32Array(96*3),v:new Float32Array(96*3),life:new Float32Array(96)};
 {const g=new T.BufferGeometry();for(let i=0;i<LP.n;i++)LP.pos[i*3+1]=-50;g.setAttribute('position',new T.BufferAttribute(LP.pos,3));g.setAttribute('color',new T.BufferAttribute(LP.col,3));
- LP.pts=new T.Points(g,new T.PointsMaterial({size:.075,map:dot,vertexColors:true,transparent:true,depthWrite:false,opacity:.85}));LP.pts.frustumCulled=false;LP.pts.visible=false;scene.add(LP.pts);}
-function lpEmit(x,y,z,vx,vy,vz,col,life){const i=LP.k=(LP.k+1)%LP.n,j=i*3;LP.pos[j]=x;LP.pos[j+1]=y;LP.pos[j+2]=z;LP.v[j]=vx;LP.v[j+1]=vy;LP.v[j+2]=vz;LP.life[i]=life;LP.col[j]=(col>>16&255)/255;LP.col[j+1]=(col>>8&255)/255;LP.col[j+2]=(col&255)/255;}
-function lpUpdate(dt){const p=LP.pos,v=LP.v;for(let i=0;i<LP.n;i++){if(LP.life[i]<=0)continue;const j=i*3;LP.life[i]-=dt;v[j+1]-=9.8*dt;p[j]+=v[j]*dt;p[j+1]+=v[j+1]*dt;p[j+2]+=v[j+2]*dt;if(p[j+1]<.1||LP.life[i]<=0){LP.life[i]=0;p[j+1]=-50;}}
-  LP.pts.geometry.attributes.position.needsUpdate=true;LP.pts.geometry.attributes.color.needsUpdate=true;}
-const emitter=(k,dt,rate)=>{const e=LIFE.emit;e[k]=(e[k]||0)+dt*rate;const n=Math.floor(e[k]);e[k]-=n;return n;};
+ LP.pts=new T.Points(g,new T.PointsMaterial({size:.075,map:dot,vertexColors:true,transparent:true,depthWrite:false,opacity:.85}));LP.pts.frustumCulled=false;scene.add(LP.pts);}
+function lpEmit(x,y,z,vx,vy,vz,col,life){LP.any=true;const i=LP.k=(LP.k+1)%LP.n,j=i*3;LP.pos[j]=x;LP.pos[j+1]=y;LP.pos[j+2]=z;LP.v[j]=vx;LP.v[j+1]=vy;LP.v[j+2]=vz;LP.life[i]=life;LP.col[j]=(col>>16&255)/255;LP.col[j+1]=(col>>8&255)/255;LP.col[j+2]=(col&255)/255;}
+function lpUpdate(dt){const p=LP.pos,v=LP.v;let any=LP.any;LP.any=false;for(let i=0;i<LP.n;i++){if(LP.life[i]<=0)continue;LP.any=any=true;const j=i*3;LP.life[i]-=dt;v[j+1]-=9.8*dt;p[j]+=v[j]*dt;p[j+1]+=v[j+1]*dt;p[j+2]+=v[j+2]*dt;if(p[j+1]<.1||LP.life[i]<=0){LP.life[i]=0;p[j+1]=-50;}}
+  if(any){LP.pts.geometry.attributes.position.needsUpdate=true;LP.pts.geometry.attributes.color.needsUpdate=true;}}
+const emitter=(o,dt,rate)=>{o.em=(o.em||0)+dt*rate;const n=Math.floor(o.em);o.em-=n;return n;};
 const LL={n:32,k:0,seg:null,pos:new Float32Array(32*6),col:new Float32Array(32*6)};
 {const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(LL.pos,3));g.setAttribute('color',new T.BufferAttribute(LL.col,3));LL.seg=new T.LineSegments(g,new T.LineBasicMaterial({vertexColors:true}));LL.seg.frustumCulled=false;LL.seg.visible=false;scene.add(LL.seg);}
 function llPt(k,x,y,z,col){LL.pos[k*3]=x;LL.pos[k*3+1]=y;LL.pos[k*3+2]=z;LL.col[k*3]=(col>>16&255)/255;LL.col[k*3+1]=(col>>8&255)/255;LL.col[k*3+2]=(col&255)/255;}
@@ -457,11 +462,11 @@ function lshQuad(k,x,y,z,rx,rz){const p=LSH.pos,j=k*12;p[j]=x-rx;p[j+1]=y;p[j+2]
 // per frame: water from the hose, suds, clippings and blown dust; the hose and the leads; the shadow blobs
 function lifeFx(dt){
   for(const c of civs){if(!c.alive)continue;const fx=-Math.sin(c.yaw),fz=-Math.cos(c.yaw),rx=Math.cos(c.yaw),rz=-Math.sin(c.yaw);
-    if(c.st==='water'){const nx=c.x+fx*.62+rx*.2,ny=c.y0+1.12,nzz=c.z+fz*.62+rz*.2;for(let q=emitter('w'+c.ph0,dt,42);q>0;q--)lpEmit(nx,ny,nzz,fx*R2(3.6,4.6)+R2(-.3,.3),R2(1.9,2.6),fz*R2(3.6,4.6)+R2(-.3,.3),0xdcecf6,1.2);}
-    else if(c.st==='wash'){for(let q=emitter('s'+c.ph0,dt,9);q>0;q--)lpEmit(c.x+fx*.55+rx*.25,c.y0+R2(.6,1.1),c.z+fz*.55+rz*.25,R2(-.2,.2),0,R2(-.2,.2),0xf4f6f8,.8);}
-    else if(c.st==='mow'&&c.spd>0){for(let q=emitter('m'+c.ph0,dt,12);q>0;q--)lpEmit(c.x+fx*1.1+rx*.3,c.y0+.2,c.z+fz*1.1+rz*.3,rx*R2(1,2),R2(.6,1.4),rz*R2(1,2),0x6f9a3c,.6);}
-    else if(c.st==='blow'){for(let q=emitter('b'+c.ph0,dt,4);q>0;q--)dust(c.x+fx*1.3+R2(-.4,.4),c.y0+.15,c.z+fz*1.3+R2(-.4,.4),1);}}
-  const S=LIFE.spr;if(S){S.t-=dt;if(S.t<=0){S.t=.14;S.a+=S.back?-.35:.11;if(S.a>S.a1)S.back=true;else if(S.a<S.a0)S.back=false;}for(let q=emitter('spr',dt,30);q>0;q--)lpEmit(S.x,PADY+.25,S.z,Math.cos(S.a)*R2(5.4,6.4),R2(2.6,3.3),Math.sin(S.a)*R2(5.4,6.4),0xdcecf6,1.4);}
+    if(c.st==='water'){const nx=c.x+fx*.62+rx*.2,ny=c.y0+1.12,nzz=c.z+fz*.62+rz*.2;for(let q=emitter(c,dt,42);q>0;q--)lpEmit(nx,ny,nzz,fx*R2(3.6,4.6)+R2(-.3,.3),R2(1.9,2.6),fz*R2(3.6,4.6)+R2(-.3,.3),0xdcecf6,1.2);}
+    else if(c.st==='wash'){for(let q=emitter(c,dt,9);q>0;q--)lpEmit(c.x+fx*.55+rx*.25,c.y0+R2(.6,1.1),c.z+fz*.55+rz*.25,R2(-.2,.2),0,R2(-.2,.2),0xf4f6f8,.8);}
+    else if(c.st==='mow'&&c.spd>0){for(let q=emitter(c,dt,12);q>0;q--)lpEmit(c.x+fx*1.1+rx*.3,c.y0+.2,c.z+fz*1.1+rz*.3,rx*R2(1,2),R2(.6,1.4),rz*R2(1,2),0x6f9a3c,.6);}
+    else if(c.st==='blow'){for(let q=emitter(c,dt,4);q>0;q--)dust(c.x+fx*1.3+R2(-.4,.4),c.y0+.15,c.z+fz*1.3+R2(-.4,.4),1);}}
+  const S=LIFE.spr;if(S){S.t-=dt;if(S.t<=0){S.t=.14;S.a+=S.back?-.35:.11;if(S.a>S.a1)S.back=true;else if(S.a<S.a0)S.back=false;}for(let q=emitter(S,dt,30);q>0;q--)lpEmit(S.x,PADY+.25,S.z,Math.cos(S.a)*R2(5.4,6.4),R2(2.6,3.3),Math.sin(S.a)*R2(5.4,6.4),0xdcecf6,1.4);}
   LL.k=0;for(const c of civs){if(!c.alive)continue;
     if(c.dog>=0&&dogs[c.dog]&&dogs[c.dog].on){const d=dogs[c.dog],hx=c.x+Math.cos(c.yaw)*-.32-Math.sin(c.yaw)*.25,hz=c.z-Math.sin(c.yaw)*-.32-Math.cos(c.yaw)*.25,hy=c.y0+.85,dx=d.x-Math.sin(d.yaw)*.25*d.sc,dz=d.z-Math.cos(d.yaw)*.25*d.sc,dy=d.y+.5*d.sc;
       llLine([[hx,hy,hz],[lerp(hx,dx,.33),lerp(hy,dy,.33)-.12,lerp(hz,dz,.33)],[lerp(hx,dx,.66),lerp(hy,dy,.66)-.1,lerp(hz,dz,.66)],[dx,dy,dz]],0x8a2a22);}
@@ -482,7 +487,7 @@ const AMB={lp:{},t:{bark:R2(6,14),gust:R2(9,20),train:R2(30,70),caw:R2(8,18),haw
 function noiseSrc(c){const s=c.createBufferSource();s.buffer=AU.noise;s.loop=true;s.start(0,R()*.9);return s;}
 function panOut(c,g){const pn=c.createStereoPanner?c.createStereoPanner():null;if(pn){g.connect(pn);pn.connect(AU.master);}else g.connect(AU.master);return pn;}
 function ambLoop(k,make){if(!AU.ctx||!AU.on||!AU.noise)return null;let q=AMB.lp[k];if(!q){try{q=make(AU.ctx);AMB.lp[k]=q;}catch(e){AMB.lp[k]=q={g:null};}}return q.g?q:null;}
-function ambSet(q,vol,pan){if(!q)return;try{const t=AU.ctx.currentTime,g=q.g.gain;g.cancelScheduledValues(t);g.setTargetAtTime(vol,t,.15);g.setTargetAtTime(0,t+.45,.2);if(q.pn)q.pn.pan.setTargetAtTime(clamp(pan,-1,1),t,.15);}catch(e){}}
+function ambSet(q,vol,pan){if(!q)return;if(vol<.002&&q.v<.002)return;q.v=vol;try{const t=AU.ctx.currentTime,g=q.g.gain;g.cancelScheduledValues(t);g.setTargetAtTime(vol,t,.15);g.setTargetAtTime(0,t+.7,.2);if(q.pn)q.pn.pan.setTargetAtTime(clamp(pan,-1,1),t,.15);}catch(e){}}
 function mkFwy(c){const g=c.createGain(),f=c.createBiquadFilter(),f2=c.createBiquadFilter(),g2=c.createGain();g.gain.value=0;f.type='lowpass';f.frequency.value=260;f2.type='bandpass';f2.frequency.value=1000;f2.Q.value=.5;g2.gain.value=.12;
   noiseSrc(c).connect(f);f.connect(g);noiseSrc(c).connect(f2);f2.connect(g2);g2.connect(g);return{g,pn:panOut(c,g)};}
 function mkSpr(c){const g=c.createGain(),f=c.createBiquadFilter(),am=c.createGain(),lfo=c.createOscillator(),lg=c.createGain();g.gain.value=0;f.type='highpass';f.frequency.value=2800;am.gain.value=.5;lfo.type='square';lfo.frequency.value=6.5;lg.gain.value=.5;
@@ -508,7 +513,7 @@ function sndFlutter(x,z){if(!AU.ctx||!AU.on)return;try{const s=spatial(x,z,10);i
 function sndHawk(x,z){if(!AU.ctx||!AU.on)return;try{const s=spatial(x,z,60),o=aOut(.05*s.vol,s.pan),c=AU.ctx,t=c.currentTime,os=c.createOscillator(),g=c.createGain();os.type='sine';os.frequency.setValueAtTime(2700,t);os.frequency.exponentialRampToValueAtTime(1700,t+.9);
   g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(1,t+.06);g.gain.exponentialRampToValueAtTime(.001,t+1);os.connect(g);g.connect(o);os.start(t);os.stop(t+1.05);}catch(e){}}
 function ambient(dt){if(!AU.ctx||!AU.on)return;for(const k in AMB.t)AMB.t[k]-=dt;
-  if(AMB.t.upd<=0){AMB.t.upd=.1;
+  if(AMB.t.upd<=0){AMB.t.upd=.25;
     {const fx=fwX(P.z),d=Math.max(0,fx-FWH-P.x);ambSet(ambLoop('fwy',mkFwy),d<900?.075/(1+d/140):0,spatial(fx,P.z,60).pan);}            // the 15: a steady hum from the east
     if(LIFE.spr){const s=spatial(LIFE.spr.x,LIFE.spr.z,6),v=s.d<50?.055*s.vol:0,p=s.pan;ambSet(ambLoop('spr',mkSpr),v,p);}
     // the nearest gardener, or one somewhere down the street
@@ -521,29 +526,32 @@ function ambient(dt){if(!AU.ctx||!AU.on)return;for(const k in AMB.t)AMB.t[k]-=dt
   if(AMB.t.bark<=0){AMB.t.bark=R2(9,22);const a=R()*TAU,d=R2(40,120);sndBark(P.x+Math.cos(a)*d,P.z+Math.sin(a)*d,2+Math.floor(R()*3),true);}
   if(AMB.t.gust<=0){AMB.t.gust=R2(12,30);sndGust();}
   if(AMB.t.train<=0){AMB.t.train=R2(70,150);sndTrain();}
-  if(AMB.t.caw<=0){AMB.t.caw=R2(10,24);if(BIRD.fly<=0&&BIRD.pts.visible)sndCaw(BIRD.cx,BIRD.cz,1+Math.floor(R()*3));}
+  if(AMB.t.caw<=0){AMB.t.caw=R2(10,24);if(BIRD.fly<=0&&LIFE.on)sndCaw(BIRD.cx,BIRD.cz,1+Math.floor(R()*3));}
   if(AMB.t.hawk<=0){AMB.t.hawk=R2(60,120);sndHawk(BIRD.pos[BIRD.n*3],BIRD.pos[BIRD.n*3+2]);}}
 
 // ---------- entry points
 function lifeReset(){for(const c of civs)removeCiv(c);civs.length=0;for(const d of dogs){d.on=false;d.owner=null;d.b.r.position.y=-50;}DOG.mesh.visible=false;
-  for(const c of traffic){c.on=false;c.m.visible=false;c.retry=R2(.5,2.5);carFree(c);}BIRD.pts.visible=false;BIRD.fly=0;LP.pts.visible=false;for(let i=0;i<LP.n;i++){LP.life[i]=0;LP.pos[i*3+1]=-50;}
+  for(const c of traffic){c.on=false;c.m.visible=false;c.retry=R2(.5,2.5);carFree(c);}BIRD.fly=0;for(let k=0;k<=BIRD.n;k++)BIRD.pos[k*3+1]=-50;BIRD.pts.geometry.attributes.position.needsUpdate=true;for(let i=0;i<LP.n;i++){LP.life[i]=0;LP.pos[i*3+1]=-50;}LP.pts.geometry.attributes.position.needsUpdate=true;
   LL.seg.visible=false;LSH.m.visible=false;if(LIFE.spr&&LIFE.spr.Y)LIFE.spr.Y.used=0;for(const Y of YARDS)Y.used=0;for(const D of DRIVES)D.used=0;for(const S0 of SEATS)S0.used=0;
   Object.assign(LIFE,{on:false,alarm:99,hurtN:0,killN:0,stage:-9,failT:0,spawnT:0,nearT:0,near:[],spr:null,sprT:2,chase:false,emit:{},yard:{water:null,wash:null,gard:null}});}
-function lifeStart(){LIFE.on=true;LIFE.alarm=99;DOG.mesh.visible=true;BIRD.pts.visible=true;LP.pts.visible=true;LL.seg.visible=true;LSH.m.visible=true;BIRD.fly=0;nearLanes();birdSpot();for(const b of BIRD.b){b.x=b.tx;b.y=b.ty;b.z=b.tz;}BIRD.hk.t=0;BIRD.hk.cx=BIRD.hk.cz=0;}
-function lifeUpdate(dt){if(MP.on){if(LIFE.on)lifeReset();return;}if(!LIFE.on)lifeStart();
-  LIFE.alarm+=dt;if(LIFE.shoutT>0)LIFE.shoutT-=dt;
+function lifeStart(){LIFE.on=true;LIFE.alarm=99;DOG.mesh.visible=true;LL.seg.visible=true;LSH.m.visible=true;BIRD.fly=0;nearLanes();birdSpot();for(const b of BIRD.b){b.x=b.tx;b.y=b.ty;b.z=b.tz;}BIRD.hk.t=0;BIRD.hk.cx=BIRD.hk.cz=0;}
+function lifeUpdate(dt){if(MP.on||LIFE.off){if(LIFE.on)lifeReset();return;}if(!LIFE.on)lifeStart();
+  LIFE.alarm+=dt;if(LIFE.shoutT>0)LIFE.shoutT-=dt;lifeRays=2;
   if(MS.i!==LIFE.stage){LIFE.stage=MS.i;LIFE.hurtN=0;LIFE.killN=0;LIFE.failT=0;}
-  if(LIFE.failT>0){LIFE.failT-=dt;if(LIFE.failT<=0){restartCheckpoint();return;}}
+  if(LIFE.failT>0){LIFE.failT-=dt;if(LIFE.failT<=0){LIFE.fails=(LIFE.fails||0)+1;restartCheckpoint();return;}}
   // hostiles firing count as noise too (the player's shots and every explosion come through noiseEvent)
   LIFE.scareT-=dt;if(LIFE.scareT<=0){LIFE.scareT=.1;for(let k=0;k<foes.length;k++){const s=foes[k];if(s.alive&&s.revealT>2.85){lifeNoise(s.x,s.z,90);break;}}}
   const ch=G.mode==='mission'&&!!MS.st&&MS.st.type==='chase'&&!MS.done;if(ch&&!LIFE.chase)for(const c of civs)if(c.bike||nearTrail(c.x,c.z))c.gone=true;LIFE.chase=ch;  // the trail stays clear for the chase
   LIFE.nearT-=dt;if(LIFE.nearT<=0){LIFE.nearT=1;nearLanes();}
-  LIFE.spawnT-=dt;if(LIFE.spawnT<=0){LIFE.spawnT=.35;lifeSpawn();}
+  const PF=LIFE.prof,t0=PF?performance.now():0;
+  LIFE.spawnT-=dt;if(LIFE.spawnT<=0){LIFE.spawnT=.35;lifeSpawn();}const t1=PF?performance.now():0;
   for(let k=civs.length-1;k>=0;k--){const c=civs[k],d=Math.hypot(c.x-P.x,c.z-P.z);
     if(!c.alive){if(c.deadT<1.3)updCorpse(c,dt);else c.deadT+=dt;c.visT-=dt;if(d>160||(d>80&&c.visT<=0&&(c.visT=.5,unseen(c.x,c.z)))){removeCiv(c);civs.splice(k,1);}continue;}
     let drop=c.gone||d>170;if(!drop&&(d>125||c.st==='leave')){c.visT-=dt;if(c.visT<=0){c.visT=.4;drop=unseen(c.x,c.z);}}
     if(drop){removeCiv(c);civs.splice(k,1);continue;}updCiv(c,dt);}
-  for(const d of dogs)if(d.on)updDog(d,dt);
-  for(const c of traffic)updCar(c,dt);
-  updBirds(dt);updSpr(dt);lifeFx(dt);lpUpdate(dt);ambient(dt);}
-const LIFEX={civs,traffic,dogs,LIFE,BIRD,LANES,SEATS,YARDS,DRIVES,addCiv,civHurt,lifeSpawnN,lifeReset,lifeUpdate};
+  const t2=PF?performance.now():0;for(const d of dogs)if(d.on)updDog(d,dt);
+  for(const c of traffic)updCar(c,dt);const t3=PF?performance.now():0;
+  updBirds(dt);updSpr(dt);const t4=PF?performance.now():0;lifeFx(dt);lpUpdate(dt);const t5=PF?performance.now():0;ambient(dt);
+  if(PF){const t6=performance.now();PF.spawn+=t1-t0;PF.civs+=t2-t1;PF.cars+=t3-t2;PF.birds+=t4-t3;PF.fx+=t5-t4;PF.amb+=t6-t5;PF.n++;}}
+LIFE.initMs=Math.round(performance.now()-LIFE_T0);
+const LIFEX={civs,traffic,dogs,LIFE,BIRD,LANES,SEATS,YARDS,DRIVES,TROADS,addCiv,civHurt,lifeSpawnN,lifeReset,lifeUpdate,trySpawnYard,trySpawnSit,attachDog,carPlace,carPos,birdSpot};
