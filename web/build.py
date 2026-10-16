@@ -6,7 +6,7 @@ a full document head, three.js and the fonts inlined (no outside requests), and 
   python3 web/build.py --out DIR        the same, into DIR (icons and preview image are copied along)
   python3 web/build.py --single DIR     one self-contained index.html in DIR (icons inlined, no other files needed)
 """
-import argparse, base64, json, os, shutil
+import argparse, base64, json, os, shutil, subprocess
 
 SITE = 'https://mrbbqgc-pixel.github.io/thursday/'
 ap = argparse.ArgumentParser()
@@ -14,6 +14,7 @@ ap.add_argument('--out', default='')
 ap.add_argument('--single', default='')
 ap.add_argument('--base', default=SITE)
 ap.add_argument('--src', default='')
+ap.add_argument('--no-min', action='store_true', help='keep the game script as written (no terser)')
 a = ap.parse_args()
 here = os.path.dirname(os.path.abspath(__file__))
 root = os.path.dirname(here)
@@ -30,6 +31,22 @@ three = rd(os.path.join(here, 'vendor/three.min.js'))
 assert '</script' not in three.lower() and '<!--' not in three and '"128"' in three
 peer = rd(os.path.join(here, 'vendor/peerjs.min.js'))  # browser-to-browser connections for multiplayer; the game page itself does not ask for it
 assert '</script' not in peer.lower() and '<!--' not in peer and 'peerjs' in peer
+# The game script (the last script of the page, made by src/build.sh) is minified with terser from tools/ (build time only:
+# `cd tools && npm ci` once). It is about 40% of the page; the minified copy downloads and parses faster on a phone.
+GS, GE = '<script>setTimeout(function(){', '},60);</script>'
+gi, ge = rest.rindex(GS), rest.rindex(GE)
+assert gi < ge and rest[ge + len(GE):].strip() == ''
+minjs = os.path.join(root, 'tools', 'minify.js')
+if a.no_min:
+    pass
+elif not os.path.isdir(os.path.join(root, 'tools', 'node_modules', 'terser')):
+    print('WARNING: terser is not installed (cd tools && npm ci): the game script is left unminified')
+else:
+    game = rest[gi + len('<script>'):ge + len(GE) - len('</script>')]
+    small = subprocess.run(['node', minjs], input=game, capture_output=True, text=True, check=True).stdout
+    assert small.startswith('setTimeout(') and '</script' not in small.lower() and len(small) > 100000
+    print('game script minified: %d -> %d bytes' % (len(game.encode('utf8')), len(small.encode('utf8'))))
+    rest = rest[:gi] + '<script>' + small + '</script>\n'
 rest = rest.replace(CDN, '<script>' + three.rstrip() + '\n</script>\n<script>' + peer.rstrip() + '\n</script>')
 assert 'http://' not in style and 'https://' not in style
 

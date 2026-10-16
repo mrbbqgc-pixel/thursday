@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "build-time tools for web/build.py (minifies the game script of index.html); not part of the site",
+  "devDependencies": {
+    "terser": "5.36.0"
+  }
+}
