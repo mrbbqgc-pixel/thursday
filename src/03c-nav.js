@@ -10,15 +10,24 @@ function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat
   if(b.c&&mat.vertexColors){if(small){const c=new Uint8Array(b.c.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(b.c[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
     else g.setAttribute('color',new T.Float32BufferAttribute(b.c,3));}
   g.setIndex(b.i);
+  // far versions of the index without the small objects (see detMark): one per distance tier
+  if(b.det&&b.det.length){const L=[g.index];for(let t=0;t<DET_R.length;t++){const keep=new Uint8Array(b.i.length/3+1).fill(1),d=b.det;let n=0;for(let q=0;q<d.length;q+=3)if(d[q]<DET_R[t])for(let k=d[q+1]/3;k<d[q+2]/3;k++)keep[k]=0;
+      const out=[];for(let k=0;k<b.i.length;k+=3)if(keep[k/3])out.push(b.i[k],b.i[k+1],b.i[k+2]);if(out.length===b.i.length){L.push(L[L.length-1]);continue;}
+      const A=new (b.p.length/3>65535?Uint32Array:Uint16Array)(out),at=new T.BufferAttribute(A,1);at.onUpload(freeArr);L.push(at);}
+    if(L.some(a=>a!==L[0])){g.userData.lod=L;g.userData.tier=0;}}
   b.p=b.n=b.u=b.c=b.i=null;if(mat!==M.paint)for(const k in g.attributes)g.attributes[k].onUpload(freeArr);const m=new T.Mesh(g,mat);m.matrixAutoUpdate=false;return m;}
 globals.forEach((b,mat)=>{const m=mkMesh(b,mat);m.receiveShadow=true;m.frustumCulled=false;scene.add(m);});
-chunks.forEach(mm=>mm.forEach((b,mat)=>{if(!b.p.length)return;const m=mkMesh(b,mat);m.geometry.computeBoundingSphere();m.castShadow=!!mat.userData.cast;m.receiveShadow=mat!==M.shade;if(mat===M.shade)m.renderOrder=2;
+chunks.forEach((mm,key)=>mm.forEach((b,mat)=>{if(!b.p.length)return;const m=mkMesh(b,mat);m.geometry.computeBoundingSphere();{const c=key.split(','),f=mat===M.frond?1:.5,u=m.geometry.userData;u.cx=(+c[0]+f)*CH;u.cz=(+c[1]+f)*CH;u.ce=CH*f*1.2;} // cell centre (cut-outs: 256 m squares, see cutA)m.castShadow=!!mat.userData.cast;m.receiveShadow=mat!==M.shade;if(mat===M.shade)m.renderOrder=2;
   b.mesh=m;scene.add(m);chunkMeshes.push(m);}));
 // hide chunks beyond the fog
 let viewFar=Q.far;
 // fog and draw distance: the menu flyover sees farther than the player on foot
 function setView(far,nearK){if(far===viewFar&&scene.fog.near===far*nearK)return;viewFar=far;scene.fog.near=far*nearK;scene.fog.far=far;}
-function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],s=m.geometry.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,r=viewFar+s.radius;m.visible=dx*dx+dz*dz<r*r;}
+// beyond the fog nothing is drawn; contact shadows and decals stop at SHADE_D; far chunks drop their small objects (DET_D, DET_R)
+const SHADE_D=230;
+function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],g=m.geometry,s=g.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,d2=dx*dx+dz*dz,r=viewFar+s.radius;
+    m.visible=d2<r*r&&(m.material!==M.shade||d2<(SHADE_D+s.radius)*(SHADE_D+s.radius));
+    if(m.visible&&g.userData.lod){const e=Math.hypot(g.userData.cx-x,g.userData.cz-z)-g.userData.ce;let t=0;while(t<DET_D.length&&e>DET_D[t])t++;if(t!==g.userData.tier){g.userData.tier=t;g.setIndex(g.userData.lod[t]);}}}
   const r2=(viewFar+40)*(viewFar+40);for(let k=0;k<farCull.length;k++){const m=farCull[k],dx=m.position.x-x,dz=m.position.z-z;if(m.parent)m.visible=dx*dx+dz*dz<r2;}}
 
 // ---------- spatial bins (16 m cells) for rays and collision

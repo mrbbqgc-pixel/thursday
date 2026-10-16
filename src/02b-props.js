@@ -127,10 +127,10 @@ isoR(()=>{M.gravelO=ground('#b3a08a',2600,.14,(g,w,h)=>{for(let k=0;k<420;k++){g
 // cut-out pieces: a vertical quad facing ry (0 = +z) and visible from both sides, two crossed quads, a quad lying on the ground.
 // They are gathered in 256 m squares (one batch, one draw call, for four chunks): cutA(x,z) is the anchor of the square.
 const cutA=(x,z)=>[Math.floor(x/256)*256+64,Math.floor(z/256)*256+64];
-function cutQ(x,z,y,w,h,ry,uv,col){const c=Math.cos(ry)*w/2,s=Math.sin(ry)*w/2,o=ANCH;ANCH=cutA(x,z);quadC(M.frond,[x-c,y,z+s],[x+c,y,z-s],[x+c,y+h,z-s],[x-c,y+h,z+s],Math.sin(ry),0,Math.cos(ry),col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);ANCH=o;}
+function cutQ(x,z,y,w,h,ry,uv,col){const c=Math.cos(ry)*w/2,s=Math.sin(ry)*w/2,o=ANCH;ANCH=cutA(x,z);const B=bat(M.frond,x,z),i0=B.i.length;quadC(M.frond,[x-c,y,z+s],[x+c,y,z-s],[x+c,y+h,z-s],[x-c,y+h,z+s],Math.sin(ry),0,Math.cos(ry),col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);detMark(B,i0,Math.max(w,h)/2);ANCH=o;}
 function cutX(x,z,y,w,h,uv,col,ry){ry=ry||0;cutQ(x,z,y,w,h,ry,uv,col);cutQ(x,z,y,w,h,ry+PI/2,uv,col);}
-function cutF(x,z,y,w,d,ry,uv,col){const c=Math.cos(ry),s=Math.sin(ry),ax=c*w/2,az=-s*w/2,bx=s*d/2,bz=c*d/2,o=ANCH;ANCH=cutA(x,z);
-  quadC(M.frond,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);ANCH=o;}
+function cutF(x,z,y,w,d,ry,uv,col){const c=Math.cos(ry),s=Math.sin(ry),ax=c*w/2,az=-s*w/2,bx=s*d/2,bz=c*d/2,o=ANCH;ANCH=cutA(x,z);const B=bat(M.frond,x,z),i0=B.i.length;
+  quadC(M.frond,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,col===undefined?0xffffff:col,uv[0],uv[1],uv[2],uv[3]);detMark(B,i0,Math.max(w,d)/2);ANCH=o;}
 // dark decals in the contact-shadow batch: an oil stain or a grease spot (round), a tyre mark (a long thin smear)
 function stain(x,z,rx,rz,ry,y){y=(y===undefined?PADY:y)+.016;const c=Math.cos(ry),s=Math.sin(ry),ax=c*rx,az=-s*rx,bx=s*rz,bz=c*rz;
   quadC(M.shade,[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],[x-ax-bx,y,z-az-bz],0,1,0,0,.02,.02,.48,.98);}

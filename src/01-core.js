@@ -23,6 +23,8 @@ catch(e){fail('This browser could not start 3D graphics. Try a current version o
 const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 if(isTouch)document.body.classList.add('touch');
 const Q={shadows:!isTouch,pr:Math.min(window.devicePixelRatio||1,isTouch?1.5:2),maxFoes:isTouch?10:14,far:isTouch?430:560};
+// distance detail (03c cullChunks): beyond DET_D[t] metres (nearest edge of a chunk) objects smaller than DET_R[t] (bounding radius) are not drawn
+const DET_D=[150,280],DET_R=[.7,1.6];
 renderer.setPixelRatio(Q.pr);
 if(Q.shadows){renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;}
 // ---------- light and colour
@@ -95,7 +97,7 @@ function bat(mat,x,z){
   if(mat.userData.alias)mat=mat.userData.alias;
   if(ANCH){x=ANCH[0];z=ANCH[1];}
   const key=Math.floor(x/CH)+','+Math.floor(z/CH);let m=chunks.get(key);if(!m){m=new Map();chunks.set(key,m);}
-  let b=m.get(mat);if(!b){b={p:[],n:[],u:[],c:[],i:[],mesh:null,uv:!!mat.map};m.set(mat,b);}return b;}
+  let b=m.get(mat);if(!b){b={p:[],n:[],u:[],c:[],i:[],mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
 function anchor(x,z,fn){const o=ANCH;ANCH=[x,z];try{return fn();}finally{ANCH=o;}}
 // tiling ground quad (global batch)
 function quad(mat,a,b,c,d,nx,ny,nz,u1,v1){const B=bat(mat,a[0],a[2]),k=B.p.length/3;
@@ -123,7 +125,10 @@ function pushGeo(mat,geo,m4,col){_n3.getNormalMatrix(m4);const P=geo.attributes.
   _v.setFromMatrixPosition(m4);const B=bat(mat,_v.x,_v.z),k=B.p.length/3,r=(col>>16&255)/255,g=(col>>8&255)/255,bl=(col&255)/255,tx=B.uv,own=!!mat.map&&!!U;
   for(let i=0;i<P.count;i++){_v.fromBufferAttribute(P,i).applyMatrix4(m4);B.p.push(_v.x,_v.y,_v.z);_v.fromBufferAttribute(N,i).applyMatrix3(_n3).normalize();B.n.push(_v.x,_v.y,_v.z);
     if(Cc)B.c.push(r*Cc.getX(i),g*Cc.getY(i),bl*Cc.getZ(i));else B.c.push(r,g,bl);if(tx){if(own)B.u.push(U.getX(i),U.getY(i));else B.u.push(WU,WV);}}
-  if(ix)for(let i=0;i<ix.count;i++)B.i.push(k+ix.getX(i));else for(let i=0;i<P.count;i++)B.i.push(k+i);}
+  const i0=B.i.length;if(ix)for(let i=0;i<ix.count;i++)B.i.push(k+ix.getX(i));else for(let i=0;i<P.count;i++)B.i.push(k+i);
+  if(B.det){if(!geo.boundingSphere)geo.computeBoundingSphere();detMark(B,i0,geo.boundingSphere.radius*m4.getMaxScaleOnAxis());}}
+// distance detail: a small object baked into a chunk remembers its index range and size, and the chunk drops it when it is far (03c)
+function detMark(B,i0,size){if(!B.det||size>=DET_R[DET_R.length-1])return;const d=B.det,n=d.length;if(n&&d[n-1]===i0&&d[n-3]===size)d[n-1]=B.i.length;else d.push(size,i0,B.i.length);}
 // convenience: place a geometry with position, y-rotation and scale (rx/rz optional)
 function put(mat,geo,x,y,z,ry,sx,sy,sz,col,rx,rz){_e.set(rx||0,ry||0,rz||0,'YXZ');_q.setFromEuler(_e);_p.set(x,y,z);_s.set(sx,sy===undefined?sx:sy,sz===undefined?sx:sz);
   _m4.compose(_p,_q,_s);pushGeo(mat,geo,_m4,col);}
