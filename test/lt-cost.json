@@ -1,0 +1,7 @@
+[{"eval":"(()=>{document.getElementById('btnStart').click();return 1})()"},{"wait":900},
+ {"eval":"(()=>{const g=window.__game;g.G.state='pause';document.getElementById('menu').hidden=true;g.gunRoot.visible=false;document.getElementById('hud').hidden=true;window.__T=(lab)=>{const r=g.renderer,gl=r.getContext(),px=new Uint8Array(4);g.cam(-180,1.7,-319,-120,1.5,-319);let best=1e9;for(let i=0;i<3;i++){const t=performance.now();r.render(g.scene,g.camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);best=Math.min(best,performance.now()-t);}return lab+' '+Math.round(best);};window.__RE=()=>g.scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});return 1})()"},
+ {"eval":"(()=>window.__T('as is'))()","log":"t"},
+ {"eval":"(()=>{const r=window.__game.renderer;r.toneMapping=0;window.__RE();window.__T('warm');return window.__T('no tonemap')})()","log":"t"},
+ {"eval":"(()=>{const r=window.__game.renderer;r.outputEncoding=3000;window.__RE();window.__T('warm');return window.__T('no tonemap, linear out')})()","log":"t"},
+ {"eval":"(()=>{const g=window.__game;g.setShadows(false);window.__T('warm');return window.__T('..and no shadows')})()","log":"t"},
+ {"eval":"(()=>{const g=window.__game,r=g.renderer;r.toneMapping=4;r.outputEncoding=3001;window.__RE();window.__T('warm');return window.__T('tonemap+srgb, no shadows')})()","log":"t"}]

@@ -8,6 +8,9 @@ if(!window.THREE){fail('The 3D engine could not load. Check your connection, the
 const T=THREE,PI=Math.PI,TAU=PI*2;
 let seed=20261012;
 function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+// leave the shared stream as if n draws had been made since s: a block whose look changes keeps the town laid out the same
+function rndSkip(s,n){let A=1664525,Cc=1013904223,a=1,c=0;for(;n>0;n>>>=1){if(n&1){a=Math.imul(a,A)>>>0;c=(Math.imul(c,A)+Cc)>>>0;}Cc=(Math.imul(Cc,A)+Cc)>>>0;A=Math.imul(A,A)>>>0;}
+  seed=(Math.imul(a,s)+c)>>>0;}
 const rr=(a,b)=>a+rnd()*(b-a),pick=a=>a[Math.floor(rnd()*a.length)];
 const R=Math.random,R2=(a,b)=>a+R()*(b-a),RP=a=>a[Math.floor(R()*a.length)];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
@@ -22,18 +25,51 @@ if(isTouch)document.body.classList.add('touch');
 const Q={shadows:!isTouch,pr:Math.min(window.devicePixelRatio||1,isTouch?1.5:2),maxFoes:isTouch?10:14,far:isTouch?430:560};
 renderer.setPixelRatio(Q.pr);
 if(Q.shadows){renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;}
+// ---------- light and colour
+// Lighting is computed in linear light and filmic (ACES) tone mapped to sRGB. Every colour in the code stays an sRGB hex as authored:
+// Color.setHex converts it on the way in, vertex colours are converted in the vertex shader (color_vertex below), and canvas
+// textures are stored as sRGB (decoded by the GPU on WebGL2, in the shader on WebGL1). three r128 mixes fog in after tone mapping
+// and output encoding, so fog colours are display colours.
+renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+{const sh=T.Color.prototype.setHex;T.Color.prototype.setHex=function(h){sh.call(this,h);return this.convertSRGBToLinear();};}
+const HWSRGB=renderer.capabilities.isWebGL2;
+function srgbTex(t){if(HWSRGB)t.internalFormat='SRGB8_ALPHA8';else t.encoding=T.sRGBEncoding;return t;}
+{const CT=T.CanvasTexture;T.CanvasTexture=class extends CT{constructor(...a){super(...a);srgbTex(this);}};}
+// late-afternoon sun from the west-southwest (x east, z south), 28 degrees up
+const SUN=new T.Vector3(-0.83,0.47,0.30).normalize();
+// Aerial haze: the fog takes the colour of the horizon in the direction it is seen (warm and bright towards the sun, a pale smoggy
+// grey elsewhere). hazeRGB is that colour (0..1 display values) for a unit direction; the fog shader below computes the same per vertex,
+// the sky paints it on its horizon, and the mountains fade into it.
+const FOG_A=[.84,.83,.80],FOG_S=[.98,.90,.75];
+function hazeK(dx,dy,dz){const s=Math.max(0,dx*SUN.x+dy*SUN.y+dz*SUN.z);return s*s*s;}
+function hazeRGB(dx,dy,dz){const k=hazeK(dx,dy,dz);return[lerp(FOG_A[0],FOG_S[0],k),lerp(FOG_A[1],FOG_S[1],k),lerp(FOG_A[2],FOG_S[2],k)];}
+{const S=T.ShaderChunk,v3=a=>'vec3('+a.map(x=>x.toFixed(4)).join(',')+')';
+ // vertex colours are authored in sRGB
+ S.color_pars_vertex+='\n#ifdef USE_COLOR\nvec3 srgbL(vec3 c){return mix(pow(c*.9478672986+vec3(.0521327014),vec3(2.4)),c*.0773993808,vec3(lessThanEqual(c,vec3(.04045))));}\n#endif';
+ S.color_vertex=S.color_vertex.replace('vColor *= color;','#ifdef USE_COLOR_ALPHA\n\tvColor *= vec4(srgbL(color.rgb),color.a);\n#else\n\tvColor *= srgbL(color);\n#endif');
+ // fog: tinted by view direction (per vertex), plus a thin haze that starts at the camera
+ // a sun-bleached grade: the filmic curve gives back a little less saturation than it takes in
+ S.tonemapping_pars_fragment=S.tonemapping_pars_fragment.replace('color = ACESOutputMat * color;\n\treturn saturate( color );','color = saturate( ACESOutputMat * color );\n\treturn mix( vec3( dot( color, vec3( .2126, .7152, .0722 ) ) ), color, .84 );');
+ S.fog_pars_vertex='#ifdef USE_FOG\n\tvarying float fogDepth;\n\tvarying vec3 fogTint;\n\tuniform vec3 fogColor;\n#endif';
+ S.fog_vertex='#ifdef USE_FOG\n\tfogDepth = - mvPosition.z;\n\tvec3 fogW = ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz;\n\tfloat fogS = max( dot( fogW, '+v3([SUN.x,SUN.y,SUN.z])+' ) / max( length( fogW ), 1e-4 ), 0.0 );\n\tfogTint = mix( fogColor, '+v3(FOG_S)+', fogS * fogS * fogS );\n#endif';
+ S.fog_pars_fragment='#ifdef USE_FOG\n\tvarying float fogDepth;\n\tvarying vec3 fogTint;\n\tuniform float fogNear;\n\tuniform float fogFar;\n#endif';
+ S.fog_fragment='#ifdef USE_FOG\n\tfloat fogFactor = 1.0 - ( 1.0 - smoothstep( fogNear, fogFar, fogDepth ) ) * exp( - fogDepth * .00045 );\n\tgl_FragColor.rgb = mix( gl_FragColor.rgb, fogTint, fogFactor );\n#endif';}
 const scene=new T.Scene();
-scene.fog=new T.Fog(0xe3c7a0,Q.far*.2,Q.far);
+scene.fog=new T.Fog(0,Q.far*.2,Q.far);scene.fog.color.setRGB(FOG_A[0],FOG_A[1],FOG_A[2]);
 const camera=new T.PerspectiveCamera(74,1,0.08,2600);
 camera.rotation.order='YXZ';
 scene.add(camera);
-const hemi=new T.HemisphereLight(0xfff6e6,0xc7a67c,0.72);scene.add(hemi);
-// late-afternoon sun from the west-southwest (in the town's rotated frame that is mostly -x)
-const SUN=new T.Vector3(-0.74,0.62,0.26).normalize();
-const sun=new T.DirectionalLight(0xffe9c4,0.56);scene.add(sun);scene.add(sun.target);
-if(Q.shadows){sun.castShadow=true;const s=sun.shadow;s.mapSize.set(2048,2048);s.camera.left=-110;s.camera.right=110;s.camera.top=110;s.camera.bottom=-110;
-  s.camera.near=20;s.camera.far=520;s.bias=-0.0004;s.normalBias=0.5;}
-function sunFollow(x,z){const gx=Math.round(x/6)*6,gz=Math.round(z/6)*6;sun.position.set(gx+SUN.x*260,SUN.y*260,gz+SUN.z*260);sun.target.position.set(gx,0,gz);sun.target.updateMatrixWorld();}
+// skylight from a clear blue sky, warm bounce from sun-baked ground: shade falls cool blue-grey, sunlit faces warm
+const hemi=new T.HemisphereLight(0xa5c3ea,0x8f8270,0.75);scene.add(hemi);
+const sun=new T.DirectionalLight(0xffdcb4,2.4);scene.add(sun);scene.add(sun.target);
+// desktop shadows: a 2048 map over 160 m, a little ahead of the camera (crisp edges; the low sun makes them long)
+if(Q.shadows){sun.castShadow=true;const s=sun.shadow;s.mapSize.set(2048,2048);s.camera.left=-80;s.camera.right=80;s.camera.top=80;s.camera.bottom=-80;
+  s.camera.near=20;s.camera.far=520;s.bias=-0.0004;s.normalBias=0.4;}
+// the shadow box follows the view 35 m ahead and moves in whole shadow texels of the light's frame, so shadow edges never swim
+const SBX=new T.Vector3().crossVectors(new T.Vector3(0,1,0),SUN).normalize(),SBY=new T.Vector3().crossVectors(SUN,SBX),_sf=new T.Vector3();
+function sunFollow(x,z){camera.getWorldDirection(_sf);const hl=Math.hypot(_sf.x,_sf.z)||1,cx=x+_sf.x/hl*35,cz=z+_sf.z/hl*35,sc=sun.shadow.camera,tx=(sc.right-sc.left)/sun.shadow.mapSize.x;
+  const a=Math.round((cx*SBX.x+cz*SBX.z)/tx)*tx,b=Math.round((cx*SBY.x+cz*SBY.z)/tx)*tx,c=cx*SUN.x+cz*SUN.z;
+  _sf.copy(SBX).multiplyScalar(a).addScaledVector(SBY,b).addScaledVector(SUN,c);sun.target.position.copy(_sf);sun.position.copy(_sf).addScaledVector(SUN,260);sun.target.updateMatrixWorld();}
 sunFollow(0,0);
 
 const MAXA=Math.min(8,renderer.capabilities.getMaxAnisotropy());

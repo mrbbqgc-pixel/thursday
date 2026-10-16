@@ -24,35 +24,72 @@ function atlasDone(){ag.fillStyle='#fff';ag.fillRect(0,AS-24,24,24);ATLAS.needsU
 atlasDone();
 
 // ---------- materials
-function ground(col,n,a,extra,sz){sz=sz||128;return L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
-  map:tex(sz,sz,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);noise(g,w,h,n,a);if(extra)extra(g,w,h);},true)});}
+const seedMat=seed; // (the textures below draw their own randomness; rndSkip at the end keeps the town's stream unchanged)
+// Ground textures tile every few metres. To hide the repeat, their alpha channel (unused: the ground is opaque) holds a smooth,
+// tileable noise that the shader samples a second time at a much larger, rotated scale (macro): dry patches on lawns, darker
+// repairs and faded stretches on asphalt, stains on concrete.
+const macroC=document.createElement('canvas');macroC.width=macroC.height=64;
+{const g=macroC.getContext('2d'),N=64,im=g.createImageData(N,N),D=im.data,sm=t=>t*t*(3-2*t);D.fill(255);
+ for(const [n,wt] of [[4,.5],[8,.32],[16,.18]]){const a=new Float32Array(n*n);for(let i=0;i<n*n;i++)a[i]=rnd();
+   for(let y=0;y<N;y++){const fy=y/N*n,j=fy|0,q=sm(fy-j),j1=(j+1)%n;for(let x=0;x<N;x++){const fx=x/N*n,i=fx|0,u=sm(fx-i),i1=(i+1)%n,k=(y*N+x)*4;
+     const v=wt*lerp(lerp(a[j*n+i],a[j*n+i1],u),lerp(a[j1*n+i],a[j1*n+i1],u),q);D[k]=n===4?v*255/.5:D[k];D[k+1]=n===8?v*255/.32:D[k+1];D[k+2]=n===16?v*255/.18:D[k+2];}}}
+ for(let k=0;k<D.length;k+=4){const v=(D[k]*.5+D[k+1]*.32+D[k+2]*.18)/255;D[k]=D[k+1]=D[k+2]=255;D[k+3]=Math.round(255*(.6+.4*clamp((v-.28)/.44,0,1)));}
+ g.putImageData(im,0,0);}
+function macroAlpha(g,w,h){g.save();g.globalCompositeOperation='destination-in';g.drawImage(macroC,0,0,w,h);g.restore();}
+// lo..hi: colour factors at the two ends of the macro noise; sc: macro scale in texture tiles
+function macroMat(m,sc,lo,hi){const v3=a=>'vec3('+a.map(x=>x.toFixed(3)).join(',')+')',key='mac'+sc+lo+hi;
+  m.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n\tdiffuseColor.rgb*=mix('+v3(lo)+','+v3(hi)+',clamp((texture2D(map,mat2(.8,-.6,.6,.8)*vUv*'+sc.toFixed(4)+'+vec2(.37,.71)).a-.6)*2.5,0.,1.));\n\tdiffuseColor.a=1.0;');};
+  m.customProgramCacheKey=()=>key;return m;}
+// soft blob that wraps round the tile edges
+function wblob(g,w,h,x,y,rx,ry,a,fill){for(const ox of [-w,0,w])for(const oy of [-h,0,h]){if(x+ox+rx<0||x+ox-rx>w||y+oy+ry<0||y+oy-ry>h)continue;
+  g.fillStyle=fill;g.globalAlpha=a;g.beginPath();g.ellipse(x+ox,y+oy,rx,ry,0,0,7);g.fill();}g.globalAlpha=1;}
+const rgbStr=c=>'rgb('+c[0]+','+c[1]+','+c[2]+')';
+function ground(col,n,a,extra,sz,mac){sz=sz||128;return L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
+  map:tex(sz,sz,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);noise(g,w,h,n,a);if(extra)extra(g,w,h);if(mac)macroAlpha(g,w,h);},true)});}
 const ruts=v=>(g,w,h)=>{g.strokeStyle='rgba(90,65,35,.13)';g.lineWidth=7;for(const q of [78,178]){g.beginPath();if(v){g.moveTo(q,0);g.lineTo(q,h);}else{g.moveTo(0,q);g.lineTo(w,q);}g.stroke();}
   for(let k=0;k<40;k++){g.fillStyle='rgba(110,85,50,'+rr(.08,.2).toFixed(2)+')';g.beginPath();g.arc(rnd()*w,rnd()*h,rr(.6,2.2),0,7);g.fill();}};
-// asphalt base shared by every road texture
+// lawn: a slightly dry Southern California green; darker lush clumps, straw-coloured dry spots, blades as short streaks
+function turfPaint(g,w,h,base,pats,blades){g.fillStyle=base;g.fillRect(0,0,w,h);
+  for(let k=0;k<26;k++){const p=pick(pats);wblob(g,w,h,rnd()*w,rnd()*h,rr(14,48),rr(10,36),rr(.08,.16),rgbStr(p));}
+  for(let k=0;k<70;k++){const p=pick(pats);wblob(g,w,h,rnd()*w,rnd()*h,rr(3,10),rr(2,8),rr(.12,.3),rgbStr(p));}
+  const bl=pats.map(p=>[.22,.32,.42].map(a=>'rgba('+p[0]+','+p[1]+','+p[2]+','+a+')'));
+  for(let k=0;k<blades;k++){const p=Math.floor(rnd()*pats.length),x=rnd()*w,y=rnd()*h;g.fillStyle=bl[p][Math.floor(rnd()*3)];g.fillRect(x,y,1,rr(2,4));}
+  noise(g,w,h,1600,.07);}
+// asphalt base shared by every road texture: sun-faded grey, aggregate, darker patch repairs, crack-seal "tar snakes"
 const asphC=document.createElement('canvas');asphC.width=asphC.height=512;
-{const g=asphC.getContext('2d');g.fillStyle='#4f4c48';g.fillRect(0,0,512,512);noise(g,512,512,9000,.1);
- for(let k=0;k<10;k++){g.strokeStyle='rgba(20,18,16,.16)';g.lineWidth=1;g.beginPath();let x=rnd()*512,y=rnd()*512;g.moveTo(x,y);for(let s=0;s<5;s++){x+=rr(-14,14);y+=rr(-14,14);g.lineTo(x,y);}g.stroke();}
- for(let k=0;k<8;k++){g.fillStyle='rgba(120,112,100,.1)';g.fillRect(rnd()*512,rnd()*512,rr(20,70),rr(14,50));}}
+{const g=asphC.getContext('2d');g.fillStyle='#6b6863';g.fillRect(0,0,512,512);noise(g,512,512,8500,.13);
+ for(let k=0;k<4;k++){const x=rnd()*512,y=rnd()*512,pw=rr(40,110),ph=rr(30,80);for(const ox of [-512,0,512])for(const oy of [-512,0,512]){g.fillStyle='rgba(58,56,52,.13)';g.fillRect(x+ox,y+oy,pw,ph);
+   g.strokeStyle='rgba(40,38,35,.12)';g.lineWidth=1;g.strokeRect(x+ox,y+oy,pw,ph);}}
+ for(let k=0;k<26;k++){const x=rnd()*512,y=rnd()*512,r=rr(20,60),lt=rnd()<.5;for(const ox of [-512,0,512])for(const oy of [-512,0,512]){if(x+ox+r<0||x+ox-r>512||y+oy+r<0||y+oy-r>512)continue;
+   const gr=g.createRadialGradient(x+ox,y+oy,1,x+ox,y+oy,r);gr.addColorStop(0,lt?'rgba(150,145,136,.12)':'rgba(40,38,35,.14)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x+ox-r,y+oy-r,2*r,2*r);}}
+ for(let k=0;k<9;k++){g.strokeStyle='rgba(32,30,28,'+rr(.14,.26).toFixed(2)+')';g.lineWidth=rr(1,1.8);g.lineJoin='round';g.beginPath();let x=rnd()*512,y=rnd()*512;g.moveTo(x,y);
+   const hz=rnd()<.5;for(let s=0;s<9;s++){x+=hz?rr(8,26):rr(-10,10);y+=hz?rr(-10,10):rr(8,26);g.lineTo(x,y);}g.stroke();}
+ noise(g,512,512,3000,.05);}
 // a road texture: across the road u = 0..1 over W metres, along it one tile is W metres; marks = [centre m, width m, colour, dashes per tile (0 = solid)]
-function roadMat(W,marks,wear){return L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(512,512,(g,w,h)=>{g.drawImage(asphC,0,0);const k=512/W;
-  if(wear)for(const c of wear){const gr=g.createLinearGradient((c-1.2)*k,0,(c+1.2)*k,0);gr.addColorStop(0,'rgba(20,18,16,0)');gr.addColorStop(.5,'rgba(20,18,16,.22)');gr.addColorStop(1,'rgba(20,18,16,0)');g.fillStyle=gr;g.fillRect((c-1.2)*k,0,2.4*k,h);}
+function roadMat(W,marks,wear){return macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(512,512,(g,w,h)=>{g.drawImage(asphC,0,0);const k=512/W;
+  if(wear)for(const c of wear){const gr=g.createLinearGradient((c-1.2)*k,0,(c+1.2)*k,0);gr.addColorStop(0,'rgba(20,18,16,0)');gr.addColorStop(.5,'rgba(20,18,16,.24)');gr.addColorStop(1,'rgba(20,18,16,0)');g.fillStyle=gr;g.fillRect((c-1.2)*k,0,2.4*k,h);}
   for(const m of marks){g.fillStyle=m[2];const x=(m[0]-m[1]/2)*k,ww=Math.max(2,m[1]*k);if(!m[3])g.fillRect(x,0,ww,h);else{const cy=h/m[3];for(let q=0;q<m[3];q++)g.fillRect(x,q*cy,ww,cy*.3);}}
-  noise(g,512,512,1500,.06);},true)});}
-const WH='#e9e6dc',YE='#e2b93b';
+  noise(g,512,512,1500,.07);macroAlpha(g,w,h);},true)}),W>20?.09:.16,[.84,.84,.85],[1.08,1.07,1.05]);}
+const WH='#dedbd0',YE='#d9b146';
 const M={
   sand:L({map:tex(256,256,(g,w,h)=>{g.fillStyle='#ab9f78';g.fillRect(0,0,w,h);noise(g,w,h,4000,.1);
     for(let k=0;k<70;k++){g.fillStyle='rgba('+(rnd()<.5?'110,100,55':'150,120,80')+','+rr(.08,.2).toFixed(2)+')';g.beginPath();g.arc(rnd()*w,rnd()*h,rr(1,4),0,7);g.fill();}
-    for(let k=0;k<14;k++){g.fillStyle='rgba(225,205,160,.12)';g.beginPath();g.ellipse(rnd()*w,rnd()*h,rr(14,40),rr(6,16),rnd()*3,0,7);g.fill();}},true)}),
-  pad:ground('#c4c1b9',1500,.06,null,128),
-  walk:ground('#c9c4b8',1400,.06,(g,w,h)=>{g.strokeStyle='rgba(70,65,55,.32)';g.lineWidth=1.5;for(let k=0;k<=w;k+=64){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
-    for(let k=0;k<3;k++){g.strokeStyle='rgba(50,45,38,.25)';g.lineWidth=1;g.beginPath();let x=rnd()*w,y=rnd()*h;g.moveTo(x,y);for(let s=0;s<4;s++){x+=rr(-20,20);y+=rr(-20,20);g.lineTo(x,y);}g.stroke();}},256),
-  asphalt:L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:(()=>{const t=new T.CanvasTexture(asphC);t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=MAXA;return t;})()}),
-  dirt:ground('#bf9f6c',4000,.09,ruts(true),256),dirtX:ground('#bf9f6c',4000,.09,ruts(false),256),
-  court:ground('#6f8f88',500,.06),plaza:ground('#d2b49a',1300,.07,(g,w,h)=>{g.strokeStyle='rgba(120,80,60,.3)';g.lineWidth=1.5;for(let k=0;k<=w;k+=32){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
-    for(let i=0;i<4;i++)for(let j=0;j<4;j++)if((i+j)%2){g.fillStyle='rgba(150,95,70,.15)';g.fillRect(i*32,j*32,32,32);}}),
-  grass:ground('#6c9a48',2400,.1,(g,w,h)=>{for(let k=0;k<30;k++){g.fillStyle='rgba('+(rnd()<.5?'40,80,30':'150,170,80')+',.12)';g.beginPath();g.ellipse(rnd()*w,rnd()*h,rr(8,30),rr(6,20),rnd()*3,0,7);g.fill();}},256),
-  dry:ground('#a99f6c',2600,.1,(g,w,h)=>{for(let k=0;k<40;k++){g.fillStyle='rgba('+(rnd()<.5?'120,110,60':'190,170,120')+',.16)';g.beginPath();g.ellipse(rnd()*w,rnd()*h,rr(6,26),rr(4,14),rnd()*3,0,7);g.fill();}},256),
-  infield:ground('#b98a5a',700,.08),conc:ground('#c2bdb2',1500,.06,(g,w,h)=>{g.strokeStyle='rgba(70,65,55,.25)';g.lineWidth=1;for(let k=0;k<=w;k+=128){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}},256),
+    for(let k=0;k<14;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(14,40),rr(6,16),.12,'rgb(225,205,160)');},true)}),
+  pad:macroMat(ground('#bcb8ae',1500,.06,(g,w,h)=>{for(let k=0;k<7;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(8,24),rr(6,18),.09,'rgb(90,84,74)');
+    g.fillStyle='rgba(60,56,50,.2)';for(const q of [0,64]){g.fillRect(q,0,1,h);g.fillRect(0,q,w,1);}},128,true),.11,[.84,.84,.85],[1.04,1.03,1.02]),
+  walk:macroMat(ground('#c1bbae',1400,.06,(g,w,h)=>{for(let k=0;k<10;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(8,30),rr(6,20),.07,rnd()<.6?'rgb(95,88,76)':'rgb(240,235,225)');
+    g.strokeStyle='rgba(70,65,55,.32)';g.lineWidth=1.5;for(let k=0;k<=w;k+=64){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
+    for(let k=0;k<3;k++){g.strokeStyle='rgba(50,45,38,.25)';g.lineWidth=1;g.beginPath();let x=rnd()*w,y=rnd()*h;g.moveTo(x,y);for(let s=0;s<4;s++){x+=rr(-20,20);y+=rr(-20,20);g.lineTo(x,y);}g.stroke();}},256,true),.1,[.9,.9,.9],[1.03,1.03,1.02]),
+  asphalt:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(512,512,(g,w,h)=>{g.drawImage(asphC,0,0);macroAlpha(g,w,h);},true)}),.12,[.84,.84,.85],[1.08,1.07,1.05]),
+  dirt:ground('#b39770',4000,.09,ruts(true),256),dirtX:ground('#b39770',4000,.09,ruts(false),256),
+  court:ground('#6f8f88',500,.06),plaza:ground('#cdb39d',1300,.07,(g,w,h)=>{g.strokeStyle='rgba(120,80,60,.3)';g.lineWidth=1.5;for(let k=0;k<=w;k+=32){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++)if((i+j)%2){g.fillStyle='rgba(150,95,70,.13)';g.fillRect(i*32,j*32,32,32);}}),
+  grass:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#6c7b49',[[86,104,60],[96,114,64],[74,92,54],[138,134,88],[124,126,80],[110,118,70]],4000);macroAlpha(g,w,h);},true)}),
+    .14,[.92,1.0,.9],[1.2,1.06,.74]),
+  dry:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#9e9568',[[128,118,76],[150,138,94],[110,108,66],[170,156,112],[96,100,60]],3200);macroAlpha(g,w,h);},true)}),
+    .14,[.92,.94,.9],[1.08,1.04,.96]),
+  infield:ground('#b98a5a',700,.08),conc:macroMat(ground('#bab5aa',1500,.06,(g,w,h)=>{for(let k=0;k<8;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(10,40),rr(8,30),.07,'rgb(90,84,74)');
+    g.strokeStyle='rgba(70,65,55,.25)';g.lineWidth=1;for(let k=0;k<=w;k+=128){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}},256,true),.1,[.86,.86,.86],[1.04,1.03,1.02]),
   line:L({color:0xe2b93b,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
   lineW:L({color:0xe9e6dc,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
   field:L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(64,64,(g,w,h)=>{g.fillStyle='#a88a5c';g.fillRect(0,0,w,h);g.fillStyle='#55753a';for(let x=0;x<w;x+=16)g.fillRect(x+3,0,9,h);noise(g,w,h,240,.08);},true)}),
@@ -65,9 +102,9 @@ const M={
   road2:roadMat(11,[[5.35,.1,YE],[5.65,.1,YE]],[2.8,8.2]),
   fwy:roadMat(40,[[3,.2,YE],[37,.2,WH],[6.7,.15,WH,4],[10.4,.15,WH,4],[14,.15,WH,4],[26,.15,WH,4],[29.6,.15,WH,4],[33.3,.15,WH,4],[17.6,.2,YE],[22.4,.2,WH]],[5,8.5,12,15.6,24.4,28,31.5,35]),
   // parking: one tile = 4 stalls (11 m) across by a double row with its aisle (18.6 m)
-  lot:L({polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,map:tex(256,512,(g,w,h)=>{g.drawImage(asphC,0,0,256,512,0,0,256,512);const ku=256/11,kv=512/18.6;g.fillStyle='#e6e3da';
+  lot:macroMat(L({polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,map:tex(256,512,(g,w,h)=>{g.drawImage(asphC,0,0,256,512,0,0,256,512);const ku=256/11,kv=512/18.6;g.fillStyle='#dcd9cf';
     for(const r of [[0,5.5],[13.1,18.6]])for(let s=0;s<4;s++)g.fillRect(s*2.75*ku-1,r[0]*kv,3,(r[1]-r[0])*kv);g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2);
-    for(let s=0;s<4;s++)for(const r of [2.6,15.9]){g.fillStyle='rgba(20,18,16,.25)';g.beginPath();g.ellipse((s+.5)*2.75*ku,r*kv,10,16,0,0,7);g.fill();}},true)}),
+    for(let s=0;s<4;s++)for(const r of [2.6,15.9]){g.fillStyle='rgba(20,18,16,'+rr(.16,.32).toFixed(2)+')';g.beginPath();g.ellipse((s+.5)*2.75*ku+rr(-4,4),r*kv+rr(-6,6),rr(8,12),rr(12,20),0,0,7);g.fill();}macroAlpha(g,w,h);},true)}),.13,[.86,.86,.87],[1.07,1.06,1.04]),
   // rail ballast with ties under two tracks (5 m apart), 12 m across
   ballast:L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{g.fillStyle='#8f877b';g.fillRect(0,0,w,h);noise(g,w,h,9000,.16);const k=256/12;
     for(const c of [3.5,8.5])for(let y=0;y<h;y+=12.8){g.fillStyle='rgba(70,52,36,.95)';g.fillRect((c-1.35)*k,y,2.7*k,5.4);g.fillStyle='rgba(0,0,0,.25)';g.fillRect((c-1.35)*k,y+5.4,2.7*k,1.5);}
@@ -77,18 +114,26 @@ const M={
   blue:L({color:0x1d3f7a}),yellow:L({color:0xe2b93b}),bronze:L({color:0x7c6238}),olive:L({color:0x5b6140})};
 // overlays that lie on top of another ground surface get a stronger depth offset than the surface below
 for(const k of ['walk','asphalt','grass','conc','dry','plaza','dirt'])
-  {const m=M[k].clone();m.polygonOffsetFactor=m.polygonOffsetUnits=-2;M[k+'O']=m;}
+  {const m=M[k].clone();m.polygonOffsetFactor=m.polygonOffsetUnits=-2;m.onBeforeCompile=M[k].onBeforeCompile;m.customProgramCacheKey=M[k].customProgramCacheKey;M[k+'O']=m;}
 for(const k of ['court','infield'])M[k].polygonOffsetFactor=M[k].polygonOffsetUnits=-2;
 // chunked, vertex-coloured materials
+// Ambient occlusion at the foot of everything that stands on the ground: vertical faces darken over their lowest metre
+// (mostly the skylight, a little of the sun), which grounds walls, curbs, posts and trunks. Costs one varying and a smoothstep.
 M.wall=L({map:ATLAS,vertexColors:true});
-M.wall.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv);float tintK=clamp(texelColor.a*2.0-1.0,0.0,1.0);diffuseColor.rgb*=texelColor.rgb;')
-  .replace('#include <color_fragment>','diffuseColor.rgb*=mix(vec3(1.0),vColor,tintK);');};
+M.wall.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <fog_pars_vertex>','#include <fog_pars_vertex>\nvarying vec2 vAO;')
+    .replace('#include <fog_vertex>','#include <fog_vertex>\n\tvAO=vec2((modelMatrix*vec4(transformed,1.0)).y,1.0-abs(objectNormal.y));');
+  s.fragmentShader=s.fragmentShader.replace('#include <fog_pars_fragment>','#include <fog_pars_fragment>\nvarying vec2 vAO;')
+    .replace('#include <map_fragment>','vec4 texelColor=mapTexelToLinear(texture2D(map,vUv));float tintK=clamp(texelColor.a*2.0-1.0,0.0,1.0);diffuseColor.rgb*=texelColor.rgb;')
+    .replace('#include <color_fragment>','diffuseColor.rgb*=mix(vec3(1.0),vColor,tintK);')
+    .replace('#include <aomap_fragment>','float aoK=1.0-.55*vAO.y*(1.0-smoothstep(0.0,1.2,vAO.x));reflectedLight.indirectDiffuse*=aoK;reflectedLight.directDiffuse*=mix(1.0,aoK,.6);');};
 M.flat=L({vertexColors:true});M.flat.userData.alias=M.wall;
 M.paint=new T.MeshPhongMaterial({vertexColors:true,shininess:55,specular:0x4a4a4a});
-// soft contact shadows: left half of the texture is a round blob, right half a strip that is dark along v=0
-M.shade=new T.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,map:tex(128,64,(g,w,h)=>{
-  const gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(20,14,8,.5)');gr.addColorStop(.55,'rgba(20,14,8,.3)');gr.addColorStop(1,'rgba(20,14,8,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
-  const g2=g.createLinearGradient(0,64,0,0);g2.addColorStop(0,'rgba(20,14,8,.42)');g2.addColorStop(.35,'rgba(20,14,8,.16)');g2.addColorStop(1,'rgba(20,14,8,0)');g.fillStyle=g2;g.fillRect(66,0,60,64);})});
+// soft contact shadows: left half of the texture is a round blob, right half a strip that is dark along v=0.
+// Double-sided: the strips round building footprints (shadeRect) are wound facing down and were culled until now.
+M.shade=new T.MeshBasicMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,map:tex(128,64,(g,w,h)=>{
+  const gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(20,16,12,.5)');gr.addColorStop(.55,'rgba(20,16,12,.3)');gr.addColorStop(1,'rgba(20,16,12,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
+  const g2=g.createLinearGradient(0,64,0,0);g2.addColorStop(0,'rgba(20,16,12,.36)');g2.addColorStop(.3,'rgba(20,16,12,.15)');g2.addColorStop(.7,'rgba(20,16,12,.04)');g2.addColorStop(1,'rgba(20,16,12,0)');g.fillStyle=g2;g.fillRect(66,0,60,64);})});
+rndSkip(seedMat,309622);
 for(const k of ['wall','flat','paint','shade']){M[k].userData.chunk=1;M[k].userData.cast=k!=='shade';}
 const C={white:0xf4f0e7,dark:0x2b2621,metal:0xb3b9bb,steel:0x8c9396,wood:0x6b5138,concrete:0xa9a59c,red:0xb3261e,green:0x2f7d4f,blue:0x1d3f7a,yellow:0xe2b93b,bronze:0x7c6238,olive:0x5b6140,
   stone:0xcfc6b4,curb:0xbdb7aa,glass:0x1c2830,tire:0x1d1c1b,rust:0x8a5a3c,roofs:[0xbcb09e,0xc9c0ae,0xd9d2c4,0xa7826a,0xb9a58c],tile:0xb5583a,lamina:0xa9b0b1,
