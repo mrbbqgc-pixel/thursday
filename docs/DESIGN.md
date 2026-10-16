@@ -83,6 +83,14 @@ pickups, minivans, a lowrider or two), satellite dishes, basketball hoops over g
 - **Mission is now 8 stages:** 1 wake-up call, 2 cul-de-sac, 3 Route 66, 4 Market Hall, 5 the Trail (bike chase), 6 Bobo at
   Central Park, 7 the Promenade, 8 the Outlets. Long gaps between stages are bridged by a short fade ("I know a shortcut").
 - **Third-person view by default** (over the shoulder, like GTA), first person as an option; lowrider bikes you can ride.
+- **Getting around: bikes and cars you can borrow** (the friend asked whether everything is on foot). Lowrider bikes stand round town:
+  by the start house's garage and elsewhere on the block, at the parks, the strip malls, the Market Hall, the Promenade, the station, the
+  outlets and both ends of the trail. Some parked cars are unlocked: the white sedan in the start house's driveway and a couple more on the
+  block, cars in the strip-mall lots on Foothill, at the Market Hall, Sierra Town Center, the Promenade, the ballpark and the outlets
+  lot. Never a car with someone in it, never the traffic. Hold USE (F) next to the driver's door to get in, hold it again to get out
+  (it brakes first). Arcade driving up to about 25 m/s: W/S or the stick to go, brake and reverse, A/D or the stick to steer, Space for
+  a handbrake. No shooting from a car; damage inside is reduced, and a hit that would be fatal throws Ray out. People are never run
+  over: the car stops against them. Works in every stage, survival and multiplayer; warps and the trail chase get you out first.
 - **The friend as a playable character, for the beta only.** A basic avatar from two photos he sends (front and back): skin tone,
   hair, clothes and a simple face texture. Only the small game textures made from the photos go in the game and the repository,
   never the original photos; the character is taken out before a public release unless he says otherwise.

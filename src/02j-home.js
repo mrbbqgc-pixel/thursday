@@ -259,7 +259,7 @@ function cactus(x,z){anchor(x,z,()=>{put(M.flat,GEO.sph,x,PADY+.22,z,0,.32,.36,.
 function boulder(x,z,s){anchor(x,z,()=>put(M.flat,GEO.sphLo,x,PADY,z,rnd()*3,.55*s,.36*s,.42*s,pick([0x8f8370,0x9a8e78,0x7f7564])));}
 // a parked car at any angle (a destructible like the others: its collider is the box round its footprint)
 function anyCar(x,z,ry,type,col,lite,y){type=type||carType();const r=vehicle(type,x,z,false,col===undefined?pick(carCols):col,1,lite,false,ry,y);const V=VEH[type],c=Math.abs(Math.cos(ry)),s=Math.abs(Math.sin(ry));
-  if(y)anchor(x,z,()=>blob(x,z,(c*V.wid+s*V.len)*.62,(s*V.wid+c*V.len)*.62,PADY));
+  if(y&&!r.dyn)anchor(x,z,()=>blob(x,z,(c*V.wid+s*V.len)*.62,(s*V.wid+c*V.len)*.62,PADY));
   const k=solid(x,z,(c*V.wid+s*V.len)*.86,(s*V.wid+c*V.len)*.86,type==='van'?1.9:type==='pickup'||type==='suv'||type==='minivan'?1.6:1.42,0,2);k.hp=260;k.ref=r;cars.push(k);return k;}
 // ---------- the lots: house, driveway with its apron over the parkway, front walk, lawn, yard life
 const curbHit=(l,p)=>{const f=l.bulb?((x,z)=>Math.hypot(x-l.bulb.c[0],z-l.bulb.c[1])-(RB-HW)):((x,z)=>near(S[l.k],x,z).d);if(f(p[0]-l.nx*6,p[1]-l.nz*6)>HW+CB+.05)return null;let a=0,b=6;for(let q=0;q<14;q++){const m=(a+b)/2;if(f(p[0]-l.nx*m,p[1]-l.nz*m)>HW+CB+.05)a=m;else b=m;}return[p[0]-l.nx*a,p[1]-l.nz*a];};

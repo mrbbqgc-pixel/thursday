@@ -68,9 +68,11 @@ function bikeModel(col){const g=new T.Group();g.rotation.order='YXZ';const B=[];
   const sh=new T.Mesh(footGeo,footShade);sh.scale.set(.75,1,1.45);sh.position.y=.03;sh.renderOrder=2;g.add(sh);g.userData.B=B;return g;}
 function bikeMesh(col){const o=new T.Group(),m=bikeModel(col===undefined?RP(BIKE_COLS):col);m.position.z=-BK.ZR;o.add(m);o.userData.B=m.userData.B;return o;}
 function bikeSpin(m,dist,crank,steer){const B=m.userData.B;B[2].rotation.x-=dist/BK.R;B[3].rotation.x-=dist/BK.R;if(crank!==undefined)B[4].rotation.x=crank;if(steer!==undefined)B[1].rotation.y=steer;}
-function spawnBike(x,z,yaw,col){const b={g:bikeModel(col===undefined?RP(BIKE_COLS):col),x,z,y:0,yaw:yaw||0,col,v:0,steer:0,lean:0,wr:0,cr:0,fallen:false,riding:false};
+function spawnBike(x,z,yaw,col){col=col===undefined?RP(BIKE_COLS):col;const b={g:bikeModel(col),x,z,y:0,yaw:yaw||0,col,v:0,steer:0,lean:0,wr:0,cr:0,fallen:false,riding:false};
   b.B=b.g.userData.B;scene.add(b.g);bikes.push(b);bikePose(b);return b;}
-function clearBikes(){if(P.bike)dismountBike(2);for(const b of bikes)scene.remove(b.g);bikes.length=0;}
+// world bikes (b.world, parked round town by 06e) stay and go back to where they were parked; the others (the trail chase's) go
+function clearBikes(){if(P.bike)dismountBike(2);vehUi();for(let k=bikes.length-1;k>=0;k--){const b=bikes[k];if(!b.world){scene.remove(b.g);bikes.splice(k,1);continue;}
+  b.x=b.home[0];b.z=b.home[1];b.yaw=b.home[2];b.y=0;b.v=0;b.fallen=false;b.riding=false;bikePose(b);}}
 function bikePose(b){const lean=b.riding?b.lean:b.fallen?1.42:.11;b.g.position.set(b.x,b.y+(b.fallen&&!b.riding?.04:0),b.z);b.g.rotation.set(0,b.yaw,lean);
   b.B[1].rotation.y=b.riding?b.steer*.45:b.fallen?0:.35;b.B[2].rotation.x=b.B[3].rotation.x=b.wr;b.B[4].rotation.x=b.cr;}
 function mountBike(b){if(!b||P.bike||!P.alive||b.riding)return;P.bike=b;b.riding=true;b.fallen=false;b.v=0;b.steer=0;b.lean=0;RIDE.hold=0;
@@ -121,15 +123,17 @@ function rideAvatar(dt){const b=P.bike,c=Math.cos(b.yaw),s=Math.sin(b.yaw),pis=c
   const tw=aim?clamp(angDiff(P.yaw,b.yaw),-1.1,1.1):0;
   RO.footDown=Math.abs(b.v)<.35&&IN.f<.1;RO.aim=aim?clamp(P.pitch,-.9,.9):undefined;RO.twist=tw;rideAnim(PAV,b.cr,RO);}
 // every frame of play: the ridden bike follows the player; near a parked one, hold USE to get on
-function updBikes(dt){const b=P.bike;
+function updBikes(dt){const b=P.bike;vehFrame(dt); // (drive) parked cars, culling and the USE latch (06e)
   if(b){if(!P.alive){dismountBike(1);return;}
     if(Math.hypot(P.x-b.x,P.z-b.z)>4){dismountBike(2);return;} // moved by a restart or a respawn: the bike stays where it was
     b.x=P.x;b.z=P.z;b.y=P.y;bikePose(b);
     G.prompt=RIDE.off;if(IN.use){IN.use=false;dismountBike(0);}return;}
-  if(!P.alive||!bikes.length)return;let near=null,nd=1.9;
-  for(let k=0;k<bikes.length;k++){const q=bikes[k];if(q.riding)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<nd&&Math.abs(q.y-P.y)<1.2){nd=d;near=q;}}
+  if(!P.alive)return;let near=null,nd=1.9;
+  for(let k=0;k<bikes.length;k++){const q=bikes[k];if(q.riding||!q.g.visible||q.off)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<nd&&Math.abs(q.y-P.y)<1.2){nd=d;near=q;}}
+  // a borrowable car whose door is closer than any bike (06e) takes the USE button instead
+  const cn=carNear();if(cn&&(!near||cn.d<nd)){RIDE.near=null;RIDE.hold=0;carPrompt(cn.k,dt);return;}DRV.hold=0;
   RIDE.near=near;if(!near){RIDE.hold=0;return;}
-  G.prompt=RIDE.on;if(IN.useHeld){RIDE.hold+=dt;if(RIDE.hold>.35)mountBike(near);}else RIDE.hold=0;}
+  G.prompt=RIDE.on;if(IN.useHeld&&!DRV.latch){RIDE.hold+=dt;if(RIDE.hold>.35){mountBike(near);DRV.latch=true;}}else RIDE.hold=0;}
 // test and debugging hooks (added to window.__game by the frame-loop module)
 const MECH={rayWorld,VIEW,setViewMode,toggleView,PAV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes,
   animDeath,rigGeo,weaponGeo,VM,vmSkin,updAvatar,figBones,avMat,armsOn};

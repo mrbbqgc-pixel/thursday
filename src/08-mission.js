@@ -190,8 +190,9 @@ function syncBobo(i){const bi=ST.findIndex(t=>t.type==='boss'),b=allies.find(a=>
   else if(i>bi&&!b&&squadOK()){const p=spotNear(P.x,P.z,6,30)||[P.x,P.z],n=addSoldier(0,'bobo',p[0],p[1],{name:'BOBO',aware:true});boboPrep(n);n.yielded=true;n.maxHp=n.hp=n.K.allyHp;boboSet(n,'walk');}}
 function stageStart(i,again){MS.i=i;const st=ST[i];MS.st=st;MS.prog=0;MS.t=0;MS.stall=0;MS.tip=0;MS.lastN=-1;MS.hinted=false;MS.phase='';MS.reinfDone=false;MS.waveK=0;MS.done=false;MS.plantT=0;MS.defT=0;G.stage=i;
   MS.boss=null;MS.bossDown=false;MS.talkT=0;if(!again)MS.knocks=0;
+  if(typeof vehStage==='function')vehStage(st); // (drive) out of a car (and off a parked bike) before a warp or the trail chase (06e)
   if(st.warp&&farFrom(st.spawn))warpTo(st,i);else if(MS.fading)fadeCut();MS.fading=false;
-  if(MS.chaser||allies.some(a=>a.ride||a.parked))chaseEnd(false);if(st.type!=='chase')offBike();
+  if(MS.chaser||allies.some(a=>a.ride||a.parked))chaseEnd(false);if(st.type!=='chase'&&!(P.bike&&P.bike.world))offBike(); // (drive) a bike found in town is kept
   syncBobo(i);
   MS.loadout={slots:P.slots.map(w=>({id:w.id,mag:w.mag,res:w.res})),cur:P.cur,nades:P.nades};saveGame();
   if(st.groups)st.groups.forEach(g=>garrison(g,st.key));
@@ -246,7 +247,8 @@ function stageUpdate(dt){const st=MS.st;if(!st)return;
     MS.prog=clamp(1-Math.hypot(P.x-st.x,P.z-st.z)/Math.hypot(st.spawn[0]-st.x,st.spawn[1]-st.z),0,1);if(inZone&&MS.knockT<=0)stageDone();}
   else if(st.type==='reach'){OBJ.sub='';if(inZone)stageDone();}
   OBJ.prog=clamp(MS.prog,0,1);}
-function resetWorldState(){clearSoldiers();clearPicks();if(typeof clearBikes==='function')clearBikes();for(const n of nades)scene.remove(n.m);nades.length=0;waveQ.length=0;hideHeli();G.arcs.length=0;G.lkp.age=99;G.vig=0;G.supp=0;
+function resetWorldState(){if(typeof carsReset==='function')carsReset(); // (drive) out of the car; borrowed cars go back where they were (06e)
+  clearSoldiers();clearPicks();if(typeof clearBikes==='function')clearBikes();for(const n of nades)scene.remove(n.m);nades.length=0;waveQ.length=0;hideHeli();G.arcs.length=0;G.lkp.age=99;G.vig=0;G.supp=0;
   lifeReset(); // (life) civilians, traffic and birds go; the casualty rule itself lives in 07c
   P.vx=P.vz=P.vy=0;P.hp=100;P.alive=true;P.stam=1;P.crouching=false;P.crouch=0;P.ads=0;P.wantAds=false;P.reloading=false;P.swapT=0;P.swapTo=-1;P.meleeT=0;P.recoil=0;P.pitch=0;P.punch=0;P.roll=0;P.hurtT=9;
   IN.fire=false;IN.useHeld=false;P.spawnT=0;MS.q.length=0;MS.boss=null;MS.bossDown=false;if(MS.npc){removeSoldier(MS.npc);MS.npc=null;}if(el.fade){el.fade.style.transition='none';el.fade.style.opacity='0';}MS.fading=false;

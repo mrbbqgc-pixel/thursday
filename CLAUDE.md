@@ -24,8 +24,9 @@ on phones (iPhone Safari first), so every change is checked at phone size as wel
   on each block, area names, quiet zones; `02i` signals, signs, power lines, Kingsley barricades, spawn points; `02j` the friend's block
   (start of the mission) at full scale: curved streets, lots, the start house; `03*` baked props, street furniture, mountains, collision,
   navigation, chunk meshes and their distance detail; `04` effects and audio; `05` soldiers (Kingsley security, Junebug, Pennington, Bobo);
-  `06a/06b` weapons and player (third-person camera), `06c` the player avatar (`AVATAR`, `setAvatar`), `06d` lowrider bikes; `07*` AI
-  (Bobo boss and ally), `07c` street life (civilians, traffic, dogs, birds, neighbourhood sound); `08` mission (8 stages, trail chase, warps);
+  `06a/06b` weapons and player (third-person camera), `06c` the player avatar (`AVATAR`, `setAvatar`), `06d` lowrider bikes,
+  `06e` borrowable cars and the bikes parked round town (driving, chase camera, other players' bikes and cars); `07*` AI (Bobo boss and ally),
+  `07c` street life (civilians, traffic, dogs, birds, neighbourhood sound); `08` mission (8 stages, trail chase, warps);
   `08b-08g` multiplayer (`08b` rooms and connections, `08c` session, lobby state and event routing, `08d` replication of players,
   hits, grenades and props, `08e` Versus, `08f` the multiplayer panel, score list and results, `08g` co-op);
   `09a` HUD and map; `09b` input, menus and the frame loop.
@@ -47,7 +48,8 @@ node play.js w2b.json --ios | python3 fmt.py  # iPhone-size menu fit;  w3.json -
 node play.js t16.json --mobile | python3 fmt.py   # touch controls;    t12.json: pause, map, restart, quit, survival
 node play.js r1.json | python3 fmt.py         # the bot plays all 8 stages (it rides the trail chase): must end in state 'win'
 node play.js a1.json --artifact | python3 fmt.py  # the artifact form: plays, and offers no multiplayer
-for s in mp-versus mp-versus2 mp-coop mp-edge; do node $s.js; done   # multiplayer: each must end with PASSED n/n checks
+node play.js v1.json | python3 fmt.py         # bike and car: ride, get in, drive 100+ m, hit a wall, get out (v1p.json --ios: phone shots)
+for s in mp-versus mp-versus2 mp-coop mp-edge mp-drive; do node $s.js; done   # multiplayer: each must end with PASSED n/n checks
 # mp-mission.js still checks the hometown mission (jammer, helicopter) and needs updating for THURSDAY
 sh ../src/build-test.sh && node static3.js "$(cat s3a.json)"   # static world: counts, build times, screenshots
 git push origin main main:gh-pages            # publish; the Pages deploy takes about a minute
@@ -103,6 +105,12 @@ reachable through the session proxy; Pages was switched on by pushing the `gh-pa
   - A multiplayer game cannot pause: the menu opens over the running game. The host has to keep the game open and in front.
   - Not testable from a cloud session: the public PeerJS service, real networks (NAT, mobile data) and iPhone Safari. The lab uses
     a local PeerServer and Chromium only.
+- **Vehicles:** 17 parked cars are borrowable (`carBorrow` in `06e`, matched by position while the town is built, so every machine
+  builds the same town): they are not baked into the chunks but drawn as meshes of their own, and their colliders move when they are
+  parked elsewhere. 13 lowrider bikes are parked round town (`b.world`; a mission reset puts them back). Hold USE to get on or in, and
+  to get out. Which car a player took stays on that player's machine; the others see a stand-in car or bike under the
+  player from the vehicle field of the state report (`vehPack`, checked by `vehRx`). Nothing to borrow within 45 m of a 'plant' objective.
+  On phones a car shows only USE and VIEW (`body.drv`), a bike drops JUMP, CROUCH and SWAP (`body.ride`); driving HUD coverage about 15%.
 - **Content:** the enemy is Kingsley Prime's private security, a fictional corporate army. Humour comes from personality, never
   stereotypes. Schools are quiet scenery: no objectives, no spawns (`inQuiet`, alias `inCemetery`, and `freeSpot` exclude them).
 - **Place data** came from Google Maps lookups. Keep the "place data: Google Maps" note on the menu, and keep ratings, reviews and

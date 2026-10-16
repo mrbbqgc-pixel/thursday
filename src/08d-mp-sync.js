@@ -29,13 +29,13 @@ function mpPuppets(dt){const rt=performance.now()-110;
     s.crouch+=clamp(((pl.fl&2)?1:0)-s.crouch,-dt*5.5,dt*5.5);s.run=!!(pl.fl&4);s.lowered=s.run;s.aimP=clamp(pitch,-.9,.9);
     s.moveAmt=lerp(s.moveAmt,clamp(sp/3,0,1),Math.min(1,dt*10));
     if(moved>0&&moved<3){s.ph+=moved*(s.run?2.1:2.6);s.stepD+=moved;if(s.stepD>2.4){s.stepD=0;sndStepAt(x,z);}}
-    if(s.flinch>0)s.flinch-=dt;animSoldier(s,dt);s.g.position.set(x,y,z);s.g.rotation.y=yaw;}}
+    if(s.flinch>0)s.flinch-=dt;animSoldier(s,dt);s.g.position.set(x,y,z);s.g.rotation.y=yaw;vehPuppet(pl,s,dt);}} // (drive) on a bike, or in a car (06e)
 
 // ---------- my own state, 20 times a second
 // flags: 1 alive, 2 crouched, 4 sprinting, 8 aiming, 16 fired a moment ago, 32 reloading, 64 holding USE, 128 on the ground, 256 just spawned
 function mpPack(){const fl=(P.alive?1:0)|(P.crouch>.5?2:0)|(P.sprinting?4:0)|(P.ads>.5?8:0)|(MP.fireT>0?16:0)|(P.reloading?32:0)|(IN.useHeld?64:0)|(P.ground?128:0)|(P.spawnT>0?256:0);
   const a=[Math.round(P.x*100),Math.round(P.y*100),Math.round(P.z*100),Math.round(angDiff(P.yaw,0)*1000),Math.round(P.pitch*1000),fl,widx(curW().id),Math.max(0,Math.round(P.hp))];
-  if(MP.myShots.length){a.push(MP.myShots);MP.myShots=[];}else a.push(0);return a;}
+  if(MP.myShots.length){a.push(MP.myShots);MP.myShots=[];}else a.push(0);a.push(vehPack());return a;} // (drive) [9]: the bike or car I am on (06e)
 // a shot of mine, for the others to see and hear: where the round ended up
 function mpShot(hx,hy,hz){MP.fireT=.4;if(MP.myShots.length<6)MP.myShots.push([Math.round(hx*10),Math.round(hy*10),Math.round(hz*10)]);}
 // Every number that arrives is checked and bounded before it is used or passed on: nothing a player sends may stall another player's game.
@@ -47,6 +47,7 @@ function mpApply(pl,a,o){const nx=Math.round(+a[o]),ny=Math.round(+a[o+1]),nz=Ma
   pl.nx=nx;pl.ny=ny;pl.nz=nz;pl.nyaw=nyaw;pl.npitch=npi;pl.fl=fl;pl.hp=clamp(a[o+7]|0,0,999);pl.alive=!!(fl&1);pl.use=!!(fl&64);
   const w=clamp(a[o+6]|0,0,WIDS.length-1);if(pl.w!==w){pl.w=w;if(pl.s)setSoldierWeapon(pl.s,WIDS[w]);}
   if(pl.alive&&!was){pl.buf.length=0;mpPuppetUp(pl);}else if(!pl.alive&&was)mpPuppetDown(pl);
+  pl.veh=vehRx(a[o+9]); // (drive) the bike or car this player is on, checked (06e)
   pl.buf.push({t:now,x,y,z,yaw:nyaw/1000,pitch:npi/1000});if(pl.buf.length>8)pl.buf.shift();pl.x=x;pl.y=y;pl.z=z;pl.yaw=nyaw/1000;
   const sh=a[o+8];if(Array.isArray(sh)){for(let k=0;k<sh.length&&k<6;k++){const q=sh[k];if(Array.isArray(q)){mpShowShot(pl,q);if(MP.host&&pl.out.length<8)pl.out.push(q);}}
     if(MP.host&&mpMode().coop)noiseEvent(x,z,90,true);}}
@@ -57,11 +58,11 @@ function mpShowShot(pl,q){const s=pl.s;if(!s||!s.alive)return;s.revealT=2.5;cons
   const dx=hx-mx,dy=hy-my,dz=hz-mz,l2=dx*dx+dy*dy+dz*dz;if(l2>1&&P.alive&&!mpIsMate(pl)){const ex=P.x-mx,ey=P.y+1.5-my,ez=P.z-mz,u=clamp((ex*dx+ey*dy+ez*dz)/l2,0,1);
     if(u>.02&&Math.hypot(ex-dx*u,ey-dy*u,ez-dz*u)<1.6&&R()<.6){sndWhiz();G.supp=Math.min(1,G.supp+.15);}}}
 // host: a guest's report
-function mpState(pl,d){const q=d[10]|0;if(q<=pl.seq)return;pl.seq=q;mpApply(pl,d,1);} // reports are numbered: one that was overtaken on the way is dropped
+function mpState(pl,d){const q=d[11]|0;if(q<=pl.seq)return;pl.seq=q;mpApply(pl,d,1);} // reports are numbered: one that was overtaken on the way is dropped
 // host: one snapshot for everyone
 let snapN=0;
 function mpSnap(){const ps=[],me=mpPack();me.unshift(MP.me);ps.push(me);
-  for(const pl of MP.players.values()){if(pl.id===MP.me)continue;const a=[pl.id,pl.nx,pl.ny,pl.nz,pl.nyaw,pl.npitch,pl.fl,pl.w,pl.hp];if(pl.out.length){a.push(pl.out);pl.out=[];}ps.push(a);}
+  for(const pl of MP.players.values()){if(pl.id===MP.me)continue;const a=[pl.id,pl.nx,pl.ny,pl.nz,pl.nyaw,pl.npitch,pl.fl,pl.w,pl.hp,pl.out.length?pl.out:0,pl.veh||0];pl.out=[];ps.push(a);}
   let sc=0;if(++snapN%20===0){sc=Array.from(MP.players.values(),p=>[p.id,p.k,p.d,p.sc]);sc.push([0,MP.tk[1],MP.tk[2],0]);} // id 0: the two teams' totals
   const m=['S',Math.round(MP.tLeft*10),ps,sc,0,0,0,++MP.snapSeq];mpSnapExtra(m);
   for(const pl of MP.players.values())netTx(pl.conn,m);}
