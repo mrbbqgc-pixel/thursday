@@ -381,7 +381,7 @@ function carSolid(c){if(c.cells)return;const q=c.col,ns=c.R0.ns,hl=c.V.len/2,hw=
   for(let j=Math.floor((q.z0-NZ0)/CELL);j<=Math.floor((q.z1-NZ0)/CELL);j++)for(let i=Math.floor((q.x0-NX0)/CELL);i<=Math.floor((q.x1-NX0)/CELL);i++){if(i<0||j<0||i>=NW||j>=NH)continue;const k=j*NW+i;if(!blocked[k]){blocked[k]=1;c.cells.push(k);}}}
 // push someone out of a moving car's two end circles
 function carPush(c,e,r){const fx=-Math.sin(c.yaw),fz=-Math.cos(c.yaw),L0=c.V.len/4,rr0=c.V.wid/2+r;if(Math.abs(e.x-c.x)>4||Math.abs(e.z-c.z)>4)return;
-  for(const s of [-1,1]){const cx=c.x+fx*L0*s,cz=c.z+fz*L0*s,dx=e.x-cx,dz=e.z-cz,d2=dx*dx+dz*dz;if(d2<rr0*rr0&&d2>1e-6){const d=Math.sqrt(d2);e.x=cx+dx/d*rr0;e.z=cz+dz/d*rr0;}}}
+  for(const s of [-1,1]){const cx=c.x+fx*L0*s,cz=c.z+fz*L0*s,dx=e.x-cx,dz=e.z-cz,d2=dx*dx+dz*dz;if(d2<rr0*rr0&&d2>1e-6){const d=Math.sqrt(d2),k=Math.min(rr0-d,.25)/d;e.x+=dx*k;e.z+=dz*k;pushOut(e,.4,e===P?P.y:0);}}}  // a small step at a time, never through a wall
 // anything in the lane ahead of the car in CK.c: the nearest gap
 const CK={c:null,fx:0,fz:0,gap:99,who:false};
 function carChk(x,z,len,p){const c=CK.c,dx=x-c.x,dz=z-c.z,a=dx*CK.fx+dz*CK.fz;if(a<=0||a>28||Math.abs(-dx*CK.fz+dz*CK.fx)>2.1)return;const g=a-c.V.len/2-len;if(g<CK.gap){CK.gap=g;CK.who=p;}}
