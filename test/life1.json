@@ -1,0 +1,118 @@
+[
+{
+"click": "#btnStart"
+},
+{
+"wait": 600
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.clearSoldiers();g.LIFE.test=true;g.P.x=-150;g.P.z=-326;g.P.yaw=-Math.PI/2;g.P.pitch=-.04;g.setViewMode(false);g.lifeReset();g.lifeUpdate(1/30); const n=g.lifeSpawnN(12);g.sim(150,1/30);const r={n,civs:g.civs.length,roles:g.civs.map(c=>c.role+':'+c.st+':'+Math.round(Math.hypot(c.x-g.P.x,c.z-g.P.z))),cars:g.traffic.filter(c=>c.on).map(c=>[Math.round(c.x),Math.round(c.z),Math.round(c.spd)]),birds:g.BIRD.mode};g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;return r;})()",
+"log": "tract"
+},
+{
+"eval": "(()=>{window.__game.cam(-185,1.7,-326,-120,1.4,-322);return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/tract-fp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.setViewMode(true);g.sim(30,1/30);g.G.state='pause';return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/tract-tp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.clearSoldiers();g.LIFE.test=true;g.P.x=-150;g.P.z=85;g.P.yaw=Math.PI;g.P.pitch=-.04;g.setViewMode(false);g.lifeReset();g.lifeUpdate(1/30); const n=g.lifeSpawnN(12);g.sim(150,1/30);const r={n,civs:g.civs.length,roles:g.civs.map(c=>c.role+':'+c.st+':'+Math.round(Math.hypot(c.x-g.P.x,c.z-g.P.z))),cars:g.traffic.filter(c=>c.on).map(c=>[Math.round(c.x),Math.round(c.z),Math.round(c.spd)]),birds:g.BIRD.mode};g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;return r;})()",
+"log": "strip"
+},
+{
+"eval": "(()=>{window.__game.cam(-150,1.7,72,-150,1.6,100);return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/strip-fp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.setViewMode(true);g.sim(30,1/30);g.G.state='pause';return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/strip-tp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.clearSoldiers();g.LIFE.test=true;g.P.x=40;g.P.z=178;g.P.yaw=Math.PI;g.P.pitch=-.04;g.setViewMode(false);g.lifeReset();g.lifeUpdate(1/30); const n=g.lifeSpawnN(12);g.sim(150,1/30);const r={n,civs:g.civs.length,roles:g.civs.map(c=>c.role+':'+c.st+':'+Math.round(Math.hypot(c.x-g.P.x,c.z-g.P.z))),cars:g.traffic.filter(c=>c.on).map(c=>[Math.round(c.x),Math.round(c.z),Math.round(c.spd)]),birds:g.BIRD.mode};g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;return r;})()",
+"log": "market"
+},
+{
+"eval": "(()=>{window.__game.cam(40,1.7,172,40,2.2,200);return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/market-fp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.setViewMode(true);g.sim(30,1/30);g.G.state='pause';return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/market-tp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.clearSoldiers();g.LIFE.test=true;g.P.x=1150;g.P.z=-120;g.P.yaw=0;g.P.pitch=-.04;g.setViewMode(false);g.lifeReset();g.lifeUpdate(1/30); const n=g.lifeSpawnN(12);g.sim(150,1/30);const r={n,civs:g.civs.length,roles:g.civs.map(c=>c.role+':'+c.st+':'+Math.round(Math.hypot(c.x-g.P.x,c.z-g.P.z))),cars:g.traffic.filter(c=>c.on).map(c=>[Math.round(c.x),Math.round(c.z),Math.round(c.spd)]),birds:g.BIRD.mode};g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;return r;})()",
+"log": "prom"
+},
+{
+"eval": "(()=>{window.__game.cam(1150,1.7,-100,1150,2.5,-150);return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/prom-fp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.setViewMode(true);g.sim(30,1/30);g.G.state='pause';return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/prom-tp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.clearSoldiers();g.LIFE.test=true;g.P.x=650;g.P.z=1000;g.P.yaw=Math.PI;g.P.pitch=-.04;g.setViewMode(false);g.lifeReset();g.lifeUpdate(1/30); const n=g.lifeSpawnN(12);g.sim(150,1/30);const r={n,civs:g.civs.length,roles:g.civs.map(c=>c.role+':'+c.st+':'+Math.round(Math.hypot(c.x-g.P.x,c.z-g.P.z))),cars:g.traffic.filter(c=>c.on).map(c=>[Math.round(c.x),Math.round(c.z),Math.round(c.spd)]),birds:g.BIRD.mode};g.G.state='pause';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=true;return r;})()",
+"log": "outlets"
+},
+{
+"eval": "(()=>{window.__game.cam(640,1.7,995,660,2.5,1030);return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/outlets-fp"
+},
+{
+"eval": "(()=>{const g=window.__game;g.G.state='play';g.setViewMode(true);g.sim(30,1/30);g.G.state='pause';return 1})()"
+},
+{
+"wait": 500
+},
+{
+"shot": "life/outlets-tp"
+}
+]

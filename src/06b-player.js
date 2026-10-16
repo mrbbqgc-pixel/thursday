@@ -44,6 +44,7 @@ function fire(){const w=curW(),D=WDEF[w.id];if(P.swapT>0||P.meleeT>0||P.fireT>0)
     // third person: the camera ray picks the aim point, but a wall between the player's body and that point takes the shot
     if(tp){const vx=hx-ex,vy=hy-ey,vz=hz-ez,vl=Math.hypot(vx,vy,vz);if(vl>.6){const tb=rayWorld(ex,ey,ez,vx/vl,vy/vl,vz/vl,vl-.3);
       if(tb<vl-.3){hs=null;wc=RHc;nx=RHnx;ny=RHny;nzz=RHnz;hx=ex+vx/vl*tb;hy=ey+vy/vl*tb;hz=ez+vz/vl*tb;tw=t=Math.hypot(hx-ox,hy-oy,hz-oz);}}}
+    {const cv=lifeRay(ox,oy,oz,dx,dy,dz,t);if(cv){hs=null;t=RS.t;tw=1e9;hx=ox+dx*t;hy=oy+dy*t;hz=oz+dz*t;bloodPuff(hx,hy,hz);civHurt(cv,D.dmg,P.x,P.z,true);}} // (life) a civilian in the line of fire (07c)
     if(k%3===0){tracer(muz.x,muz.y,muz.z,hx,hy,hz,0xfff0b0);if(MP.on)mpShot(hx,hy,hz);}
     if(hs){const fall=lerp(1,D.rng[2],clamp((t-D.rng[0])/(D.rng[1]-D.rng[0]),0,1));bloodPuff(hx,hy,hz);any=true;
       damageSoldier(hs,D.dmg*fall,RS.zone,P.x,P.z,true,false,D);}
