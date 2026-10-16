@@ -100,4 +100,3 @@ const MX0=-560,MZ0=-720,MAPW=2060,MAPH=1940,mapC=document.createElement('canvas'
  g.fillStyle='rgba(120,160,200,.25)';for(const q of QUIET)g.fillRect(X(q[0]),Z(q[1]),q[2]-q[0],q[3]-q[1]);
  // the playable edge
  g.strokeStyle='rgba(21,17,12,.35)';g.lineWidth=3;g.strokeRect(X(BOUND.x0),Z(BOUND.z0),BOUND.x1-BOUND.x0,BOUND.z1-BOUND.z0);}
-window.__w={HT,VEH,chunkMeshes,M,trees,fans,palms,cars,lamps,shrubs,colliders,SPN,GEO}; // DEBUG

@@ -101,7 +101,7 @@ function civicCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M
 function townCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0,z0,x1,z1,M.pad,[0,SWA,SWA,0]);mapR(x0,z0,x1,z1,'#b7b3ab');
   const bz0=z0+4,bd=38,names=[['HOME CENTER','#f4f0e7','#d86a1f'],['SUPERMARKET','#f4f0e7','#b3261e'],['OFFICE SUPPLY','#f4f0e7','#1d3f7a'],['CINEMA 12','#15110c','#e2b93b']];let x=x0+6;const ws=[62,48,40,52];
   for(let k=0;k<4;k++){const w=Math.min(ws[k],x1-6-x);if(w<25)break;bigBox(x+w/2,bz0+bd/2,w,bd,1,names[k][0],{bg:names[k][1],fg:names[k][2],band:[0xb7472a,0x2f6a3a,0x1d3f7a,0x6a3d8f][k],h:k===3?11:9});x+=w+4;}
-  const lz0=bz0+bd+8,nm=Math.floor((z1-lz0-26)/18.6),lz1=lz0+nm*18.6;lotFlat(x0+4,lz0,x1-4,lz1,true);lotCars(F,x0+4,lz0,x1-4,lz1,true,.35);
+  const lz0=bz0+bd+8,nm=Math.floor((z1-lz0-26)/18.6),lz1=lz0+nm*18.6;lotFlat(x0+4,lz0,x1-4,lz1,true);lotCars(F,x0+4,lz0,x1-4,lz1,true,.25);
   flat(M.asphaltO,x0+4,bz0+bd+1,x1-4,lz0,PADY+.004,10);flat(M.asphaltO,x0+4,lz1,x1-4,z1-SWA-1,PADY+.004,10);
   // pads along Foothill
   const pz=z1-SWA-14;block(x0+40,pz,18,12,5.2,{front:1,fc:['storeD','glassFront'],tint:0xe8d8bc,band:0xb3261e});faceQuad(x0+40,pz,18,12,1,0,8,4.2,.9,signUV(8));

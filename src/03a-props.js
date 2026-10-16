@@ -52,8 +52,8 @@ const fanLeaf=(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new
 // ---------- trees: 0 round shade tree, 1 jacaranda (in flower), 2 pepper tree, 3 magnolia, 4 pine, 5 eucalyptus, 6 crape myrtle
 function lumpy(geo,k){const g=geo.clone(),P=g.attributes.position,seen={};for(let i=0;i<P.count;i++){const key=Math.round(P.getX(i)*50)+','+Math.round(P.getY(i)*50)+','+Math.round(P.getZ(i)*50),f=seen[key]||(seen[key]=1+rr(-k,k));P.setXYZ(i,P.getX(i)*f,P.getY(i)*f,P.getZ(i)*f);}
   g.computeVertexNormals();return g;}
-GEO.blobT=new T.SphereGeometry(1,6,3);
-function treeGeo(type){const b=new GB(),BL=()=>lumpy(GEO.blobT,.2),lit=(lo,hi,y0,y1)=>(x,y,z)=>lo+(hi-lo)*clamp((y-y0)/(y1-y0),0,1)+rr(-.06,.06);
+GEO.blobT=new T.SphereGeometry(1,5,3);GEO.blobM=new T.SphereGeometry(1,7,4);
+function treeGeo(type){const b=new GB();let nb=0;const BL=()=>lumpy(nb++?GEO.blobT:GEO.blobM,.18),lit=(lo,hi,y0,y1)=>(x,y,z)=>lo+(hi-lo)*clamp((y-y0)/(y1-y0),0,1)+rr(-.06,.06);
   const TK=GEO.tube6;
   if(type===0){b.add(TK,0,0,0,0,0,0,.17,2.6,.17,0x6b5138);for(const q of [[0,3.6,0,2.2,1.9,2.1],[-1.1,3.1,.6,1.6,1.3,1.5]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3f7d3a,lit(.55,1,2.2,4.8));}
   else if(type===1){b.add(TK,0,0,0,0,0,.1,.15,2.6,.15,0x5a4a3c);for(const q of [[0,3.5,0,2.3,1.5,2.2,0x8a72c8],[1.2,3.1,-.6,1.5,1.2,1.4,0x7a8a4a]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],q[6],lit(.6,1,2.4,4.2));}

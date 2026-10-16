@@ -87,7 +87,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       const ra=eL==='open'?U0:eL==='bulb'?ubL+RBUL-1:stops[k]+HWC,rb=eH==='open'?U1:eH==='bulb'?ubH-RBUL+1:stops[k+1]-HWC;
       if(rb>ra){roads.push({u0:ra,u1:rb,v0:v-HWL,v1:v+HWL});flatL(M.asphalt,ra,v-HWL,rb,v+HWL,.03,10);const r=rect(ra,v-HWL,rb,v+HWL);mapR(r[0],r[1],r[2],r[3],'#77736c');}
       if(ubL!==null)bulbs.push([ubL,v,-1,endL]);if(ubH!==null)bulbs.push([ubH,v,1,endH]);
-      for(const side of [-1,1])lotRows.push({v,side,a:eL==='open'?uL0:segA,b:eH==='open'?uL1:segB,ubL,ubH,i});
+      for(const side of [-1,1])lotRows.push({v,side,a:eL==='open'?uL0:segA,b:eH==='open'?uL1:segB,ubL,ubH,i,aunt:side>0&&!!(o.bulbAt&&o.bulbAt[i]&&o.bulbAt[i][0]!==undefined)});
       SPN.push(P((ra+rb)/2,v));}});
   // pads: everything inside R that is not road
   const ub=[U0,U1];for(const r of roads){ub.push(Math.max(U0,Math.min(U1,r.u0)),Math.max(U0,Math.min(U1,r.u1)));}
@@ -121,7 +121,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
   for(const rv of rear)runWall(rv,true,uL0,uL1,coll.map(uc=>[uc-HWC-SWC-2.5,uc+HWC+SWC+2.5]),0);
   // arterial parkway: a row of trees in front of the wall
   for(let s=0;s<4;s++){if(K[s]!=='A')continue;const along=s<2,fix=s===0?V0+SWA+pk[0]/2:s===1?V1-SWA-pk[1]/2:s===2?U0+SWA+pk[2]/2:U1-SWA-pk[3]/2,a=along?uL0:vL0,b=along?uL1:vL1,ty=o.wind&&o.wind.indexOf('NSWE'[sw?[2,3,0,1][s]:s])>=0?5:-1;
-    for(let t=a+6;t<b-4;t+=ty===5?12:rr(20,28)){const u=along?t:fix,v=along?fix:t;let skip=false;for(const g of (along?(s===0?(cex[0]?gapsU:[]):(cex[1]?gapsU:[])):gapsV(s-2)))if(t>g[0]-3&&t<g[1]+3)skip=true;if(skip)continue;
+    for(let t=a+6;t<b-4;t+=ty===5?13:rr(24,32)){const u=along?t:fix,v=along?fix:t;let skip=false;for(const g of (along?(s===0?(cex[0]?gapsU:[]):(cex[1]?gapsU:[])):gapsV(s-2)))if(t>g[0]-3&&t<g[1]+3)skip=true;if(skip)continue;
       if(ty===5)tree(u,v,rr(.9,1.15),5);else if(rnd()<.18){const p=P(u,v);fans.push([p[0],p[1],rr(11,17)]);}else tree(u,v,rr(.85,1.15),pick([0,2,3,0,6]));}}
   // ---------- lots
   const tintN=()=>pick(wallCols),roofN=()=>pick(roofCols),only1=!!o.older,lotsAll=[];
@@ -131,9 +131,9 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
     const pickT=(maxD)=>{for(let t=0;t<12;t++){const k=only1?pick([2,3,6,7]):Math.floor(rnd()*HT.length);if(HT[k].D<=maxD)return k;}return-1;};
     // lay lots out: first one centred on a bulb if there is one, then towards the other end
     const L=[],hiB=r.ubH!==null,loB=r.ubL!==null;let dir=hiB&&!loB?-1:1;let cur=dir>0?r.a:r.b;
-    const place=(uc,w,k)=>L.push({u:uc,w,k});
+    const place=(uc,w,k,ex)=>L.push({u:uc,w,k,ex:ex||0});
     if(hiB){const k=pickT(depth-8);if(k>=0){const w=HT[k].W+rr(2.6,3.6);place(r.ubH,w,k);if(dir<0)cur=r.ubH-w/2;else r.bEff=r.ubH-w/2;}}
-    if(loB){const k=pickT(depth-8);if(k>=0){const w=HT[k].W+rr(2.6,3.6);place(r.ubL,w,k);if(dir>0)cur=r.ubL+w/2;}}
+    if(loB){const k=r.aunt?0:pickT(depth-8);if(k>=0){const w=HT[k].W+rr(2.6,3.6),ex=r.aunt?5.5:0;place(r.ubL,w,k,ex);if(dir>0)cur=r.ubL+w/2+ex;}}
     const lim=dir>0?(r.bEff!==undefined?r.bEff:r.b):r.a;
     for(let g=0;g<40;g++){const room=Math.abs(lim-cur);const k=pickT(depth-8);if(k<0)break;let w=HT[k].W+rr(2.4,4);if(room<HT[k].W+1.6)break;if(room-w<HT[k].W*0.6)w=Math.min(room,w+room-w);
       place(cur+dir*w/2,w,k);cur+=dir*w;}
@@ -148,7 +148,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       flatL(M.walkO,du-.6,Math.min(vF,vc+sg*(H.D/2-.4)),du+.6,Math.max(vF,vc+sg*(H.D/2-.4)),PADY+.003,6);
       // yard life
       const sideU=gU>l.u?-1:1,fy=Math.abs(l.vf-vF);
-      if(fy>3.2&&rnd()<.28){const t=rnd();if(t<.08){const p=P(l.u+sideU*(H.W/2-1.5),vF-sg*fy*.55);fans.push([p[0],p[1],rr(9,14)]);}else tree(l.u+sideU*(H.W/2-2),vF-sg*Math.min(fy*.5,3.2),rr(.7,1.05),pick([0,1,2,3,0,2,6]));}
+      if(fy>3.2&&rnd()<.25){const t=rnd();if(t<.08){const p=P(l.u+sideU*(H.W/2-1.5),vF-sg*fy*.55);fans.push([p[0],p[1],rr(9,14)]);}else tree(l.u+sideU*(H.W/2-2),vF-sg*Math.min(fy*.5,3.2),rr(.7,1.05),pick([0,1,2,3,0,2,6]));}
       if(rnd()<.45){const p=P(l.u+sideU*rr(1,H.W/2-1),l.vf-sg*.9);shrubs.push([p[0],p[1],rr(.55,.9)]);}
       const by=Math.abs(vR-l.vb);
       if(by>5&&rnd()<.1)tree(l.u+rr(-l.w/3,l.w/3),vR-sg*2.4,rr(.8,1.2),pick([0,4,2,0,6]));
@@ -164,12 +164,12 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       lotsAll.push(l);}
     // gates between neighbours, side walls back to the rear line, and the end walls of the row
     const Lp=L.filter(l=>!l.skip);
-    for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2;
+    for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2+l.ex;
       if(nx){const g=r.side<0?Math.min(l.vf,nx.vf)-2.2:Math.max(l.vf,nx.vf)+2.2,ok=r.side<0?g>Math.max(l.vb,nx.vb)+.5:g<Math.min(l.vb,nx.vb)-.5;
         if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);}
         else wallL(bnd,l.vF+sg*1,bnd,vR,0,C.greyWall);}
       if(k===0){const e=l.u-l.w/2,g=l.vf+sg*2.2;if(!l.aunt)gateL(e,g,l.u-l.W/2,g);wallL(e,g,e,vR,0,C.greyWall);}
-      if(k===Lp.length-1){const e=l.u+l.w/2,g=r.side<0?l.vf-2.2:l.vf+2.2;if(!l.aunt)gateL(l.u+l.W/2,g,e,g);wallL(e,g,e,vR,0,C.greyWall);}}
+      if(k===Lp.length-1){const e=l.u+l.w/2+l.ex,g=r.side<0?l.vf-2.2:l.vf+2.2;if(!l.aunt)gateL(l.u+l.W/2,g,e,g);wallL(e,g,e,vR,0,C.greyWall);}}
     // mailbox cluster and a street light every few lots, the odd car at the curb
     for(let k=0;k<Lp.length;k+=5){const l=Lp[k],p=P(l.u+l.w/2-1,r.v+sg*(HWL+.7));mailboxes.push([p[0],p[1]]);}
     if(r.side<0)for(let k=2;k<Lp.length;k+=6){const l=Lp[k],p=P(l.u+l.w/2,r.v-(HWL+.5));lamps.push([p[0],p[1],2,(sw?0:PI/2)+(sw?PI:0),.75]);}

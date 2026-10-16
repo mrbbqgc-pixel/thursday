@@ -75,7 +75,7 @@ stripCenter(RR(xE('HERM'),zS('FH'),-90,122,null,[SWA,0,SWA,0]),0,'ROUTE 66 PLAZA
 {pad2(-90,zS('FH'),xW('HAVEN'),122,M.pad,[SWA,0,0,SWA]);mapR(-90,zS('FH'),xW('HAVEN'),122,'#b7b3ab');gasStation(-56,40,2,0x1d6f9a);fastFood(-56,98,3,17,0x2f7d4f);}
 tract(RR(xE('HERM'),122,xW('HAVEN'),zN('AR'),['W','A','A','A']),{older:true,coll:[]});
 civicCenter(RR(xE('HAVEN'),zS('FH'),152,152));
-{pad2(xE('HAVEN'),152,152,zN('AR'),M.pad,[0,SWA,SWA,0]);mapR(xE('HAVEN'),152,152,zN('AR'),'#b7b3ab');marketHall(40,205);
+{pad2(xE('HAVEN'),152,152,zN('AR'),M.grass,[0,SWA,SWA,0]);mapR(xE('HAVEN'),152,152,zN('AR'),'#b7b3ab');marketHall(40,205);
  const F=TF(0,0,0);F.lot(80,158,148,158+18.6*3,false);lotCars(F,80,158,148,158+18.6*3,false,.45);}
 officePark(RR(152,zS('FH'),337,zN('AR'),null,[SWA,SWA,0,0]),{name:'HAVEN OFFICE PARK'});
 apartments(RR(337,zS('FH'),xW('MILL'),zN('AR'),null,[SWA,SWA,0,SWA]),{name:'APARTMENTS'});
@@ -112,9 +112,11 @@ industrial(RR(-562,zS('FOUR'),xW('ARCH'),zN('OMP'),null,[SWA,SWA,0,SWA]),{len:14
  for(const p of [[320,1010,0,9],[380,1010,0,17],[440,1010,0,28]])fastFood(p[0],p[1],p[2],p[3]);const F=TF(0,0,0);F.lot(x0+6,1080,x1-6,1080+18.6*5,true);lotCars(F,x0+6,1080,x1-6,1080+18.6*5,true,.35);
  for(let x=x0+10;x<x1;x+=26)fans.push([x,zS('FOUR')+SWA+1.5,rr(13,17)]);label(160,1060,'HOTELS',0);}
 const OUT=outlets();
+// beyond the freeway (out of reach): a band of plain houses so the far side is not empty
+for(let z=-560;z<900;z+=160){const xa=Math.max(fwX(z),fwX(z+160))+46;filler(xa,z,xa+300,z+160);}
 filler(-1000,1236,860,1370);
 // ---------- districts for the area name on the HUD (first match wins)
-const AREAS=[[330,-627,477,-516,'Central Park'],[-1000,-650,1500,-622,'Pacific Electric Trail'],[600,-640,1500,-500,'Pacific Electric Trail'],[-241,-250,-160,-118,'Church St Park'],[-156,-250,-15,-118,'Elementary School'],
+const AREAS=[[330,-627,477,-516,'Central Park'],[-241,-250,-160,-118,'Church St Park'],[-156,-250,-15,-118,'Elementary School'],
   [120,-250,245,-135,'Middle School'],[250,-250,352,-135,'Coyote Park'],[15,-130,340,-15,'Vista Town Center'],[1080,-250,1400,-15,'Rancho Promenade'],[15,15,150,150,'Civic Center'],[15,150,150,226,'The Market Hall'],
   [700,60,830,200,'Ballpark'],[380,390,480,500,'Metrolink Station'],[500,970,830,1210,'Inland Empire Outlets'],[-260,-330,-200,-270,'Aunt Ro\'s Street'],[-1000,-30,1300,30,'Route 66'],[-1000,476,1000,1210,'Industrial Park'],
   [-1000,236,1000,476,'Arrow Corridor'],[-500,-500,-10,-20,'Terra Linda'],[-1000,-20,0,236,'Old Cucamonga'],[0,-520,840,-20,'Terra Vista'],[840,-700,1500,-20,'Etiwanda'],[-1000,-760,1500,-500,'Alta Loma'],[0,0,1000,236,'Haven Corridor']];

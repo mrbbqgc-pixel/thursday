@@ -145,7 +145,7 @@ function industrial(R,o){o=o||{};const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,w=x1-x0,d
 const fwyCars=[];
 function freeway(){const zs=[];for(let z=-830;z<1500;z+=12)zs.push(z);const crossings=EWA.map(b=>[b.z,b.hw+6]).concat([[TRK,10]]),under=z=>crossings.find(c=>Math.abs(z-c[0])<c[1]);
   const Y=6.4;for(let k=0;k<zs.length-1;k++){const za=zs[k],zb=zs[k+1],xa=fwX(za),xb=fwX(zb),L0=Math.hypot(xb-xa,zb-za),nx=-(zb-za)/L0,nz=(xb-xa)/L0; // n points west
-    const P=(x,z,o,y)=>[x+nx*o,y,z+nz*o],u=under((za+zb)/2),mz=(za+zb)/2;
+    const P=(x,z,o,y)=>[x+nx*o,y,z+nz*o],mz=(za+zb)/2,zz=[za,zb].flatMap(q=>[q+nz*(FWH+16),q-nz*(FWH+16)]),z0=Math.min(...zz),z1=Math.max(...zz),u=crossings.find(c=>z1>c[0]-c[1]+4&&z0<c[0]+c[1]-4);
     qUp(M.fwy,P(xb,zb,FWH,Y),P(xb,zb,-FWH,Y),P(xa,za,-FWH,Y),P(xa,za,FWH,Y),1,L0/40);
     if(!u){qUp(M.dry,P(xb,zb,FWH+16,0),P(xb,zb,FWH,Y),P(xa,za,FWH,Y),P(xa,za,FWH+16,0),1.4,L0/12);qUp(M.dry,P(xa,za,-FWH-16,0),P(xa,za,-FWH,Y),P(xb,zb,-FWH,Y),P(xb,zb,-FWH-16,0),1.4,L0/12);}
     else{const c=[(xa+xb)/2,mz];anchor(c[0],c[1],()=>{const q=(o,y)=>[P(xa,za,o,y),P(xb,zb,o,y)];const a=q(FWH,Y-1.4),b=q(-FWH,Y-1.4);

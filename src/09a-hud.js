@@ -16,7 +16,7 @@ function radio(who,text){if(MP.on&&MP.host&&mpMode().coop&&who!=='TIP')mpEvent('
 function killFeed(pts,label){const p=document.createElement('p');p.innerHTML='<b>'+esc(pts)+'</b> '+esc(label);el.kills.appendChild(p);killL.push({p,t:2.6});if(killL.length>5)el.kills.removeChild(killL.shift().p);}
 function clearFeeds(){for(const f of feedL)el.feed.removeChild(f.p);feedL.length=0;for(const f of killL)el.kills.removeChild(f.p);killL.length=0;}
 // area name for the HUD: landmarks first, then the districts
-function colonia(x,z){for(const a of AREAS)if(x>=a[0]&&x<=a[2]&&z>=a[1]&&z<=a[3])return a[4];return'Rancho Cucamonga';}
+function colonia(x,z){if(x<1400&&Math.abs(z-trailZ(x))<TRW+1&&!(x>330&&x<AV.MILL.x&&z>-628))return'Pacific Electric Trail';for(const a of AREAS)if(x>=a[0]&&x<=a[2]&&z>=a[1]&&z<=a[3])return a[4];return'Rancho Cucamonga';}
 // game position -> real coordinates through the frame formula (30 % compression about Haven x Foothill)
 const SB=Math.sin(ROT_DEG*PI/180),CB=Math.cos(ROT_DEG*PI/180);
 function latlon(x,z){return[34.1063-z/33285,117.5759-x/27654];}
