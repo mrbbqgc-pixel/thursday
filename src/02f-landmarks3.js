@@ -71,6 +71,7 @@ function promenade(cx,cz){const mz0=-218,mz1=-76,mw=14,x0=cx-mw/2,x1=cx+mw/2,rd=
   for(const s of [-1,1]){let z=mz0;const rx=cx+s*(mw/2+rd/2);while(z<mz1-6){if(z>cz-24&&z<cz+20){z=cz+20;continue;}let L0=Math.min(rr(16,26),mz1-z);if(z<cz-24&&z+L0>cz-24)L0=cz-24-z;if(L0<8){z+=L0;continue;}
       const bz=z+L0/2,brick=rnd()<.25,tint=pick(tints),fr=s<0?3:2;block(rx,bz,rd,L0,8.4,{front:fr,floors:2,fc:['store','storeD','store'],up:brick?['hwinA','brick']:['hwinA','office','hwinA'],sc:brick?['brick']:['dado'],sup:brick?['brick']:['stucco'],tint,band:shade(tint,.75),parapet:.9});
       awning(rx,bz,rd,L0,fr,L0*.8,3.1);if(rnd()<.9)faceQuad(rx,bz,rd,L0,fr,0,Math.min(4,L0-2),4.3,.9,signUV(shopK++),.08);
+      isoR(()=>{if(rnd()<.28)faceQuad(rx,bz,rd,L0,fr,rr(-L0/4,L0/4),Math.min(2.8,L0-3),3.3,.7,pick([DUV.sale,DUV.open,DUV.sale]),.1);});
       z+=L0+(rnd()<.35?3:0);}}
   // north anchor: a department store across the head of the street; cinema at the south-east
   bigBox(cx,mz0-13,64,24,1,'DEPARTMENT STORE',{h:11,band:0x7a1f3d,fg:'#7a1f3d'});
@@ -87,6 +88,7 @@ function promenade(cx,cz){const mz0=-218,mz1=-76,mw=14,x0=cx-mw/2,x1=cx+mw/2,rd=
   for(let z=mz0+6;z<mz1-3;z+=14){if(Math.abs(z-cz)<22)continue;lamps.push([x0+.8,z,4,0,1],[x1-.8,z+7,4,0,1]);planter(cx,z+3.5,1.6,4,1);}
   for(const q of [[cx-4.5,cz-30],[cx+4.5,cz+28],[cx-4.5,cz+44],[cx+4.5,cz-50]]){block(q[0],q[1],2.4,3.6,2.6,{front:q[0]<cx?3:2,fc:['store'],sc:['dado'],tint:0x2d5a4a,noAC:true});}
   for(const q of [[cx-15,cz-10,0],[cx+15,cz+10,0],[cx-10,cz+16,1],[cx+10,cz-16,1]])bench(q[0],q[1],!!q[2]);
+  for(const q of [[x0+.9,cz-28,PI/2],[x1-.9,cz+30,-PI/2],[x0+.9,mz1-12,PI/2]])for(let j=0;j<3;j++)newsSpots.push([q[0],q[1]+(j-1)*.56,q[2],j]);
   for(const q of [[cx-18,cz+5],[cx+18,cz-5],[cx-6,cz-19],[cx+6,cz+19]])palms.push(q);
   for(const s of [-1,1])for(let z=mz0+2;z<mz1;z+=40)fans.push([cx+s*(mw/2+rd+1.5),z,rr(13,17)]);
   // parking: west between Day Creek and the shops, south toward Foothill, east up to the freeway
@@ -105,7 +107,8 @@ function outlets(){const X0=535,X1=805,Z0=1035,Z1=1185,cx0=X0+44,cz0=1137,tint=0
   const part=(x0,z0,x1,z1,o)=>{const w=x1-x0,d=z1-z0,x=(x0+x1)/2,z=(z0+z1)/2;anchor(x,z,()=>{for(let s=0;s<4;s++){const n=Math.max(1,Math.round((s<2?w:d)/8));wallSideE(CE,x,z,w,d,0,10,s,cyc(o&&o.cells&&o.cells[s]||['tilt'],n),tint);}
       roofFlat(x,z,w,d,10.6,0xd2cbbf,0xcfc4b0);for(let k=0;k<Math.round(w*d/700);k++)boxC(M.flat,x+rr(-w/2.6,w/2.6),10.6,z+rr(-d/2.6,d/2.6),3,1.2,3,0x9fb7c4,0xc9d8de);shadeRect(x,z,w,d,PADY,2.5);});
     solid(x,z,w,d,11,0,1);buildings.push({x,z,w,d,h:10,flat:true});};
-  part(cx0,Z0,X1,Z1,{cells:[['tilt','tilt','store','storeD','store'],['tilt'],['tilt','store','storeD'],['tilt']]});part(X0,Z0,cx0,cz0,{cells:[['tilt'],['store','storeD','store'],['tilt','storeD'],['tilt']]});
+  part(cx0,Z0,X1,Z1,{cells:[['tilt','tilt','store','storeD','store'],['tilt'],['tilt','store','storeD'],['tilt']]});
+  isoR(()=>{for(let k=0;k<7;k++){const u=rr(-100,100);faceQuad((cx0+X1)/2,(Z0+Z1)/2,X1-cx0,Z1-Z0,0,u,3.2,4.4,.75,pick([DUV.sale,DUV.sale,DUV.grand,DUV.open]),.06);}}); /* SALE banners over the storefronts */part(X0,Z0,cx0,cz0,{cells:[['tilt'],['store','storeD','store'],['tilt','storeD'],['tilt']]});
   // colour bands
   for(const q of [[cx0,Z0,X1,Z1],[X0,Z0,cx0,cz0]])boxC(M.flat,(q[0]+q[2])/2,8.4,(q[1]+q[3])/2,q[2]-q[0]+.2,1.1,q[3]-q[1]+.2,bands[0]);
   // entrance pavilions: tall arched portals with the name

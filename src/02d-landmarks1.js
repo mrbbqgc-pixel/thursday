@@ -33,18 +33,29 @@ function TF(cx,cz,r){const c=[1,0,-1,0][r],s=[0,1,0,-1][r],F={cx,cz,r,ry:r*PI/2}
   F.picnic=(lx,lz,alongLX)=>{const p=F.p(lx,lz);picnic(p[0],p[1],r%2?!alongLX:!!alongLX);};
   F.label=(lx,lz,t,k)=>{const p=F.p(lx,lz);label(p[0],p[1],t,k);};
   return F;}
-function roomFor(x,z,w,d){const i0=Math.floor((x-w/2+1000)/16),i1=Math.floor((x+w/2+1000)/16),j0=Math.floor((z-d/2+1000)/16),j1=Math.floor((z+d/2+1000)/16);
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const L=roomBins.get(i*4096+j);if(!L)continue;for(const c of L)if(c.y0<1.6&&x-w/2<c.x1+.4&&x+w/2>c.x0-.4&&z-d/2<c.z1+.4&&z+d/2>c.z0-.4)return false;}return true;}
+// all: also see the dressing's colliders (the layout's own checks ignore them, so dressing never changes the layout)
+function roomFor(x,z,w,d,all){const i0=Math.floor((x-w/2+1000)/16),i1=Math.floor((x+w/2+1000)/16),j0=Math.floor((z-d/2+1000)/16),j1=Math.floor((z+d/2+1000)/16);
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const L=roomBins.get(i*4096+j);if(!L)continue;for(const c of L)if(c.y0<1.6&&(all||!c.dress)&&x-w/2<c.x1+.4&&x+w/2>c.x0-.4&&z-d/2<c.z1+.4&&z+d/2>c.z0-.4)return false;}return true;}
 // a coarse spatial hash of the colliders made so far, refreshed lazily, so that parking checks stay cheap
 const roomBins=new Map();let roomN=0;
 function roomSync(){for(;roomN<colliders.length;roomN++){const c=colliders[roomN],i0=Math.floor((c.x0+1000)/16),i1=Math.floor((c.x1+1000)/16),j0=Math.floor((c.z0+1000)/16),j1=Math.floor((c.z1+1000)/16);
   if((i1-i0+1)*(j1-j0+1)>400)continue;for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i*4096+j;let L=roomBins.get(k);if(!L){L=[];roomBins.set(k,L);}L.push(c);}}}
 function park(x,z,alongX,col,type,lite){type=type||carType();const V=VEH[type];roomSync();if(roomFor(x,z,alongX?V.len:V.wid,alongX?V.wid:V.len))return car(x,z,alongX,col,type,lite);return null;}
 // cars in the stalls of a lot laid with F.lot from (lx0,lz0): fill = share of stalls taken
-function lotCars(F,lx0,lz0,lx1,lz1,alongLX,fill,lite){fill*=.26;const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0;
-  for(let m=0;m*18.6<L2-5;m++)for(const rv of [2.75,15.85]){if(m*18.6+rv>L2-2.5)continue;for(let s=0;(s+1)*2.75<=L1-.3;s++){if(rnd()>fill)continue;const a=s*2.75+1.375,b=m*18.6+rv;
+function lotCars(F,lx0,lz0,lx1,lz1,alongLX,fill,lite){fill*=.26;const lc=F.p((lx0+lx1)/2,(lz0+lz1)/2),lo0=carLo;carLo=lc[1]>TRK&&!(lc[0]>490&&lc[0]<840&&lc[1]>965); // far lots: cheapest cars
+  try{const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0;
+  for(let m=0;m*18.6<L2-5;m++)for(const rv of [2.75,15.85]){if(m*18.6+rv>L2-2.5)continue;for(let s=0;(s+1)*2.75<=L1-.3;s++){if(rnd()>fill){isoR(()=>{if(rnd()<.09){const p=alongLX?F.p(lx0+s*2.75+1.375+rr(-.5,.5),lz0+m*18.6+rv+rr(-1.5,1.5)):F.p(lx0+m*18.6+rv+rr(-1.5,1.5),lz0+s*2.75+1.375+rr(-.5,.5));stain(p[0],p[1],rr(.22,.5),rr(.3,.65),rnd()*3,PADY);}});continue;}const a=s*2.75+1.375,b=m*18.6+rv;
       if(alongLX)F.car(lx0+a,lz0+b,false,undefined,undefined,lite===undefined?2:lite);else F.car(lx0+b,lz0+a,true,undefined,undefined,lite===undefined?2:lite);}}
-  for(let m=0;m*18.6<L2-1;m+=3)for(let s=24;s<L1-6;s+=60){const b=m*18.6+.2;if(alongLX)F.lamp(lx0+s,lz0+b,3);else F.lamp(lx0+b,lz0+s,3);}}
+  for(let m=0;m*18.6<L2-1;m+=3)for(let s=24;s<L1-6;s+=60){const b=m*18.6+.2;if(alongLX)F.lamp(lx0+s,lz0+b,3);else F.lamp(lx0+b,lz0+s,3);}
+  // tyre marks along the aisles
+  isoR(()=>{for(let m=0;m*18.6<L2-8;m++)if(rnd()<.55){const a=rr(2,Math.max(2.5,L1-6)),b=m*18.6+9.3+rr(-1.6,1.6),len=rr(3,7),c=alongLX?F.p(lx0+a,lz0+b):F.p(lx0+b,lz0+a),ry=(alongLX?PI/2:0)+F.ry+rr(-.15,.15);
+    for(const o of [-.8,.8])smear(c[0]+Math.cos(ry)*o,c[1]-Math.sin(ry)*o,len,.22,ry+PI/2,PADY);}});}finally{carLo=lo0;}}
+// carts and cart corrals in a lot laid out like lotCars (nc corrals, nk loose carts)
+function lotLife(F,lx0,lz0,lx1,lz1,alongLX,nc,nk){isoR(()=>{const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0,nm=Math.floor((L2+.1)/18.6),ns=Math.floor((L1-.3)/2.75);if(nm<1||ns<2)return;
+  const loc=(a,b)=>alongLX?F.p(lx0+a,lz0+b):F.p(lx0+b,lz0+a),dz=(!!alongLX)!==(F.r%2===1),ry=dz?0:PI/2,dv=dz?[0,1]:[1,0];roomSync();
+  for(let k=0;k<nc*4&&nc>0;k++){const m=Math.floor(rnd()*nm),rv=rnd()<.5?2.75:15.85,s=Math.floor(rnd()*ns),p=loc(s*2.75+1.375,m*18.6+rv);if(!roomFor(p[0],p[1],2.4,4.2,1))continue;
+    corralSpots.push([p[0],p[1],ry]);solid(p[0],p[1],dz?1.2:3.7,dz?3.7:1.2,1.05,0,5);roomSync();nc--;const n=1+Math.floor(rnd()*4);for(let j=0;j<n;j++)cartSpots.push([p[0]+dv[0]*(j*.42-.9),p[1]+dv[1]*(j*.42-.9),ry]);}
+  for(let k=0;k<nk;k++){const m=Math.floor(rnd()*nm),p=loc(rr(1,L1-1),m*18.6+rr(6.5,12));if(roomFor(p[0],p[1],1,1,1))cartSpots.push([p[0],p[1],rnd()*TAU]);}});}
 // ---------- The Market Hall: a barn-like food hall on Haven, patio with tables and a small stage on its north side. Local front (+z) faces north.
 function marketHall(cx,cz){const F=TF(cx,cz,2),hw=22,hd=12,hz=-4,rc=0x3f5a4a,wt=0xb8452f,pz=hz+hd;
   const b=F.b(0,hz,2*hw,2*hd);
@@ -101,7 +112,7 @@ function civicCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M
 function townCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0,z0,x1,z1,M.pad,[0,SWA,SWA,0]);mapR(x0,z0,x1,z1,'#b7b3ab');
   const bz0=z0+4,bd=38,names=[['HOME CENTER','#f4f0e7','#d86a1f'],['SUPERMARKET','#f4f0e7','#b3261e'],['OFFICE SUPPLY','#f4f0e7','#1d3f7a'],['CINEMA 12','#15110c','#e2b93b']];let x=x0+6;const ws=[62,48,40,52];
   for(let k=0;k<4;k++){const w=Math.min(ws[k],x1-6-x);if(w<25)break;bigBox(x+w/2,bz0+bd/2,w,bd,1,names[k][0],{bg:names[k][1],fg:names[k][2],band:[0xb7472a,0x2f6a3a,0x1d3f7a,0x6a3d8f][k],h:k===3?11:9});x+=w+4;}
-  const lz0=bz0+bd+8,nm=Math.floor((z1-lz0-26)/18.6),lz1=lz0+nm*18.6;lotFlat(x0+4,lz0,x1-4,lz1,true);lotCars(F,x0+4,lz0,x1-4,lz1,true,.25);
+  const lz0=bz0+bd+8,nm=Math.floor((z1-lz0-26)/18.6),lz1=lz0+nm*18.6;lotFlat(x0+4,lz0,x1-4,lz1,true);lotCars(F,x0+4,lz0,x1-4,lz1,true,.25);lotLife(F,x0+4,lz0,x1-4,lz1,true,6,16);
   flat(M.asphaltO,x0+4,bz0+bd+1,x1-4,lz0,PADY+.004,10);flat(M.asphaltO,x0+4,lz1,x1-4,z1-SWA-1,PADY+.004,10);
   // pads along Foothill
   const pz=z1-SWA-14;block(x0+40,pz,18,12,5.2,{front:1,fc:['storeD','glassFront'],tint:0xe8d8bc,band:0xb3261e});faceQuad(x0+40,pz,18,12,1,0,8,4.2,.9,signUV(8));

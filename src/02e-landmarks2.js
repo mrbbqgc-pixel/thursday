@@ -55,18 +55,22 @@ function gasStation(cx,cz,r,band){const F=TF(cx,cz,r),cz2=6;band=band||0x1d6f9a;
   F.block(0,-12,20,10,4.2,{front:1,fc:['glassFront','storeD','glassFront'],sc:['dado','doorMetal'],tint:0xf2efe6,band});
   F.board(strip('foodmart','FOOD MART','#f4f0e7','#1d3f7a','900 34px "Arial Narrow",Arial'),0,3.3,-6.85,0,6,1.1);
   const pp=F.p(9.5,17);pylon(strip('gasP','GAS','#1d6f9a','#f4f0e7','900 44px "Arial Narrow",Arial'),pp[0],pp[1],F.ry,7,0xf2efe6,strip('gas159','UNLEADED  1.59⁹','#15110c','#f1d38a','bold 28px "Arial Narrow",Arial'));
-  F.barrel(8,-15);F.barrel(-9,-17.5);F.cover(9,-6);label(cx,cz,'GAS STATION',0);return F;}
+  F.barrel(8,-15);F.barrel(-9,-17.5);F.cover(9,-6);label(cx,cz,'GAS STATION',0);
+  // a payphone, newspaper boxes and an ice chest by the mart door, oil stains at the pumps
+  isoR(()=>{const ph=F.p(-8.6,-6.4);phoneSpots.push([ph[0],ph[1],F.ry]);solid(ph[0],ph[1],.5,.5,2.1,0,0);for(let j=0;j<3;j++){const p=F.p(-6.8+j*.56,-6.5);newsSpots.push([p[0],p[1],F.ry,j%3]);}
+    const ic=F.p(6.4,-6.3);iceSpots.push([ic[0],ic[1],F.ry]);solid(ic[0],ic[1],1.4,.8,1.15,0,5);for(const sx of [-3.6,3.6])for(let j=0;j<3;j++){const p=F.p(sx+rr(-2.2,2.2),cz2+rr(-3,3));stain(p[0],p[1],rr(.3,.7),rr(.3,.8),rnd()*3,PADY);}});return F;}
 // ---------- fast-food pad with a drive-through lane and a pole sign. front = side to the street.
 function fastFood(cx,cz,r,sk,band){const F=TF(cx,cz,r);F.flat(M.asphaltO,-14,-14,14,14,PADY+.004,10);
   F.block(0,-2,15,11,4.6,{front:1,fc:['glassFront','storeD','glassFront'],sc:['stucco','store'],tint:pick([0xf2e6c8,0xe8d0b0,0xf1ebe0]),band:band||0xb3261e});
   F.flat(M.lineW,-11.5,-10,-11.3,8,PADY+.01,1);F.box(-9.6,PADY,4,.8,1.4,.6,0x3a3128);F.board(signUV(sk),0,3.6,3.62,0,5,1.1);
   const pp=F.p(11,12);anchor(pp[0],pp[1],()=>{post(pp[0],pp[1],9,.18,0xd9d9d2);boardQ(signUV(sk),pp[0],8,pp[1],F.ry,4,1.2,true);});solid(pp[0],pp[1],.4,.4,9);
-  for(const q of [[-6,10],[6,10]])F.car(q[0],q[1],false,undefined,undefined,2);}
+  for(const q of [[-6,10],[6,10]])F.car(q[0],q[1],false,undefined,undefined,2);
+  isoR(()=>{const p=F.p(5,-11);dumpSpots.push([p[0],p[1],F.ry+PI,Math.floor(rnd()*3)]);solid(p[0],p[1],F.r%2?1.5:2,F.r%2?2:1.5,1.35,0,5);for(let k=0;k<5;k++){const q=F.p(-11.4+rr(-.4,.4),rr(-8,8));stain(q[0],q[1],rr(.3,.7),rr(.4,.9),rnd()*3,PADY);}});}
 // ---------- strip center: shops along the back of a pad, the lot in front, a pylon. R in world, front = side facing the street (0..3)
 function stripCenter(R,front,name,o){o=o||{};const cx=(R.x0+R.x1)/2,cz=(R.z0+R.z1)/2,r=[2,0,3,1][front],F=TF(cx,cz,r),LW=r%2?R.z1-R.z0:R.x1-R.x0,LD=r%2?R.x1-R.x0:R.z1-R.z0,hw=LW/2,hd=LD/2;
   pad2(R.x0,R.z0,R.x1,R.z1,M.pad,R.sw||[SWA,SWA,SWA,SWA]);mapR(R.x0,R.z0,R.x1,R.z1,'#b7b3ab');
   const sd=o.depth||20,sw=Math.min(o.len||LW-14,LW-10),sx=o.sx||0;F.shops(sx,-hd+3+sd/2,sw,sd,{tint:o.tint,sign0:o.sign0});
-  const lz0=-hd+3+sd+5,nm=Math.max(1,Math.floor((LD-sd-14)/18.6));F.lot(-hw+4,lz0,hw-4,lz0+nm*18.6,true);lotCars(F,-hw+4,lz0,hw-4,lz0+nm*18.6,true,o.fill||.35);
+  const lz0=-hd+3+sd+5,nm=Math.max(1,Math.floor((LD-sd-14)/18.6));F.lot(-hw+4,lz0,hw-4,lz0+nm*18.6,true);lotCars(F,-hw+4,lz0,hw-4,lz0+nm*18.6,true,o.fill||.35);lotLife(F,-hw+4,lz0,hw-4,lz0+nm*18.6,true,1,4);
   F.flat(M.asphaltO,-hw+4,-hd+3+sd+3.2,hw-4,lz0,PADY+.004,10);if(lz0+nm*18.6<hd-SWA-1)F.flat(M.asphaltO,-hw+4,lz0+nm*18.6,hw-4,hd-SWA-1,PADY+.004,10);
   for(let x=-hw+8;x<hw-6;x+=24)F.fan(x,hd-SWA-1.5,rr(11,16));
   if(name)pylon(strip('sc'+name,name,'#3a3128','#f1d38a','bold 30px "Arial Narrow",Arial'),...F.p(hw-6,hd-SWA-3),F.ry,7.5,0xe8d8bc,strip('sc2'+name,o.sub||'SHOPS · DINING','#f4f0e7','#3a3128'));

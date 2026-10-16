@@ -2,29 +2,34 @@
 // 03b STREET FURNITURE + SKY: street lights, traffic signals, power lines, string lights, chain-link mesh, barrels, fuel pumps,
 // freeway traffic, the San Gabriel Mountains, sky and sun
 // =====================================================================
-{ // 0 median lamp with two arms, 1 plaza globe, 2 cobra head on one arm (scaled down in the tracts), 3 parking-lot shoebox pair, 4 Promenade lantern post
+GEO.taper6=cylG(.7,1,1,6,true);GEO.lens=new T.PlaneGeometry(1,1);GEO.lens.rotateX(PI/2); // downward-facing quad
+{ // 0 median lamp with two arms, 1 plaza globe, 2 cobra head on one arm, 3 parking-lot shoebox pair, 4 Promenade lantern post, 5 tract cobra head on a concrete pole
  const a=new GB(),steel=0x9aa1a3;a.add(GEO.tube6,0,0,0,0,0,0,.1,8,.1,steel);a.add(GEO.tube6,0,0,0,0,0,0,.2,.5,.2,0x6f7577);
  for(const s of [-1,1]){a.add(GEO.rod,0,7.9,0,0,0,-s*(PI/2-.25),.05,2.1,.05,steel);a.add(GEO.box,s*2.1,8.35,0,0,0,0,.75,.12,.3,0x5a5f61);a.add(GEO.box,s*2.1,8.3,0,0,0,0,.6,.05,.22,0xf6efcf);}
  bake(a.build(),M.flat,lamps.filter(l=>l[2]===0),(o,p)=>{o.position.set(p[0],.2,p[1]);o.rotation.y=p[3]||0;});
  const b=new GB();b.add(GEO.tube6,0,0,0,0,0,0,.14,.5,.14,0x2b2621);b.add(GEO.rod,0,.5,0,0,0,0,.055,3,.055,0x2b2621);b.add(GEO.cyl6,0,3.5,0,0,0,0,.16,.1,.16,0x2b2621);b.add(GEO.blob,0,3.86,0,0,0,0,.3,.3,.3,0xf6efcf);
  bake(b.build(),M.flat,lamps.filter(l=>l[2]===1),(o,p)=>o.position.set(p[0],PADY,p[1]));
- const c=new GB();c.add(GEO.taper,0,0,0,0,0,0,.16,9,.16,steel);c.add(GEO.rod,0,8.5,0,PI/2-.12,0,0,.05,2.6,.05,steel);c.add(GEO.box,0,8.62,2.7,0,0,0,.42,.2,.85,0x8c9396);c.add(GEO.box,0,8.5,2.7,0,0,0,.32,.04,.6,0xf6efcf);
+ const c=new GB();c.add(GEO.taper6,0,0,0,0,0,0,.16,9,.16,steel);c.add(GEO.rod3,0,8.5,0,PI/2-.12,0,0,.05,2.6,.05,steel);c.add(GEO.box,0,8.5,2.7,0,0,0,.42,.22,.85,0x8c9396);c.add(GEO.lens,0,8.49,2.7,0,0,0,.32,1,.6,0xf6efcf);
  bake(c.build(),M.flat,lamps.filter(l=>l[2]===2),(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[3]||0;o.scale.setScalar(p[4]||1);});
- const d=new GB();d.add(GEO.taper,0,0,0,0,0,0,.14,9.5,.14,0x5a4a3c);d.add(GEO.box,0,9.3,0,0,0,0,1.8,.12,.12,0x3a3128);for(const s of [-1,1]){d.add(GEO.box,s*.85,9.15,0,0,0,0,.55,.24,.75,0x3a3128);d.add(GEO.box,s*.85,9.02,0,0,0,0,.45,.03,.6,0xf6efcf);}
- d.add(GEO.cyl8,0,0,0,0,0,0,.35,.7,.35,0xb9b4a8);bake(d.build(),M.flat,lamps.filter(l=>l[2]===3),(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=(p[3]||0)+PI/2;});
+ const d=new GB();d.add(GEO.taper6,0,0,0,0,0,0,.14,9.5,.14,0x5a4a3c);d.add(GEO.box,0,9.3,0,0,0,0,1.8,.12,.12,0x3a3128);for(const s of [-1,1]){d.add(GEO.box,s*.85,9.02,0,0,0,0,.55,.26,.75,0x3a3128);d.add(GEO.lens,s*.85,9.01,0,0,0,0,.45,1,.6,0xf6efcf);}
+ d.add(GEO.cyl6,0,0,0,0,0,0,.35,.7,.35,0xb9b4a8);bake(d.build(),M.flat,lamps.filter(l=>l[2]===3),(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=(p[3]||0)+PI/2;});
  const e=new GB();e.add(GEO.taper,0,0,0,0,0,0,.12,4.4,.12,0x1c1a18);e.add(GEO.box,0,4.2,0,0,0,0,1.5,.08,.08,0x1c1a18);for(const s of [-1,1]){e.add(GEO.cyl6,s*.7,3.7,0,0,0,0,.2,.5,.2,0xf6efcf);e.add(GEO.cone8,s*.7,4.2,0,0,0,0,.26,.3,.26,0x1c1a18);}
  bake(e.build(),M.flat,lamps.filter(l=>l[2]===4),(o,p)=>o.position.set(p[0],PADY,p[1]));
+ const f=new GB();f.add(GEO.taper6,0,0,0,0,0,0,.19,7.6,.19,0xbdb8ac,(x,y,z)=>.92+(y>4?.05:0));f.add(GEO.rod3,0,7.15,0,PI/2-.2,0,0,.045,2.15,.045,0x9aa1a3);f.add(GEO.box,0,7.31,2.15,0,0,0,.38,.2,.78,0x8c9396);
+ f.add(GEO.lens,0,7.3,2.15,0,0,0,.3,1,.56,0xf6efcf);bake(f.build(),M.flat,lamps.filter(l=>l[2]===5),(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[3]||0;});
  lamps.forEach(l=>solid(l[0],l[1],.3,.3,l[2]===1||l[2]===4?4.2:8.5*(l[4]||1)));}
 // traffic signals: the arms over the north-south roads show green, the others red
 for(const s of signalArms){const [px,pz,dx,dz,L0,green]=s;
-  anchor(px,pz,()=>{put(M.flat,GEO.taper,px,0,pz,0,.17,7,.17,0x5a5f55);put(M.flat,GEO.box,px+dx*L0/2,6.55,pz+dz*L0/2,dx?PI/2:0,.14,.14,L0,0x5a5f55);
+  anchor(px,pz,()=>{put(M.flat,GEO.taper6,px,0,pz,0,.17,7,.17,0x5a5f55);put(M.flat,GEO.box,px+dx*L0/2,6.55,pz+dz*L0/2,dx?PI/2:0,.14,.14,L0,0x5a5f55);
     for(const t of [L0*.45,L0*.9]){const hx=px+dx*t,hz=pz+dz*t;put(M.flat,GEO.box,hx,5.35,hz,0,.36,1.1,.36,0xd8b02a);
       for(let k=0;k<3;k++){const y=6.12-k*.34,col=k===(green?2:0)?(green?0x3dff7a:0xff3a2a):0x2a2622,o=.19;
         for(const sd of [-1,1]){const ox=dx?0:sd*o,oz=dx?sd*o:0,hw=.12;if(dx)quadC(M.flat,[hx-hw*sd,y-.12,hz+oz],[hx+hw*sd,y-.12,hz+oz],[hx+hw*sd,y+.12,hz+oz],[hx-hw*sd,y+.12,hz+oz],0,0,sd,col);
           else quadC(M.flat,[hx+ox,y-.12,hz+hw*sd],[hx+ox,y-.12,hz-hw*sd],[hx+ox,y+.12,hz-hw*sd],[hx+ox,y+.12,hz+hw*sd],sd,0,0,col);}}}});}
 { // wooden power poles with a crossarm; wires sag between neighbours. String lights over the Market Hall patio share the line mesh.
  const b=new GB(),w=0x6b5138;b.add(GEO.tube6,0,0,0,0,0,0,.13,9.5,.13,w);b.add(GEO.box,0,8.6,0,0,0,0,.12,.12,2.3,w);for(const s of [-1,0,1])b.add(GEO.rod,0,8.72,s*1,0,0,0,.05,.16,.05,0xd9d9d2);
- b.add(GEO.cyl6,.22,6.4,0,0,0,0,.24,.8,.24,0x8c9396);bake(b.build(),M.flat,poles,(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});poles.forEach(p=>solid(p[0],p[1],.3,.3,9));
+ const b2=new GB();b2.add(GEO.tube6,0,0,0,0,0,0,.12,9.4,.12,w);b2.add(GEO.box,0,8.6,0,0,0,0,.11,.11,2.3,w);for(const s of [-1,1])b2.add(GEO.rod3,0,8.72,s,0,0,0,.05,.16,.05,0xd9d9d2); // back-lot pole
+ b.add(GEO.cyl6,.22,6.4,0,0,0,0,.24,.8,.24,0x8c9396);bake(b.build(),M.flat,poles.filter((p,k)=>!p[3]||k%5===0),(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});
+ bake(b2.build(),M.flat,poles.filter((p,k)=>p[3]&&k%5!==0),(o,p)=>{o.position.set(p[0],0,p[1]);o.rotation.y=p[2]?PI/2:0;});poles.forEach(p=>solid(p[0],p[1],.3,.3,9));
  const pts=[],cols=[];const seg=(a,b,c)=>{pts.push(...a,...b);cols.push(...c,...c);};
  for(let k=0;k<poles.length-1;k++){const A=poles[k],B=poles[k+1];if(A[2]!==B[2]||Math.hypot(A[0]-B[0],A[1]-B[1])>50)continue;
    for(const s of [-1,0,1])for(let q=0;q<4;q++){const t0=q/4,t1=(q+1)/4,sag=t=>8.85-1.6*t*(1-t),ox=A[2]?s:0,oz=A[2]?0:s;
@@ -35,7 +40,10 @@ for(const s of signalArms){const [px,pz,dx,dz,L0,green]=s;
 { // chain-link mesh panels: one see-through batch for every fence in town
  M.chain=new T.MeshBasicMaterial({transparent:true,side:T.DoubleSide,depthWrite:false,map:tex(64,64,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle='rgba(150,158,160,.75)';g.lineWidth=1.4;
    for(let k=-64;k<128;k+=8){g.beginPath();g.moveTo(k,0);g.lineTo(k+64,64);g.moveTo(k,64);g.lineTo(k+64,0);g.stroke();}},true)});
- for(const f of fenceMesh){const x0=f[0]-f[2]/2,x1=f[0]+f[2]/2,z0=f[1]-f[3]/2,z1=f[1]+f[3]/2,L0=Math.max(f[2],f[3]);quad(M.chain,[x0,.05,z0],[x1,.05,z1],[x1,f[4],z1],[x0,f[4],z0],0,0,1,L0/1.2,f[4]/1.2);}}
+ for(const f of fenceMesh){const x0=f[0]-f[2]/2,x1=f[0]+f[2]/2,z0=f[1]-f[3]/2,z1=f[1]+f[3]/2,L0=Math.max(f[2],f[3]);quad(M.chain,[x0,.05,z0],[x1,.05,z1],[x1,f[4],z1],[x0,f[4],z0],0,0,1,L0/1.2,f[4]/1.2);}
+ // wire baskets of the shopping carts (their frames are baked in 03a): four sides and the floor of a box, wider at the top
+ for(const c of cartSpots){const cs=Math.cos(c[2]),sn=Math.sin(c[2]),P=(lx,y,lz)=>[c[0]+lx*cs+lz*sn,PADY+y,c[1]-lx*sn+lz*cs],b=[[-.22,.42,-.36],[.22,.42,-.36],[.22,.42,.32],[-.22,.42,.32]],t=[[-.27,.95,-.42],[.27,.95,-.42],[.27,.95,.4],[-.27,.95,.4]];
+   for(let k=0;k<4;k++){const j=(k+1)%4;quad(M.chain,P(...b[k]),P(...b[j]),P(...t[j]),P(...t[k]),0,0,1,.9,.9);}quad(M.chain,P(...b[0]),P(...b[1]),P(...b[2]),P(...b[3]),0,1,0,.9,1.3);}}
 // explosive barrels and fuel pumps are separate objects so they can be destroyed
 {const pts=[];for(const q of [[0,0],[.4,0],[.42,.03],[.42,.36],[.44,.38],[.42,.4],[.42,.74],[.44,.76],[.42,.78],[.42,1.12],[.4,1.15],[.34,1.15],[.34,1.12],[0,1.12]])pts.push(new T.Vector2(q[0],q[1]));
  const barrelGeo=new T.LatheGeometry(pts,12),barrelMat=L({color:0xb3261e});
