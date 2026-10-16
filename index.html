@@ -396,20 +396,25 @@ const CH=128,chunks=new Map(),globals=new Map();
 let ANCH=null; // while set, all chunked geometry goes to the chunk of this point (keeps one object in one buffer)
 // A material may be an alias of another (plain colours ride in the facade material, on a white texel), so they share buffers.
 const WU=.003,WV=.003;
-// (fast) A batch array: push() and length like a plain array, but kept in a typed array that doubles when full (much less copying
-// and garbage than a growing JS array of 1.4M vertices). a.subarray(0,length) is the content. Positions and uvs end up as 32-bit
-// floats anyway; normals and colours keep 64 bits until mkMesh (03c) quantizes them, so the numbers are exactly as before.
-class VBuf{constructor(A){this.a=new A(96);this.length=0;}
-  grow(n){let c=this.a.length*2;while(c<n)c*=2;const b=new this.a.constructor(c);b.set(this.a);this.a=b;}
-  push(...v){const l=this.length,n=v.length;if(l+n>this.a.length)this.grow(l+n);const a=this.a;for(let j=0;j<n;j++)a[l+j]=v[j];return this.length=l+n;}
-  view(){return this.a.subarray(0,this.length);}}
-const vbP=()=>new VBuf(Float32Array),vbN=()=>new VBuf(Float64Array),vbI=()=>new VBuf(Uint32Array);
+// (fast) A batch array: push() and length like a plain array, but kept in typed-array blocks (no growing JS arrays of 1.4M
+// vertices, no copying while building); view() is the content in one typed array. Positions and uvs are stored as the 32-bit
+// floats they become anyway. q=1 / q=2 store normals / colours already quantized the way mkMesh (03c) used to quantize them
+// (round(v*127) into Int8, round(clamp(v)*255) into Uint8), so the meshes come out exactly as before.
+class VBuf{constructor(A,q){this.A=A;this.q=q||0;this.bl=[];this.a=new A(256);this.o=0;this.length=0;}
+  // room for n more values in the current block (a new block when full)
+  room(n){if(this.o+n>this.a.length){if(this.o)this.bl.push(this.a.subarray(0,this.o));this.a=new this.A(Math.max(n,Math.min(1<<16,this.a.length*2)));this.o=0;}return this.a;}
+  push(...v){const n=v.length,a=this.room(n),o=this.o;
+    if(this.q===1)for(let j=0;j<n;j++)a[o+j]=Math.round(v[j]*127);else if(this.q===2)for(let j=0;j<n;j++)a[o+j]=Math.round(clamp(v[j],0,1)*255);else for(let j=0;j<n;j++)a[o+j]=v[j];
+    this.o=o+n;return this.length+=n;}
+  view(){const t=this.a.subarray(0,this.o);if(!this.bl.length)return t;const r=new this.A(this.length);let k=0;for(const b of this.bl){r.set(b,k);k+=b.length;}r.set(t,k);return r;}}
+const vbP=()=>new VBuf(Float32Array),vbI=()=>new VBuf(Uint32Array);
 function bat(mat,x,z){
-  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),i:vbI()};globals.set(mat,b);}return b;}
+  if(!mat.userData.chunk){let b=globals.get(mat);if(!b){b={p:vbP(),n:vbP(),u:vbP(),i:vbI()};globals.set(mat,b);}return b;}
   if(mat.userData.alias)mat=mat.userData.alias;
   if(ANCH){x=ANCH[0];z=ANCH[1];}
   const key=Math.floor(x/CH)+','+Math.floor(z/CH);let m=chunks.get(key);if(!m){m=new Map();chunks.set(key,m);}
-  let b=m.get(mat);if(!b){b={p:vbP(),n:vbN(),u:vbP(),c:vbN(),i:vbI(),mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
+  let b=m.get(mat);if(!b){const q=mat!==M.paint; // (fast) chunk meshes other than paint get 8-bit normals and colours (03c mkMesh)
+    b={p:vbP(),n:q?new VBuf(Int8Array,1):vbP(),u:vbP(),c:q?new VBuf(Uint8Array,2):vbP(),i:vbI(),mesh:null,uv:!!mat.map,det:[]};m.set(mat,b);}return b;}
 function anchor(x,z,fn){const o=ANCH;ANCH=[x,z];try{return fn();}finally{ANCH=o;}}
 // tiling ground quad (global batch)
 function quad(mat,a,b,c,d,nx,ny,nz,u1,v1){const B=bat(mat,a[0],a[2]),k=B.p.length/3;
@@ -442,12 +447,16 @@ function pushGeo(mat,geo,m4,col){_n3.getNormalMatrix(m4);const P=geo.attributes.
     const e=m4.elements,f=_n3.elements,pa=P.array,ps=P.itemSize,na=N.array,ns=N.itemSize,ca=Cc?Cc.array:null,cs=Cc?Cc.itemSize:0,ua=own?U.array:null,us=own?U.itemSize:0,bp=B.p,bn=B.n,bc=B.c,bu=B.u;
     const e0=e[0],e1=e[1],e2=e[2],e3=e[3],e4=e[4],e5=e[5],e6=e[6],e7=e[7],e8=e[8],e9=e[9],e10=e[10],e11=e[11],e12=e[12],e13=e[13],e14=e[14],e15=e[15];
     const f0=f[0],f1=f[1],f2=f[2],f3=f[3],f4=f[4],f5=f[5],f6=f[6],f7=f[7],f8=f[8];
-    for(let i=0,n=P.count;i<n;i++){let x=pa[i*ps],y=pa[i*ps+1],z=pa[i*ps+2];const w=1/(e3*x+e7*y+e11*z+e15);
-      bp.push((e0*x+e4*y+e8*z+e12)*w,(e1*x+e5*y+e9*z+e13)*w,(e2*x+e6*y+e10*z+e14)*w);
+    const nv=P.count,ap=bp.room(nv*3),an=bn.room(nv*3),ac=bc.room(nv*3),au=tx?bu.room(nv*2):null;let op=bp.o,on=bn.o,oc=bc.o,ou=tx?bu.o:0;const qn=bn.q===1,qc=bc.q===2;
+    for(let i=0;i<nv;i++){let x=pa[i*ps],y=pa[i*ps+1],z=pa[i*ps+2];const w=1/(e3*x+e7*y+e11*z+e15);
+      ap[op]=(e0*x+e4*y+e8*z+e12)*w;ap[op+1]=(e1*x+e5*y+e9*z+e13)*w;ap[op+2]=(e2*x+e6*y+e10*z+e14)*w;
       x=na[i*ns];y=na[i*ns+1];z=na[i*ns+2];const nx=f0*x+f3*y+f6*z,ny=f1*x+f4*y+f7*z,nz=f2*x+f5*y+f8*z,q=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);
-      bn.push(nx*q,ny*q,nz*q);
-      if(ca)bc.push(r*ca[i*cs],g*ca[i*cs+1],bl*ca[i*cs+2]);else bc.push(r,g,bl);if(tx){if(ua)bu.push(ua[i*us],ua[i*us+1]);else bu.push(WU,WV);}}}
-  const i0=B.i.length;if(ix){const ia=ix.array,bi=B.i;for(let i=0,n=ix.count;i<n;i++)bi.push(k+ia[i]);}else for(let i=0;i<P.count;i++)B.i.push(k+i);
+      if(qn){an[on]=Math.round(nx*q*127);an[on+1]=Math.round(ny*q*127);an[on+2]=Math.round(nz*q*127);}else{an[on]=nx*q;an[on+1]=ny*q;an[on+2]=nz*q;}op+=3;on+=3;
+      if(ca){const c0=r*ca[i*cs],c1=g*ca[i*cs+1],c2=bl*ca[i*cs+2];if(qc){ac[oc]=Math.round(clamp(c0,0,1)*255);ac[oc+1]=Math.round(clamp(c1,0,1)*255);ac[oc+2]=Math.round(clamp(c2,0,1)*255);}else{ac[oc]=c0;ac[oc+1]=c1;ac[oc+2]=c2;}}
+      else if(qc){ac[oc]=Math.round(clamp(r,0,1)*255);ac[oc+1]=Math.round(clamp(g,0,1)*255);ac[oc+2]=Math.round(clamp(bl,0,1)*255);}else{ac[oc]=r;ac[oc+1]=g;ac[oc+2]=bl;}oc+=3;
+      if(au){if(ua){au[ou]=ua[i*us];au[ou+1]=ua[i*us+1];}else{au[ou]=WU;au[ou+1]=WV;}ou+=2;}}
+    bp.o=op;bn.o=on;bp.length+=nv*3;bn.length+=nv*3;bc.o=oc;bc.length+=nv*3;if(au){bu.o=ou;bu.length+=nv*2;}}
+  const i0=B.i.length;{const bi=B.i,n=ix?ix.count:P.count,ai=bi.room(n),o=bi.o;if(ix){const ia=ix.array;for(let i=0;i<n;i++)ai[o+i]=k+ia[i];}else for(let i=0;i<n;i++)ai[o+i]=k+i;bi.o=o+n;bi.length+=n;}
   if(B.det){if(!geo.boundingSphere)geo.computeBoundingSphere();detMark(B,i0,geo.boundingSphere.radius*m4.getMaxScaleOnAxis());}}
 // distance detail: a small object baked into a chunk remembers its index range and size, and the chunk drops it when it is far (03c)
 function detMark(B,i0,size){if(!B.det||size>=DET_R[DET_R.length-1])return;const d=B.det,n=d.length;if(n&&d[n-1]===i0&&d[n-3]===size)d[n-1]=B.i.length;else d.push(size,i0,B.i.length);}
@@ -2882,13 +2891,11 @@ const sunSprite=new T.Sprite(new T.SpriteMaterial({map:glow,fog:false,depthWrite
 const chunkMeshes=[];function freeArr(){this.array=null;}
 // normals and colours of the static town are stored as bytes; the car paint stays in floats because wrecks rewrite it
 function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;
-  // (fast) the batches are typed arrays (VBuf, 01-core): copy out exactly what plain arrays used to give
-  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.Float32BufferAttribute(BP,3));
-  if(small){const n=new Int8Array(BN.length);for(let i=0;i<n.length;i++)n[i]=Math.round(BN[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
-  else g.setAttribute('normal',new T.Float32BufferAttribute(BN,3));
-  if(BU.length)g.setAttribute('uv',new T.Float32BufferAttribute(BU,2));
-  if(BC&&mat.vertexColors){if(small){const c=new Uint8Array(BC.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(BC[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
-    else g.setAttribute('color',new T.Float32BufferAttribute(BC,3));}
+  // (fast) the batches are typed arrays (VBuf, 01-core), normals and colours already in their final form
+  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.BufferAttribute(BP,3));
+  g.setAttribute('normal',new T.BufferAttribute(BN,3,small));
+  if(BU.length)g.setAttribute('uv',new T.BufferAttribute(BU,2));
+  if(BC&&mat.vertexColors)g.setAttribute('color',new T.BufferAttribute(BC,3,small));
   {let mx=-Infinity;for(let i=0;i<I.length;i++)if(I[i]>mx)mx=I[i];g.setIndex(new T.BufferAttribute(mx>65535?new Uint32Array(I):new Uint16Array(I),1));} // as setIndex(array) picks the type
   // far versions of the index without the small objects (see detMark): one per distance tier
   if(b.det&&b.det.length){const nT=b.i.length/3,drop=new Uint8Array(nT),d=b.det,NT=DET_R.length;   // drop[k]: first tier without triangle k (0 = never)

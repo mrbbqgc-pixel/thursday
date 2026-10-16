@@ -4,13 +4,11 @@
 const chunkMeshes=[];function freeArr(){this.array=null;}
 // normals and colours of the static town are stored as bytes; the car paint stays in floats because wrecks rewrite it
 function mkMesh(b,mat){const g=new T.BufferGeometry(),small=mat!==M.paint&&!!mat.userData.chunk;
-  // (fast) the batches are typed arrays (VBuf, 01-core): copy out exactly what plain arrays used to give
-  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.Float32BufferAttribute(BP,3));
-  if(small){const n=new Int8Array(BN.length);for(let i=0;i<n.length;i++)n[i]=Math.round(BN[i]*127);g.setAttribute('normal',new T.BufferAttribute(n,3,true));}
-  else g.setAttribute('normal',new T.Float32BufferAttribute(BN,3));
-  if(BU.length)g.setAttribute('uv',new T.Float32BufferAttribute(BU,2));
-  if(BC&&mat.vertexColors){if(small){const c=new Uint8Array(BC.length);for(let i=0;i<c.length;i++)c[i]=Math.round(clamp(BC[i],0,1)*255);g.setAttribute('color',new T.BufferAttribute(c,3,true));}
-    else g.setAttribute('color',new T.Float32BufferAttribute(BC,3));}
+  // (fast) the batches are typed arrays (VBuf, 01-core), normals and colours already in their final form
+  const BP=b.p.view(),BN=b.n.view(),BU=b.u.view(),BC=b.c?b.c.view():null,I=b.i.view();g.setAttribute('position',new T.BufferAttribute(BP,3));
+  g.setAttribute('normal',new T.BufferAttribute(BN,3,small));
+  if(BU.length)g.setAttribute('uv',new T.BufferAttribute(BU,2));
+  if(BC&&mat.vertexColors)g.setAttribute('color',new T.BufferAttribute(BC,3,small));
   {let mx=-Infinity;for(let i=0;i<I.length;i++)if(I[i]>mx)mx=I[i];g.setIndex(new T.BufferAttribute(mx>65535?new Uint32Array(I):new Uint16Array(I),1));} // as setIndex(array) picks the type
   // far versions of the index without the small objects (see detMark): one per distance tier
   if(b.det&&b.det.length){const nT=b.i.length/3,drop=new Uint8Array(nT),d=b.det,NT=DET_R.length;   // drop[k]: first tier without triangle k (0 = never)

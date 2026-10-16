@@ -1,5 +1,5 @@
 // load-time measurement of the built site: node perf.js [--cpu N] [--mobile] [--artifact] [--runs N] [--profile out.cpuprofile]
-// Prints: script start (T0), town build (window.__game.buildMs), first menu frame, play-ready (first frames after Start) and
+// --dir DIR measures another build. Prints: cpuMenu (main-thread CPU ms until the menu is up, the least noisy number), script start (T0), town build (window.__game.buildMs), first menu frame, play-ready (first frames after Start) and
 // WebGL program link time, all in ms from navigation start. --cpu N slows the CPU N times (Chrome DevTools Emulation), to approximate a phone.
 const {chromium}=require('playwright-core');const fs=require('fs');const path=require('path');const http=require('http');
 const arg=n=>{const i=process.argv.indexOf(n);return i<0?null:process.argv[i+1];},has=n=>process.argv.includes(n);
@@ -10,7 +10,7 @@ const INIT=`(()=>{const P=window.__perf={progs:0,linkMs:0,frames:[]};let gv;Obje
   const raf=window.requestAnimationFrame.bind(window);
   window.requestAnimationFrame=cb=>raf(t=>{const a=performance.now();cb(t);if(window.__game&&P.frames.length<400)P.frames.push([Math.round(a),Math.round(performance.now()-a),window.__game.G.state]);});})();`;
 (async()=>{
-  const dir=path.join(__dirname,'..');
+  const dir=path.resolve(arg('--dir')||path.join(__dirname,'..'));
   const server=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p.endsWith('/'))p+='index.html';
     if(p==='/__artifact.html'){const h=fs.readFileSync(path.join(dir,'src/operacion-insurgentes.html'),'utf8').replace('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js','/web/vendor/three.min.js').replace(/<link rel="stylesheet"[^>]*>/,'');
       r.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});r.end('<!doctype html><html><head><meta charset="utf-8"></head><body>'+h+'</body></html>');return;}
@@ -24,7 +24,7 @@ const INIT=`(()=>{const P=window.__perf={progs:0,linkMs:0,frames:[]};let gv;Obje
     const ctx=await b.newContext(mobile?{viewport:{width:844,height:390},hasTouch:true,isMobile:true,deviceScaleFactor:2}:{viewport:{width:1280,height:720}});
     const pg=await ctx.newPage();pg.setDefaultTimeout(300000);await pg.addInitScript(INIT);
     const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(m.type()==='error')errs.push(m.text());});
-    const cdp=await ctx.newCDPSession(pg);if(cpu>1)await cdp.send('Emulation.setCPUThrottlingRate',{rate:cpu});
+    const cdp=await ctx.newCDPSession(pg);await cdp.send('Performance.enable',{timeDomain:'threadTicks'});if(cpu>1)await cdp.send('Emulation.setCPUThrottlingRate',{rate:cpu});
     const prof=arg('--profile');if(prof){await cdp.send('Profiler.enable');await cdp.send('Profiler.setSamplingInterval',{interval:200});await cdp.send('Profiler.start');}
     await pg.goto(url);
     await pg.waitForFunction(()=>window.__perf.frames.length>=3,null,{timeout:300000,polling:100});
@@ -32,6 +32,7 @@ const INIT=`(()=>{const P=window.__perf={progs:0,linkMs:0,frames:[]};let gv;Obje
     const m=await pg.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];const P=window.__perf;
       return {t0:P.built-window.__game.buildMs,built:P.built,dcl:Math.round(n.domContentLoadedEventEnd),build:window.__game.buildMs,firstFrameStart:P.frames[0][0],firstFrameMs:P.frames[0][1],menuReady:P.frames[0][0]+P.frames[0][1],progsMenu:P.progs,linkMs:Math.round(P.linkMs),
         heapMB:performance.memory?Math.round(performance.memory.usedJSHeapSize/1e6):0};});
+    {const r=await cdp.send('Performance.getMetrics');const g=k=>(r.metrics.find(x=>x.name===k)||{}).value||0;m.cpuMenu=Math.round(g('ThreadTime')*1000);m.taskMenu=Math.round(g('TaskDuration')*1000);m.scriptMenu=Math.round(g('ScriptDuration')*1000);}
     await pg.waitForTimeout(500);
     const t0=await pg.evaluate(()=>performance.now());
     await pg.evaluate(()=>{document.getElementById('btnStart').click();});
