@@ -50,9 +50,11 @@ for(const c of fwyCars)vehicle(c[3],c[0],c[1],false,pick(carCols),1,true,false,c
 const seedSky=seed;
 // Sky colour (0..1 display values) for a unit direction: deep blue overhead, paler towards the horizon, brighter and warmer round the
 // sun, and at the horizon exactly the haze colour the fog uses in that direction (hazeRGB), so distant blocks melt into it.
-function skyRGB(dx,dy,dz){const hz=hazeRGB(dx,dy,dz);if(dy<=0)return hz;
-  const t=Math.pow(dy,.62),G=t<.26?[lerp(.77,.62,t/.26),lerp(.83,.75,t/.26),lerp(.88,.87,t/.26)]:t<.62?[lerp(.62,.45,(t-.26)/.36),lerp(.75,.63,(t-.26)/.36),lerp(.87,.83,(t-.26)/.36)]:[lerp(.45,.32,(t-.62)/.38),lerp(.63,.51,(t-.62)/.38),lerp(.83,.76,(t-.62)/.38)];
-  const w=Math.exp(-dy/.075),s=Math.max(0,dx*SUN.x+dy*SUN.y+dz*SUN.z),s2=s*s,s4=s2*s2,s8=s4*s4,s64=s8*s8*s8*s8*s8*s8*s8*s8,gl=Math.min(1,s8*.3+s64*.45);
+// skyRow: the part that depends on elevation only (gradient and haze weight), so the dome is painted row by row
+function skyRow(dy){const t=Math.pow(Math.max(dy,0),.62),G=t<.26?[lerp(.78,.64,t/.26),lerp(.84,.77,t/.26),lerp(.88,.88,t/.26)]:t<.62?[lerp(.64,.48,(t-.26)/.36),lerp(.77,.66,(t-.26)/.36),lerp(.88,.85,(t-.26)/.36)]:[lerp(.48,.36,(t-.62)/.38),lerp(.66,.55,(t-.62)/.38),lerp(.85,.79,(t-.62)/.38)];
+  G.push(dy>0?Math.exp(-dy/.075):1);return G;}
+function skyRGB(dx,dy,dz,row){const hz=hazeRGB(dx,dy,dz);if(dy<=0)return hz;const G=row||skyRow(dy),w=G[3];
+  const s=Math.max(0,dx*SUN.x+dy*SUN.y+dz*SUN.z),s2=s*s,s4=s2*s2,s8=s4*s4,s64=s8*s8*s8*s8*s8*s8*s8*s8,gl=Math.min(1,s8*.3+s64*.45);
   return [lerp(lerp(G[0],hz[0],w),1,gl),lerp(lerp(G[1],hz[1],w),.97,gl),lerp(lerp(G[2],hz[2],w),.9,gl)];}
 // San Gabriel Mountains: a wall of ridges across the whole northern horizon, lit from the west-southwest (slopes that face the sun
 // lighter and warmer), fading with height and distance into the sky behind them: farther ridges lighter and bluer, every foot lost
@@ -64,16 +66,16 @@ const sierra=new T.Group();scene.add(sierra);
  const c3=h=>[(h>>16&255)/255,(h>>8&255)/255,(h&255)/255],mix3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
  // radius, height, sunlit colour, shaded colour, haze left at the crest, order
  for(const lay of [[2050,far,0x8f9aac,0x707d95,.44,1],[1720,mid,0x8d898e,0x69707f,.32,2],[1420,near,0x8a8266,0x5c5e50,.2,3]]){const p=[],c=[],ix=[],R0=lay[0],H=[],B=[];
-   for(let b=-104;b<=104.01;b+=1.2){const edge=clamp(Math.min(b+104,104-b)/22,0,1);B.push(b);H.push((lay[1](b)+rr(-12,12))*edge+4);}
-   const lit=c3(lay[2]),shd=c3(lay[3]),step=1.2*PI/180*R0;
+   for(let b=-104;b<=104.01;b+=1.6){const edge=clamp(Math.min(b+104,104-b)/22,0,1);B.push(b);H.push((lay[1](b)+rr(-12,12))*edge+4);}
+   const lit=c3(lay[2]),shd=c3(lay[3]),step=1.6*PI/180*R0;
    B.forEach((b,i)=>{const br=b*PI/180,sx=Math.sin(br),sz=-Math.cos(br),x=R0*sx,z=R0*sz,h=H[i];
      // rise per metre towards the east: such a slope faces the low western sun
-     const sl=(H[Math.min(i+2,H.length-1)]-H[Math.max(i-2,0)])/(4*step),L0=clamp(.5+sl*.85+rr(-.03,.03),0,1),rock=mix3(shd,lit,L0);
+     const sl=(H[Math.min(i+1,H.length-1)]-H[Math.max(i-1,0)])/(2*step),L0=clamp(.5+sl*.85+rr(-.03,.03),0,1),rock=mix3(shd,lit,L0);
      const snowK=lay[5]===1?clamp((h-385)/45,0,1)*(.7+.3*Math.sin(b*.9)):0,snow=snowK>.05,sd=snowK*.07*h,snowC=mix3([.78,.82,.88],[.96,.96,.97],L0);
-     for(const q of [[-60,0],[h*.12,.12],[h*.3,.3],[h*.55,.55],[h-sd-4,.94],[h,1]]){const y=q[0],t=q[1],el=Math.atan2(y,R0),ce=Math.cos(el);
+     for(const q of [[-60,0],[h*.2,.2],[h*.5,.5],[h-sd-4,.94],[h,1]]){const y=q[0],t=q[1],el=Math.atan2(y,R0),ce=Math.cos(el);
        const base=snow&&t>.9?(y>=h-.01?mix3(rock,snowC,snowK):mix3(rock,snowC,.6*snowK)):rock,sk=skyRGB(sx*ce,Math.sin(el),sz*ce),hzK=lay[4]+(1-lay[4])*Math.pow(1-t,1.7),col=mix3(base,sk,hzK);
        p.push(x,y,z);c.push(col[0],col[1],col[2]);}
-     if(i<B.length-1){const a=i*6;for(let r=0;r<5;r++)ix.push(a+r,a+r+1,a+r+6,a+r+1,a+r+7,a+r+6);}});
+     if(i<B.length-1){const a=i*5;for(let r=0;r<4;r++)ix.push(a+r,a+r+1,a+r+5,a+r+1,a+r+6,a+r+5);}});
    // colours are display values: the vertex shader takes them to linear and the output encoding brings them back unchanged
    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('color',new T.Float32BufferAttribute(c,3));g.setIndex(ix);
    // the ridges write depth, so the far floor (fully fogged) cannot paint over their feet; the plain in front still hides their base
@@ -81,7 +83,12 @@ const sierra=new T.Group();scene.add(sierra);
 // the sky dome, painted per pixel from skyRGB (equirectangular: column = bearing, row = elevation), with a few thin cirrus streaks
 const sky=new T.Mesh(new T.SphereGeometry(2400,32,16),new T.MeshBasicMaterial({side:T.BackSide,fog:false,depthWrite:false,toneMapped:false,
   map:tex(512,256,(g,w,h)=>{const im=g.createImageData(w,h),D=im.data,cs=[],sn=[];for(let x=0;x<w;x++){const ph=(x+.5)/w*TAU;cs.push(-Math.cos(ph));sn.push(Math.sin(ph));}
-    for(let y=0;y<h;y++){const th=(y+.5)/h*PI,st=Math.sin(th),ct=Math.cos(th);for(let x=0;x<w;x++){const v=skyRGB(cs[x]*st,ct,sn[x]*st),k=(y*w+x)*4;D[k]=v[0]*255;D[k+1]=v[1]*255;D[k+2]=v[2]*255;D[k+3]=255;}}
+    const A0=FOG_A[0],A1=FOG_A[1],A2=FOG_A[2],S0=FOG_S[0]-A0,S1=FOG_S[1]-A1,S2=FOG_S[2]-A2;
+    for(let y=0;y<h;y++){const th=(y+.5)/h*PI,st=Math.sin(th),ct=Math.cos(th),G=skyRow(ct),wt=G[3],up=ct>0;
+      for(let x=0;x<w;x++){const dx=cs[x]*st,dz=sn[x]*st,s=Math.max(0,dx*SUN.x+ct*SUN.y+dz*SUN.z),s2=s*s,hk=s2*s,k=(y*w+x)*4; // same as skyRGB, without allocations
+        let r=A0+S0*hk,gg=A1+S1*hk,b=A2+S2*hk;if(up){const s4=s2*s2,s8=s4*s4,s16=s8*s8,s64=s16*s16*s16*s16,gl=Math.min(1,s8*.3+s64*.45);
+          r=lerp(lerp(G[0],r,wt),1,gl);gg=lerp(lerp(G[1],gg,wt),.97,gl);b=lerp(lerp(G[2],b,wt),.9,gl);}
+        D[k]=r*255;D[k+1]=gg*255;D[k+2]=b*255;D[k+3]=255;}}
     g.putImageData(im,0,0);g.lineCap='round';
     for(let k=0;k<11;k++){const cx=rnd()*w,cy=h*rr(.2,.42),len=rr(30,90),cur=rr(-14,14),tilt=rr(-6,6);
       for(const ox of [-w,0,w])for(const [lw,a] of [[9,.035],[5,.045],[2.2,.06]]){g.strokeStyle='rgba(255,252,246,'+a+')';g.lineWidth=lw*(cy/h+.5);g.beginPath();g.moveTo(cx+ox-len/2,cy-tilt);

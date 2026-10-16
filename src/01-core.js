@@ -9,7 +9,8 @@ const T=THREE,PI=Math.PI,TAU=PI*2;
 let seed=20261012;
 function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
 // leave the shared stream as if n draws had been made since s: a block whose look changes keeps the town laid out the same
-function rndSkip(s,n){seed=s;for(let i=0;i<n;i++)rnd();}
+function rndSkip(s,n){let A=1664525,Cc=1013904223,a=1,c=0;for(;n>0;n>>>=1){if(n&1){a=Math.imul(a,A)>>>0;c=(Math.imul(c,A)+Cc)>>>0;}Cc=(Math.imul(Cc,A)+Cc)>>>0;A=Math.imul(A,A)>>>0;}
+  seed=(Math.imul(a,s)+c)>>>0;}
 const rr=(a,b)=>a+rnd()*(b-a),pick=a=>a[Math.floor(rnd()*a.length)];
 const R=Math.random,R2=(a,b)=>a+R()*(b-a),RP=a=>a[Math.floor(R()*a.length)];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;

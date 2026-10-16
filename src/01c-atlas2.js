@@ -28,11 +28,12 @@ const seedMat=seed; // (the textures below draw their own randomness; rndSkip at
 // Ground textures tile every few metres. To hide the repeat, their alpha channel (unused: the ground is opaque) holds a smooth,
 // tileable noise that the shader samples a second time at a much larger, rotated scale (macro): dry patches on lawns, darker
 // repairs and faded stretches on asphalt, stains on concrete.
-const macroC=document.createElement('canvas');macroC.width=macroC.height=128;
-{const g=macroC.getContext('2d'),N=128,im=g.createImageData(N,N),oct=[[4,.5],[8,.32],[16,.18]].map(o=>{const a=[];for(let i=0;i<o[0]*o[0];i++)a.push(rnd());return[o[0],o[1],a];}),sm=t=>t*t*(3-2*t);
- for(let y=0;y<N;y++)for(let x=0;x<N;x++){let v=0;for(const [n,wt,a] of oct){const fx=x/N*n,fy=y/N*n,i=Math.floor(fx),j=Math.floor(fy),u=sm(fx-i),q=sm(fy-j),i1=(i+1)%n,j1=(j+1)%n;
-     v+=wt*lerp(lerp(a[j*n+i],a[j*n+i1],u),lerp(a[j1*n+i],a[j1*n+i1],u),q);}
-   const k=(y*N+x)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(255*(.6+.4*clamp((v-.28)/.44,0,1)));}
+const macroC=document.createElement('canvas');macroC.width=macroC.height=64;
+{const g=macroC.getContext('2d'),N=64,im=g.createImageData(N,N),D=im.data,sm=t=>t*t*(3-2*t);D.fill(255);
+ for(const [n,wt] of [[4,.5],[8,.32],[16,.18]]){const a=new Float32Array(n*n);for(let i=0;i<n*n;i++)a[i]=rnd();
+   for(let y=0;y<N;y++){const fy=y/N*n,j=fy|0,q=sm(fy-j),j1=(j+1)%n;for(let x=0;x<N;x++){const fx=x/N*n,i=fx|0,u=sm(fx-i),i1=(i+1)%n,k=(y*N+x)*4;
+     const v=wt*lerp(lerp(a[j*n+i],a[j*n+i1],u),lerp(a[j1*n+i],a[j1*n+i1],u),q);D[k]=n===4?v*255/.5:D[k];D[k+1]=n===8?v*255/.32:D[k+1];D[k+2]=n===16?v*255/.18:D[k+2];}}}
+ for(let k=0;k<D.length;k+=4){const v=(D[k]*.5+D[k+1]*.32+D[k+2]*.18)/255;D[k]=D[k+1]=D[k+2]=255;D[k+3]=Math.round(255*(.6+.4*clamp((v-.28)/.44,0,1)));}
  g.putImageData(im,0,0);}
 function macroAlpha(g,w,h){g.save();g.globalCompositeOperation='destination-in';g.drawImage(macroC,0,0,w,h);g.restore();}
 // lo..hi: colour factors at the two ends of the macro noise; sc: macro scale in texture tiles
@@ -51,15 +52,16 @@ const ruts=v=>(g,w,h)=>{g.strokeStyle='rgba(90,65,35,.13)';g.lineWidth=7;for(con
 function turfPaint(g,w,h,base,pats,blades){g.fillStyle=base;g.fillRect(0,0,w,h);
   for(let k=0;k<26;k++){const p=pick(pats);wblob(g,w,h,rnd()*w,rnd()*h,rr(14,48),rr(10,36),rr(.08,.16),rgbStr(p));}
   for(let k=0;k<70;k++){const p=pick(pats);wblob(g,w,h,rnd()*w,rnd()*h,rr(3,10),rr(2,8),rr(.12,.3),rgbStr(p));}
-  for(let k=0;k<blades;k++){const p=pick(pats),x=rnd()*w,y=rnd()*h;g.fillStyle='rgba('+p[0]+','+p[1]+','+p[2]+','+rr(.18,.45).toFixed(2)+')';g.fillRect(x,y,1,rr(2,4));}
+  const bl=pats.map(p=>[.22,.32,.42].map(a=>'rgba('+p[0]+','+p[1]+','+p[2]+','+a+')'));
+  for(let k=0;k<blades;k++){const p=Math.floor(rnd()*pats.length),x=rnd()*w,y=rnd()*h;g.fillStyle=bl[p][Math.floor(rnd()*3)];g.fillRect(x,y,1,rr(2,4));}
   noise(g,w,h,1600,.07);}
 // asphalt base shared by every road texture: sun-faded grey, aggregate, darker patch repairs, crack-seal "tar snakes"
 const asphC=document.createElement('canvas');asphC.width=asphC.height=512;
-{const g=asphC.getContext('2d');g.fillStyle='#6b6863';g.fillRect(0,0,512,512);noise(g,512,512,16000,.11);
+{const g=asphC.getContext('2d');g.fillStyle='#6b6863';g.fillRect(0,0,512,512);noise(g,512,512,8500,.13);
  for(let k=0;k<4;k++){const x=rnd()*512,y=rnd()*512,pw=rr(40,110),ph=rr(30,80);for(const ox of [-512,0,512])for(const oy of [-512,0,512]){g.fillStyle='rgba(58,56,52,.13)';g.fillRect(x+ox,y+oy,pw,ph);
    g.strokeStyle='rgba(40,38,35,.12)';g.lineWidth=1;g.strokeRect(x+ox,y+oy,pw,ph);}}
- for(let k=0;k<26;k++){const x=rnd()*512,y=rnd()*512,r=rr(20,60);for(const ox of [-512,0,512])for(const oy of [-512,0,512]){const gr=g.createRadialGradient(x+ox,y+oy,1,x+ox,y+oy,r);
-   const lt=rnd()<.5;gr.addColorStop(0,lt?'rgba(150,145,136,.12)':'rgba(40,38,35,.14)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x+ox-r,y+oy-r,2*r,2*r);}}
+ for(let k=0;k<26;k++){const x=rnd()*512,y=rnd()*512,r=rr(20,60),lt=rnd()<.5;for(const ox of [-512,0,512])for(const oy of [-512,0,512]){if(x+ox+r<0||x+ox-r>512||y+oy+r<0||y+oy-r>512)continue;
+   const gr=g.createRadialGradient(x+ox,y+oy,1,x+ox,y+oy,r);gr.addColorStop(0,lt?'rgba(150,145,136,.12)':'rgba(40,38,35,.14)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x+ox-r,y+oy-r,2*r,2*r);}}
  for(let k=0;k<9;k++){g.strokeStyle='rgba(32,30,28,'+rr(.14,.26).toFixed(2)+')';g.lineWidth=rr(1,1.8);g.lineJoin='round';g.beginPath();let x=rnd()*512,y=rnd()*512;g.moveTo(x,y);
    const hz=rnd()<.5;for(let s=0;s<9;s++){x+=hz?rr(8,26):rr(-10,10);y+=hz?rr(-10,10):rr(8,26);g.lineTo(x,y);}g.stroke();}
  noise(g,512,512,3000,.05);}
@@ -67,13 +69,14 @@ const asphC=document.createElement('canvas');asphC.width=asphC.height=512;
 function roadMat(W,marks,wear){return macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(512,512,(g,w,h)=>{g.drawImage(asphC,0,0);const k=512/W;
   if(wear)for(const c of wear){const gr=g.createLinearGradient((c-1.2)*k,0,(c+1.2)*k,0);gr.addColorStop(0,'rgba(20,18,16,0)');gr.addColorStop(.5,'rgba(20,18,16,.24)');gr.addColorStop(1,'rgba(20,18,16,0)');g.fillStyle=gr;g.fillRect((c-1.2)*k,0,2.4*k,h);}
   for(const m of marks){g.fillStyle=m[2];const x=(m[0]-m[1]/2)*k,ww=Math.max(2,m[1]*k);if(!m[3])g.fillRect(x,0,ww,h);else{const cy=h/m[3];for(let q=0;q<m[3];q++)g.fillRect(x,q*cy,ww,cy*.3);}}
-  noise(g,512,512,2500,.07);macroAlpha(g,w,h);},true)}),W>20?.09:.16,[.84,.84,.85],[1.08,1.07,1.05]);}
+  noise(g,512,512,1500,.07);macroAlpha(g,w,h);},true)}),W>20?.09:.16,[.84,.84,.85],[1.08,1.07,1.05]);}
 const WH='#dedbd0',YE='#d9b146';
 const M={
   sand:L({map:tex(256,256,(g,w,h)=>{g.fillStyle='#ab9f78';g.fillRect(0,0,w,h);noise(g,w,h,4000,.1);
     for(let k=0;k<70;k++){g.fillStyle='rgba('+(rnd()<.5?'110,100,55':'150,120,80')+','+rr(.08,.2).toFixed(2)+')';g.beginPath();g.arc(rnd()*w,rnd()*h,rr(1,4),0,7);g.fill();}
     for(let k=0;k<14;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(14,40),rr(6,16),.12,'rgb(225,205,160)');},true)}),
-  pad:macroMat(ground('#bcb8ae',1500,.06,(g,w,h)=>{for(let k=0;k<6;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(8,24),rr(6,18),.08,'rgb(90,84,74)');},128,true),.11,[.9,.9,.91],[1.04,1.03,1.02]),
+  pad:macroMat(ground('#bcb8ae',1500,.06,(g,w,h)=>{for(let k=0;k<7;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(8,24),rr(6,18),.09,'rgb(90,84,74)');
+    g.fillStyle='rgba(60,56,50,.2)';for(const q of [0,64]){g.fillRect(q,0,1,h);g.fillRect(0,q,w,1);}},128,true),.11,[.84,.84,.85],[1.04,1.03,1.02]),
   walk:macroMat(ground('#c1bbae',1400,.06,(g,w,h)=>{for(let k=0;k<10;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(8,30),rr(6,20),.07,rnd()<.6?'rgb(95,88,76)':'rgb(240,235,225)');
     g.strokeStyle='rgba(70,65,55,.32)';g.lineWidth=1.5;for(let k=0;k<=w;k+=64){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
     for(let k=0;k<3;k++){g.strokeStyle='rgba(50,45,38,.25)';g.lineWidth=1;g.beginPath();let x=rnd()*w,y=rnd()*h;g.moveTo(x,y);for(let s=0;s<4;s++){x+=rr(-20,20);y+=rr(-20,20);g.lineTo(x,y);}g.stroke();}},256,true),.1,[.9,.9,.9],[1.03,1.03,1.02]),
@@ -81,12 +84,12 @@ const M={
   dirt:ground('#b39770',4000,.09,ruts(true),256),dirtX:ground('#b39770',4000,.09,ruts(false),256),
   court:ground('#6f8f88',500,.06),plaza:ground('#cdb39d',1300,.07,(g,w,h)=>{g.strokeStyle='rgba(120,80,60,.3)';g.lineWidth=1.5;for(let k=0;k<=w;k+=32){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}
     for(let i=0;i<4;i++)for(let j=0;j<4;j++)if((i+j)%2){g.fillStyle='rgba(150,95,70,.13)';g.fillRect(i*32,j*32,32,32);}}),
-  grass:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#6c7b49',[[86,104,60],[96,114,64],[74,92,54],[138,134,88],[124,126,80],[110,118,70]],5200);macroAlpha(g,w,h);},true)}),
+  grass:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#6c7b49',[[86,104,60],[96,114,64],[74,92,54],[138,134,88],[124,126,80],[110,118,70]],4000);macroAlpha(g,w,h);},true)}),
     .14,[.92,1.0,.9],[1.2,1.06,.74]),
-  dry:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#9e9568',[[128,118,76],[150,138,94],[110,108,66],[170,156,112],[96,100,60]],4200);macroAlpha(g,w,h);},true)}),
+  dry:macroMat(L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(256,256,(g,w,h)=>{turfPaint(g,w,h,'#9e9568',[[128,118,76],[150,138,94],[110,108,66],[170,156,112],[96,100,60]],3200);macroAlpha(g,w,h);},true)}),
     .14,[.92,.94,.9],[1.08,1.04,.96]),
   infield:ground('#b98a5a',700,.08),conc:macroMat(ground('#bab5aa',1500,.06,(g,w,h)=>{for(let k=0;k<8;k++)wblob(g,w,h,rnd()*w,rnd()*h,rr(10,40),rr(8,30),.07,'rgb(90,84,74)');
-    g.strokeStyle='rgba(70,65,55,.25)';g.lineWidth=1;for(let k=0;k<=w;k+=128){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}},256,true),.1,[.9,.9,.9],[1.04,1.03,1.02]),
+    g.strokeStyle='rgba(70,65,55,.25)';g.lineWidth=1;for(let k=0;k<=w;k+=128){g.beginPath();g.moveTo(k,0);g.lineTo(k,h);g.moveTo(0,k);g.lineTo(w,k);g.stroke();}},256,true),.1,[.86,.86,.86],[1.04,1.03,1.02]),
   line:L({color:0xe2b93b,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
   lineW:L({color:0xe9e6dc,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
   field:L({polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,map:tex(64,64,(g,w,h)=>{g.fillStyle='#a88a5c';g.fillRect(0,0,w,h);g.fillStyle='#55753a';for(let x=0;x<w;x+=16)g.fillRect(x+3,0,9,h);noise(g,w,h,240,.08);},true)}),
@@ -125,10 +128,11 @@ M.wall.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <fog_
     .replace('#include <aomap_fragment>','float aoK=1.0-.55*vAO.y*(1.0-smoothstep(0.0,1.2,vAO.x));reflectedLight.indirectDiffuse*=aoK;reflectedLight.directDiffuse*=mix(1.0,aoK,.6);');};
 M.flat=L({vertexColors:true});M.flat.userData.alias=M.wall;
 M.paint=new T.MeshPhongMaterial({vertexColors:true,shininess:55,specular:0x4a4a4a});
-// soft contact shadows: left half of the texture is a round blob, right half a strip that is dark along v=0
-M.shade=new T.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,map:tex(128,64,(g,w,h)=>{
-  const gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(20,14,8,.5)');gr.addColorStop(.55,'rgba(20,14,8,.3)');gr.addColorStop(1,'rgba(20,14,8,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
-  const g2=g.createLinearGradient(0,64,0,0);g2.addColorStop(0,'rgba(20,14,8,.42)');g2.addColorStop(.35,'rgba(20,14,8,.16)');g2.addColorStop(1,'rgba(20,14,8,0)');g.fillStyle=g2;g.fillRect(66,0,60,64);})});
+// soft contact shadows: left half of the texture is a round blob, right half a strip that is dark along v=0.
+// Double-sided: the strips round building footprints (shadeRect) are wound facing down and were culled until now.
+M.shade=new T.MeshBasicMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,map:tex(128,64,(g,w,h)=>{
+  const gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(20,16,12,.5)');gr.addColorStop(.55,'rgba(20,16,12,.3)');gr.addColorStop(1,'rgba(20,16,12,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
+  const g2=g.createLinearGradient(0,64,0,0);g2.addColorStop(0,'rgba(20,16,12,.36)');g2.addColorStop(.3,'rgba(20,16,12,.15)');g2.addColorStop(.7,'rgba(20,16,12,.04)');g2.addColorStop(1,'rgba(20,16,12,0)');g.fillStyle=g2;g.fillRect(66,0,60,64);})});
 rndSkip(seedMat,309622);
 for(const k of ['wall','flat','paint','shade']){M[k].userData.chunk=1;M[k].userData.cast=k!=='shade';}
 const C={white:0xf4f0e7,dark:0x2b2621,metal:0xb3b9bb,steel:0x8c9396,wood:0x6b5138,concrete:0xa9a59c,red:0xb3261e,green:0x2f7d4f,blue:0x1d3f7a,yellow:0xe2b93b,bronze:0x7c6238,olive:0x5b6140,
