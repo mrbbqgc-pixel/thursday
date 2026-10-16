@@ -114,7 +114,8 @@ function rideAnim(s,cr,o){o=o||RO0;const lean=-.3,hy=.755,by=BK.BB[1],bz=BK.BB[2
   const shy=hy-.9+1+.47*Math.cos(lean),shz=.47*Math.sin(lean),gy=1.1,gz=-.33-BK.ZR;
   ik2(s.aL,s.fL,.36,.33,gy-shy,gz-shz,true);s.aL.rotation.x-=lean;s.aL.rotation.y=0;s.aL.rotation.z=.12;
   if(o.aim!==undefined){const a=PI/2+o.aim-lean;s.aR.rotation.set(a,0,-.12);s.fR.rotation.x=.06;s.wp.scale.setScalar(1);s.wp.position.set(.28,.47-.64*Math.cos(a),-.64*Math.sin(a));s.wp.rotation.set(a-PI/2,0,0);}
-  else{ik2(s.aR,s.fR,.36,.33,gy-shy,gz-shz,true);s.aR.rotation.x-=lean;s.aR.rotation.y=0;s.aR.rotation.z=-.12;s.wp.scale.setScalar(.001);}}
+  else{ik2(s.aR,s.fR,.36,.33,gy-shy,gz-shz,true);s.aR.rotation.x-=lean;s.aR.rotation.y=0;s.aR.rotation.z=-.12;s.wp.scale.setScalar(.001);}
+  if(s.ftL){s.ftL.rotation.set(-(s.lL.rotation.x+s.kL.rotation.x)*.85,0,0);s.ftR.rotation.set(-(s.lR.rotation.x+s.kR.rotation.x)*.85,0,0);}if(s.hd)s.hd.rotation.set(.3,(o.twist||0)*.6,0);}
 function rideAvatar(dt){const b=P.bike,c=Math.cos(b.yaw),s=Math.sin(b.yaw),pis=curW().id==='pistol',aim=pis&&(P.ads>.1||P.wantAds||IN.fire||P.fireT>-.6);
   PAV.yaw=b.yaw;PAV.g.position.set(b.x+s*BK.ZR,b.y,b.z+c*BK.ZR);PAV.g.rotation.set(0,b.yaw,b.lean);
   const tw=aim?clamp(angDiff(P.yaw,b.yaw),-1.1,1.1):0;
@@ -130,4 +131,5 @@ function updBikes(dt){const b=P.bike;
   RIDE.near=near;if(!near){RIDE.hold=0;return;}
   G.prompt=RIDE.on;if(IN.useHeld){RIDE.hold+=dt;if(RIDE.hold>.35)mountBike(near);}else RIDE.hold=0;}
 // test and debugging hooks (added to window.__game by the frame-loop module)
-const MECH={rayWorld,VIEW,setViewMode,toggleView,PAV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes};
+const MECH={rayWorld,VIEW,setViewMode,toggleView,PAV,AVATAR,setAvatar,bikes,spawnBike,mountBike,dismountBike,bikeMesh,bikeSpin,rideAnim,clearBikes,avRig,bikeGeo,updBikes,
+  animDeath,rigGeo,weaponGeo,VM,vmSkin,updAvatar,figBones,avMat,armsOn};

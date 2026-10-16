@@ -12,48 +12,48 @@ const WDEF={
   dmr:{name:'M14 DMR',auto:false,rate:.34,mag:10,max:60,dmg:92,head:2.5,rng:[120,220,.85],hip:.06,ads:.0006,kick:.03,kickH:.006,adsFov:15,reload:2.7,pellets:1,speed:.94,snd:'dmr',adsT:.28,sight:.11,mz:-.72,scope:true},
   lmg:{name:'M249 SAW',auto:true,rate:.075,mag:100,max:200,dmg:36,head:2.6,rng:[50,120,.7],hip:.045,ads:.007,kick:.009,kickH:.007,adsFov:52,reload:4.6,pellets:1,speed:.86,snd:'lmg',adsT:.32,sight:.1,mz:-.66}};
 const gunRoot=new T.Group();camera.add(gunRoot);gunRoot.scale.setScalar(.8);
-// First-person models: side profiles extruded to the gun's thickness, round barrels and scopes, gloved hands.
-// Barrel points to -z; the line of sight is at height D.sight above the origin.
-const VM={},GK=0x232528,GK2=0x3a3d41,WOOD=0x6b4426,TAN=0x8f8262,GLV=0x2b2a27;
-function gprof(pts,wid){return profile(pts,wid,.005);}
-function vmArms(b,gripZ,guardZ,two){b.add(GEO.ball,0,-.085,gripZ,0,0,0,.036,.05,.042,GLV);b.add(GEO.limb,.025,-.1,gripZ+.03,-1.15,-.12,0,.044,.34,.044,TAN);
-  if(two){b.add(GEO.ball,-.008,-.05,guardZ,0,0,0,.04,.034,.05,GLV);b.add(GEO.limb,-.03,-.06,guardZ+.03,-1.02,.42,0,.043,.36,.043,TAN);}}
-const fwd=(b,r,l,z,y,c,seg)=>b.add(seg||GEO.cyl8,0,y||0,z,-PI/2,0,0,r,l,r,c===undefined?GK:c); // a cylinder from z towards -z
-{let b;
- b=new GB(); // M4 carbine
- b.add(gprof([[-.38,.03],[-.16,.03],[-.16,.045],[.17,.045],[.17,-.04],[.12,-.045],[.12,-.07],[.05,-.07],[.05,-.045],[-.16,-.045],[-.2,-.03],[-.33,-.1],[-.38,-.09]],.05),0,0,0,0,0,0,1,1,1,GK);
- b.add(gprof([[-.1,-.04],[-.05,-.04],[-.085,-.15],[-.135,-.15]],.036),0,0,0,0,0,0,1,1,1,GK2);b.add(gprof([[.055,-.06],[.115,-.06],[.1,-.25],[.03,-.235]],.026),0,0,0,0,0,0,1,1,1,GK2);
- fwd(b,.029,.26,-.17,.002,GK2);fwd(b,.011,.2,-.42,.002);fwd(b,.014,.045,-.6,.002);b.add(GEO.box,0,.03,-.445,0,0,0,.03,.03,.03,GK);b.add(GEO.box,0,.045,-.445,0,0,0,.008,.04,.01,GK);
- b.add(GEO.box,-.012,.045,.12,0,0,0,.007,.04,.012,GK);b.add(GEO.box,.012,.045,.12,0,0,0,.007,.04,.012,GK);b.add(GEO.box,0,.045,-.02,0,0,0,.03,.012,.26,GK2);vmArms(b,.1,-.28,true);VM.m4=b;
- b=new GB(); // AK-47
- b.add(gprof([[-.16,.035],[.18,.035],[.18,-.035],[.1,-.04],[-.16,-.04]],.05),0,0,0,0,0,0,1,1,1,GK);b.add(gprof([[-.4,.02],[-.16,.03],[-.16,-.04],[-.3,-.085],[-.4,-.1]],.042),0,0,0,0,0,0,1,1,1,WOOD);
- b.add(gprof([[-.11,-.035],[-.06,-.035],[-.095,-.14],[-.145,-.14]],.036),0,0,0,0,0,0,1,1,1,WOOD);
- b.add(gprof([[.03,-.035],[.1,-.035],[.14,-.14],[.2,-.23],[.14,-.26],[.07,-.16]],.03),0,0,0,0,0,0,1,1,1,GK2);
- fwd(b,.03,.2,-.18,-.006,WOOD);fwd(b,.011,.3,-.38,.0);fwd(b,.009,.2,-.2,.035,GK2);b.add(GEO.box,0,.0,-.6,0,0,0,.012,.075,.012,GK);b.add(GEO.box,0,.035,-.0,0,0,0,.03,.016,.03,GK);
- b.add(GEO.box,-.011,.045,-.0,0,0,0,.007,.035,.01,GK);b.add(GEO.box,.011,.045,-.0,0,0,0,.007,.035,.01,GK);vmArms(b,.11,-.27,true);VM.ak=b;
- b=new GB(); // MP5
- b.add(gprof([[-.14,.04],[.16,.04],[.16,-.035],[.08,-.04],[-.14,-.04]],.05),0,0,0,0,0,0,1,1,1,GK);b.add(gprof([[-.1,-.035],[-.05,-.035],[-.085,-.14],[-.135,-.14]],.036),0,0,0,0,0,0,1,1,1,GK2);
- b.add(gprof([[.02,-.035],[.07,-.035],[.1,-.2],[.05,-.21]],.026),0,0,0,0,0,0,1,1,1,GK2);fwd(b,.026,.13,-.16,.0,GK2);fwd(b,.011,.08,-.29,.0);b.add(GEO.box,0,-.01,.14,0,0,0,.028,.028,.22,GK2);b.add(GEO.box,0,-.07,.34,0,0,0,.03,.1,.03,GK2);
- b.add(GEO.box,-.011,.04,.06,0,0,0,.007,.04,.01,GK);b.add(GEO.box,.011,.04,.06,0,0,0,.007,.04,.01,GK);b.add(GEO.box,0,.03,-.27,0,0,0,.012,.05,.012,GK);vmArms(b,.1,-.2,true);VM.smg=b;
- b=new GB(); // M9
- b.add(gprof([[-.05,.045],[.2,.045],[.2,.0],[.05,-.005],[-.05,-.005]],.034),0,0,0,0,0,0,1,1,1,GK);b.add(gprof([[-.045,0],[.02,0],[-.005,-.12],[-.07,-.115]],.032),0,0,0,0,0,0,1,1,1,GK2);
- b.add(GEO.box,-.009,.045,.03,0,0,0,.006,.017,.01,GK);b.add(GEO.box,.009,.045,.03,0,0,0,.006,.017,.01,GK);b.add(GEO.box,0,.045,-.19,0,0,0,.007,.017,.008,GK);
- b.add(GEO.ball,0,-.06,.03,0,0,0,.038,.055,.045,GLV);b.add(GEO.limb,.02,-.1,.06,-1.1,-.1,0,.044,.34,.044,TAN);b.add(GEO.ball,-.02,-.075,.02,0,0,0,.036,.045,.045,GLV);b.add(GEO.limb,-.045,-.1,.05,-1.05,.4,0,.043,.34,.043,TAN);VM.pistol=b;
- b=new GB(); // M870
- b.add(gprof([[-.15,.04],[.16,.04],[.16,-.04],[-.15,-.04]],.055),0,0,0,0,0,0,1,1,1,GK);b.add(gprof([[-.42,.01],[-.15,.035],[-.15,-.04],[-.2,-.05],[-.32,-.09],[-.42,-.1]],.045),0,0,0,0,0,0,1,1,1,WOOD);
- fwd(b,.017,.52,-.16,.018);fwd(b,.016,.36,-.16,-.022,GK2);fwd(b,.03,.18,-.24,-.024,WOOD);b.add(GEO.box,0,.035,-.66,0,0,0,.01,.022,.01,GK);b.add(GEO.box,0,.04,.08,0,0,0,.03,.012,.03,GK);vmArms(b,.1,-.33,true);VM.shotgun=b;
- b=new GB(); // M14 DMR with scope
- b.add(gprof([[-.48,.0],[-.2,.03],[.3,.03],[.3,-.03],[.05,-.045],[-.1,-.045],[-.16,-.03],[-.3,-.1],[-.48,-.1]],.052),0,-.01,0,0,0,0,1,1,1,WOOD);
- b.add(gprof([[.0,-.045],[.07,-.045],[.06,-.17],[-.01,-.17]],.03),0,0,0,0,0,0,1,1,1,GK2);fwd(b,.012,.46,-.28,.012);fwd(b,.016,.05,-.74,.012);b.add(GEO.box,0,.03,.0,0,0,0,.045,.02,.2,GK);
- fwd(b,.021,.3,.13,.082,GK,GEO.cyl12);fwd(b,.03,.07,-.17,.082,GK,GEO.cyl12);fwd(b,.027,.05,.18,.082,GK,GEO.cyl12);b.add(GEO.box,0,.045,.05,0,0,0,.02,.03,.03,GK);b.add(GEO.box,0,.045,-.1,0,0,0,.02,.03,.03,GK);vmArms(b,.13,-.3,true);VM.dmr=b;
- b=new GB(); // M249 SAW
- b.add(gprof([[-.18,.05],[.2,.05],[.2,-.04],[-.18,-.05]],.07),0,0,0,0,0,0,1,1,1,GK);b.add(gprof([[-.42,.03],[-.18,.04],[-.18,-.05],[-.3,-.06],[-.42,-.1]],.05),0,0,0,0,0,0,1,1,1,GK);
- b.add(gprof([[-.12,-.045],[-.07,-.045],[-.1,-.15],[-.15,-.15]],.036),0,0,0,0,0,0,1,1,1,GK2);b.add(GEO.box,-.02,-.19,-.04,0,0,0,.12,.13,.14,0x4c5a3a);
- fwd(b,.034,.2,-.2,.0,GK2);fwd(b,.014,.36,-.3,.006);b.add(GEO.box,0,.05,.0,0,0,0,.04,.02,.22,GK2);b.add(GEO.box,0,.05,-.52,0,0,0,.012,.05,.012,GK);
- b.add(GEO.box,-.012,.07,.1,0,0,0,.007,.03,.01,GK);b.add(GEO.box,.012,.07,.1,0,0,0,.007,.03,.01,GK);for(const s of [-1,1])b.add(GEO.rod,s*.02,-.03,-.5,2.5,0,s*.3,.008,.26,.008,GK2);vmArms(b,.12,-.28,true);VM.lmg=b;}
-const gunMat=new T.MeshPhongMaterial({vertexColors:true,shininess:34,specular:0x3a3a3a});
-for(const k in VM){const m=new T.Mesh(VM[k].build(),gunMat);m.visible=false;gunRoot.add(m);VM[k]=m;}
-const flash=new T.Sprite(new T.SpriteMaterial({map:dot,color:0xffc45a,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));flash.scale.set(.3,.3,1);flash.visible=false;gunRoot.add(flash);
+// First-person models: the weapons of the world (gunBuild in 05, with the parts that only show up close) and the player's own hands and
+// forearms (skin from AVATAR, a flannel's sleeves). Each is a group: the gun, then the arms (rebuilt by vmSkin when the avatar changes).
+// The barrel points to -z; the line of sight is at height D.sight above the origin.
+const VM={},gunMat=new T.MeshPhongMaterial({vertexColors:true,shininess:34,specular:0x3a3a3a}),vmArmMat=L({vertexColors:true});
+for(const id in WDEF){const g=new T.Group(),b=new GB();gunBuild(b,id,1);g.add(new T.Mesh(b.build(),gunMat));const a=new T.Mesh(new T.BufferGeometry(),vmArmMat);g.add(a);
+  g.userData.arms=a;g.visible=false;gunRoot.add(g);VM[id]=g;}
+// a point of a frame (origin o, axes u (up) and f (back)) in the weapon frame
+const vmP=(o,t,p)=>{const c=Math.cos(t),s=Math.sin(t);return[o[0]+p[0],o[1]+p[1]*c+p[2]*s,o[2]-p[1]*s+p[2]*c];};
+// the firing hand round the pistol grip (grip frame: y up the grip, z towards the back), and the other hand under the handguard
+function vmHands(b,id,sk,sl){const H=HOLD[id]||HOLD.m4,X=SXC,sw=(pts,r,c,n)=>fgSweep(b,X,0,pts,r,n||7,c===undefined?sk:c),pis=!!H.pis,
+    go=[0,H.g[1]-.01,H.g[2]],gt=pis?.2:.29,G=p=>vmP(go,gt,p),fy=pis?0:H.f[1]+.04,F=p=>[p[0],p[1]+fy,p[2]+H.f[2]],arm=sl||sk;
+  sw([[.022,.05,.012],[.026,.02,.016],[.026,-.015,.016],[.023,-.045,.012]].map(G),[[.012,.024],[.014,.028],[.014,.028],[.012,.022]]);           // palm on the right side and back
+  [.012,-.01,-.032].forEach((y,k)=>{const r=.0095-k*.0007;sw([[.026,y,-.006],[.02,y,-.03],[.002,y,-.038],[-.014,y,-.029],[-.018,y,-.02]].map(G),[r,r,r*.95,r*.88,r*.7]);});
+  sw([[.025,.04,-.008],[.02,.045,-.032],[.01,.047,-.052],[.005,.045,-.06]].map(G),[.0095,.009,.0085,.006]);                                // trigger finger
+  sw([[.016,.06,.026],[.008,.07,.012],[-.008,.071,-.004],[-.017,.066,-.017],[-.019,.063,-.022]].map(G),[.011,.0105,.0095,.0085,.006]);       // thumb over the top
+  sw([[.026,-.02,.035],[.04,-.05,.12],[.085,-.11,.32],[.13,-.17,.55]].map(G),[.026,.034,.042,.046],arm,8);                                   // wrist and forearm
+  if(sl)sw([[.04,-.05,.1],[.044,-.056,.13]].map(G),[.04,.04],shade(sl,.8),8);                                                                // sleeve cuff
+  if(pis){const L0=p=>vmP(go,gt,p);sw([[-.024,.03,.012],[-.028,0,.012],[-.026,-.03,.01]].map(L0),[[.012,.024],[.013,.027],[.012,.024]]);      // the other hand round the grip
+    [.006,-.016,-.038].forEach((y,k)=>sw([[-.026,y,-.004],[-.03,y,-.04],[-.01,y,-.058],[.016,y,-.058],[.03,y,-.046]].map(L0),[.0095,.0092,.009,.0085,.007]));
+    sw([[-.03,.04,.004],[-.028,.044,-.03],[-.024,.044,-.05]].map(L0),[.011,.0095,.004]);sw([[-.03,-.02,.04],[-.07,-.06,.14],[-.15,-.13,.36],[-.2,-.18,.55]].map(L0),[.026,.034,.042,.046],arm,8);
+    if(sl)sw([[-.07,-.06,.12],[-.075,-.065,.15]].map(L0),[.04,.04],shade(sl,.8),8);return;}
+  sw([[-.006,-.044,.045],[-.008,-.046,.01],[-.006,-.044,-.03]].map(F),[[.028,.012],[.032,.013],[.027,.011]]);                                // palm under the handguard
+  [.026,.009,-.008,-.025].forEach((z,k)=>{const r=k===3?.0082:.0095;sw([[-.022,-.036,z],[-.038,-.014,z],[-.036,.01,z],[-.024,.025,z],[-.016,.028,z]].map(F),[r,r,r*.95,r*.85,r*.65]);});
+  sw([[.012,-.042,.032],[.028,-.03,.016],[.034,-.01,-.006],[.033,0,-.02]].map(F),[.011,.0105,.009,.007]);                               // thumb along the right side
+  sw([[-.008,-.06,.05],[-.04,-.1,.15],[-.12,-.2,.38],[-.18,-.27,.6]].map(F),[.027,.034,.042,.046],arm,8);
+  if(sl)sw([[-.04,-.1,.14],[-.045,-.105,.17]].map(F),[.04,.04],shade(sl,.8),8);}
+function vmSkin(){const A=AVATAR,sl=A.shirtStyle==='flannel'?A.shirt:null;for(const id in VM){const b=new GB();vmHands(b,id,A.skin,sl);const m=VM[id].userData.arms;m.geometry.dispose();m.geometry=b.build();}}
+// muzzle flash: four spiky stars in one texture; each shot picks one, turns and sizes it; some shots leave a wisp of smoke
+const flashTex=tex(128,128,(g)=>{g.clearRect(0,0,128,128);for(let q=0;q<4;q++){const cx=(q&1)*64+32,cy=(q>>1)*64+32,n=[4,5,6,8][q];g.save();g.translate(cx,cy);g.rotate(q*.4);
+    const gr=g.createRadialGradient(0,0,1,0,0,30);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,232,170,.9)');gr.addColorStop(1,'rgba(255,170,50,0)');g.fillStyle=gr;
+    g.beginPath();for(let k=0;k<n*2;k++){const a=k/(n*2)*TAU,r=k%2?6+rnd()*3:18+rnd()*13;g.lineTo(Math.cos(a)*r,Math.sin(a)*r);}g.closePath();g.fill();
+    g.fillStyle='rgba(255,255,240,.95)';g.beginPath();g.arc(0,0,5,0,TAU);g.fill();g.restore();}});
+flashTex.repeat.set(.5,.5);
+const flash=new T.Sprite(new T.SpriteMaterial({map:flashTex,color:0xffd890,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));flash.scale.set(.3,.3,1);flash.visible=false;gunRoot.add(flash);
+// one shot's flash (both views) and its smoke; the barrel smokes for a moment after a burst (vmSmoke, every frame)
+function vmFlash(D,tp,m){const q=(R()*4)|0;flashTex.offset.set((q&1)*.5,(q>>1)*.5);flash.material.rotation=R()*TAU;const k=R2(.7,1.3)*(D.shell?1.6:D.snd==='lmg'||D.snd==='ak'?1.2:D.snd==='pistol'?.8:1);
+  flash.scale.set(.3*k,.3*k,1);if(tp){tpFlash.scale.set(.42*k,.42*k,1);tpFlash.material.rotation=flash.material.rotation;}
+  P.burstN=(P.burstN||0)+1;if(R()<.3||D.shell)puff(m.x,m.y,m.z,0xcfc8bc,.05,.24,.5,.28,R2(-.2,.2)+P.vx*.3,R2(.4,.8),R2(-.2,.2)+P.vz*.3,false,true);}
+const vmSm=new T.Vector3();
+function vmSmoke(D,tp){if(!(P.burstN>0)||P.fireT>-.22)return;const n=Math.min(4,1+(P.burstN/4|0));P.burstN=0;
+  if(tp)avMuzzle(vmSm,D);else{camera.updateMatrixWorld();vmSm.set(0,.02,D.mz);gunRoot.localToWorld(vmSm);}
+  for(let k=0;k<n;k++)puff(vmSm.x,vmSm.y+k*.03,vmSm.z,0xbdb6aa,.04+k*.02,.3+k*.12,.9+k*.35,.26,R2(-.12,.12)+P.vx*.2,R2(.3,.6),R2(-.12,.12)+P.vz*.2,false,true);}
 
 // ---------- explosions and destructible props
 const pending=[],fires=[];

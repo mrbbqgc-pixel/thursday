@@ -53,9 +53,9 @@ function fire(){const w=curW(),D=WDEF[w.id];if(P.swapT>0||P.meleeT>0||P.fireT>0)
       if(along>0&&along<t+2){const d2=px*px+py*py+pz*pz-along*along;if(d2<3.2)s.supp=1.5;}}}
   if(any)G.stats.hits++;
   const kk=D.kick*(1-P.ads*.3)*(P.crouch>.5?.8:1);P.pitch=Math.min(1.5,P.pitch+kk);P.recoil+=kk*.62;P.yaw+=(R()-.5)*2*D.kickH*(1-P.ads*.3);
-  P.bloom=Math.min(.05,P.bloom+D.hip*.2);P.kick=Math.min(1,P.kick+.45+D.kick*9);P.flashT=.05;flash.material.rotation=R()*TAU;lightAt(muz.x,muz.y,muz.z,1.5,.06);
+  P.bloom=Math.min(.05,P.bloom+D.hip*.2);P.kick=Math.min(1,P.kick+.45+D.kick*9);P.flashT=.05;vmFlash(D,tp,muz);lightAt(muz.x,muz.y,muz.z,1.5,.06);
   sndShot(D.snd,0,0,true);
-  if(tp){tpFlash.position.copy(muz);tpFlash.material.rotation=flash.material.rotation;}
+  if(tp)tpFlash.position.copy(muz);
   if(!D.shell){const rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);bit(tp?muz.x-f[0]*.45:ox+f[0]*.35+rx*.16,tp?muz.y:oy-.1,tp?muz.z-f[2]*.45:oz+f[2]*.35+rz*.16,rx*R2(1.5,2.6)+P.vx,R2(1.5,2.6),rz*R2(1.5,2.6)+P.vz,.02,.02,.055,brass,2.4);}
   noiseEvent(P.x,P.z,90,true);if(w.mag===0&&w.res>0&&!D.shell)P.autoRl=.3;}
 function meleeStrike(){const f=lookDir();let best=null,bd=2.4;
@@ -126,7 +126,7 @@ function updPlayer(dt){const w=curW(),D=WDEF[w.id],bk=P.bike;
   IN.firePressed=false;if(want)fire();
   if(P.recoil>0){const r=Math.min(P.recoil,dt*.42);P.pitch-=r;P.recoil-=r;}
   P.bloom=Math.max(0,P.bloom-dt*.09);P.kick*=Math.exp(-dt*13);P.punch*=Math.exp(-dt*7);P.roll*=Math.exp(-dt*6);
-  if(P.flashT>0){P.flashT-=dt;}flash.visible=P.flashT>0&&!(D2.scope&&P.ads>.9);tpFlash.visible=P.flashT>0&&VIEW.on&&VIEW.sc<.5;
+  if(P.flashT>0){P.flashT-=dt;}flash.visible=P.flashT>0&&!(D2.scope&&P.ads>.9);tpFlash.visible=P.flashT>0&&VIEW.on&&VIEW.sc<.5;vmSmoke(D2,VIEW.on&&VIEW.sc<.5);
   updBikes(dt);}
 function updCamera(dt){const D=curD();VIEW.on=viewTP();if(VIEW.on){tpCamera(dt,D);updAvatar(dt);return;}VIEW.sc=0;updAvatar(dt);
   const eye=lerp(1.65,1.05,P.crouch),amp=(P.sprinting?.055:.03)*(1-P.ads*.75)*clamp(P.speed/4,0,1);
