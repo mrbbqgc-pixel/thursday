@@ -18,11 +18,11 @@ chunks.forEach(mm=>mm.forEach((b,mat)=>{if(!b.p.length)return;const m=mkMesh(b,m
 let viewFar=Q.far;
 // fog and draw distance: the menu flyover sees farther than the player on foot
 function setView(far,nearK){if(far===viewFar&&scene.fog.near===far*nearK)return;viewFar=far;scene.fog.near=far*nearK;scene.fog.far=far;}
-function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],s=m.geometry.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,r=viewFar+30+s.radius;m.visible=dx*dx+dz*dz<r*r;}
+function cullChunks(x,z){for(let k=0;k<chunkMeshes.length;k++){const m=chunkMeshes[k],s=m.geometry.boundingSphere,dx=s.center.x-x,dz=s.center.z-z,r=viewFar+s.radius;m.visible=dx*dx+dz*dz<r*r;}
   const r2=(viewFar+40)*(viewFar+40);for(let k=0;k<farCull.length;k++){const m=farCull[k],dx=m.position.x-x,dz=m.position.z-z;if(m.parent)m.visible=dx*dx+dz*dz<r2;}}
 
 // ---------- spatial bins (16 m cells) for rays and collision
-const BS=16,BX0=-400,BZ0=-960,BW=93,BH=112,bins=[];for(let k=0;k<BW*BH;k++)bins.push([]);
+const BS=16,BX0=-700,BZ0=-800,BW=139,BH=129,bins=[];for(let k=0;k<BW*BH;k++)bins.push([]);
 function binAdd(c){c.st=0;const i0=clamp(Math.floor((c.x0-1-BX0)/BS),0,BW-1),i1=clamp(Math.floor((c.x1+1-BX0)/BS),0,BW-1),
   j0=clamp(Math.floor((c.z0-1-BZ0)/BS),0,BH-1),j1=clamp(Math.floor((c.z1+1-BZ0)/BS),0,BH-1);
   for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)bins[j*BW+i].push(c);}
@@ -54,7 +54,7 @@ function floorAt(x,z,feet){let f=0;const list=binAt(x,z);for(let k=0;k<list.leng
   if(!c.off&&c.y0===0&&c.y1<=feet+.3&&c.y1>f&&x>c.x0-.15&&x<c.x1+.15&&z>c.z0-.15&&z<c.z1+.15)f=c.y1;}return f;}
 
 // ---------- navigation grid (3 m cells) with windowed flow fields
-const CELL=3,NX0=-375,NZ0=-933,NW=476,NH=579,blocked=new Uint8Array(NW*NH);
+const CELL=3,NX0=-560,NZ0=-720,NW=687,NH=647,blocked=new Uint8Array(NW*NH);
 function blockCollider(c){if(c.y0>1.2||c.y1<.5)return;const w=c.x1-c.x0,d=c.z1-c.z0;
   if(Math.max(w,d)<1.6)return;                       // posts, trunks, crates: walked around, not routed around
   const thin=Math.min(w,d)<1.6,m=thin?.05:.7;        // walls, sandbags and barriers block every cell they touch
@@ -80,24 +80,23 @@ function flowDir(F,x,z){const c=cellOf(x,z),d=F.d;let bx=F.x-x,bz=F.z-z;const bl
       const n=nj*NW+ni;if(blocked[n]||d[n]<0)continue;if(oi&&oj&&(blocked[j*NW+ni]||blocked[nj*NW+i]))continue;const dd=d[n]+(oi&&oj?.4:0);if(dd<bd){bd=dd;bi=ni;bj=nj;}}
     if(bi>=0){const tx=NX0+(bi+.5)*CELL-x,tz=NZ0+(bj+.5)*CELL-z,tl=Math.hypot(tx,tz)||1;bx=tx/tl;bz=tz/tl;}}
   FD.x=bx;FD.z=bz;return FD;}
-// cells connected to the street network: nothing is ever spawned in a sealed yard
-const reach=new Uint8Array(NW*NH);{const q=new Int32Array(NW*NH);let qh=0,qt=0;const s=cellOf(6.5,318);reach[s]=1;q[qt++]=s;
+// cells connected to the street network: nothing is ever spawned in a sealed yard, in a school or east of the freeway
+const reach=new Uint8Array(NW*NH);{const q=new Int32Array(NW*NH);let qh=0,qt=0;
+  for(const i of ISEC){if(i.x<BOUND.x0||i.x>BOUND.x1||i.z<BOUND.z0||i.z>BOUND.z1)continue;const s=cellOf(i.x,i.z);if(s>=0&&!blocked[s]&&!reach[s]){reach[s]=1;q[qt++]=s;}}
   while(qh<qt){const c=q[qh++],i=c%NW,j=(c-i)/NW;if(i>0&&!reach[c-1]&&!blocked[c-1]){reach[c-1]=1;q[qt++]=c-1;}if(i<NW-1&&!reach[c+1]&&!blocked[c+1]){reach[c+1]=1;q[qt++]=c+1;}
     if(j>0&&!reach[c-NW]&&!blocked[c-NW]){reach[c-NW]=1;q[qt++]=c-NW;}if(j<NH-1&&!reach[c+NW]&&!blocked[c+NW]){reach[c+NW]=1;q[qt++]=c+NW;}}}
-const inCemetery=(x,z)=>x>930&&x<1042&&z>-912&&z<-828;
-function freeSpot(x,z){const c=cellOf(x,z);return c>=0&&!blocked[c]&&reach[c]===1&&x>BOUND.x0&&x<BOUND.x1&&z>BOUND.z0&&z<BOUND.z1&&!inCemetery(x,z);}
+function freeSpot(x,z){const c=cellOf(x,z);return c>=0&&!blocked[c]&&reach[c]===1&&x>BOUND.x0&&x<BOUND.x1&&z>BOUND.z0&&z<BOUND.z1&&x<fwX(z)+FWH+15&&!inQuiet(x,z);}
 
 // ---------- map image (1 px per metre) used by the minimap and the tactical map
-const MX0=-400,MZ0=-960,MAPW=1460,MAPH=1780,mapC=document.createElement('canvas');mapC.width=MAPW;mapC.height=MAPH;
-{const g=mapC.getContext('2d'),X=x=>x-MX0,Z=z=>z-MZ0;g.fillStyle='#c9ab7c';g.fillRect(0,0,MAPW,MAPH);
- FIELDS.forEach((f,k)=>{g.fillStyle=k%3===2?'#b2925f':'#7f9c58';g.fillRect(X(f[0]),Z(f[1]),f[2]-f[0],f[3]-f[1]);});
- g.fillStyle='#d6bc8c';for(const x of AX)if(x)g.fillRect(X(x-6),Z(-906),12,(southCol(x)?780:6)+906);
- for(const z of SZN)g.fillRect(X(-360),Z(z-6),1296,12);for(const z of SZS)g.fillRect(X(-360),Z(z-6),720,12);
- for(const B of BLOCKS){const k=kept[bkey(B)];if(!k)continue;g.fillStyle=k===2?'#c9ab7c':'#e6d6b4';g.fillRect(X(B.cx-B.w/2),Z(B.cz-B.d/2),B.w,B.d);}
- g.fillStyle='#8fb383';g.fillRect(X(203),Z(81),106,106);g.fillStyle='#d9c3ae';g.fillRect(X(166),Z(-654),84,48);g.fillStyle='#ddd8cc';g.fillRect(X(936),Z(-906),100,72);
- g.fillStyle='#6b6761';g.fillRect(X(154),Z(-726),12,720);g.fillRect(X(250),Z(-726),12,192);g.fillRect(X(10.5),Z(-486),156,12);g.fillRect(X(58),Z(-606),300,12);g.fillRect(X(154),Z(-666),108,12);
- g.fillStyle='#57534d';g.fillRect(X(-10.5),0,21,MAPH);g.fillRect(X(10.5),Z(-5.5),MAPW,11);
- g.fillStyle='#d9c9a6';g.fillRect(X(-2.5),Z(-900),5,1680);
- g.fillStyle='#8a6c4b';for(const c of colliders)if(c.kind===1)g.fillRect(X(c.x0),Z(c.z0),c.x1-c.x0,c.z1-c.z0);
- g.fillStyle='#9a968c';for(const c of colliders)if(c.kind===5&&inCemetery((c.x0+c.x1)/2,(c.z0+c.z1)/2))g.fillRect(X(c.x0),Z(c.z0),c.x1-c.x0,c.z1-c.z0);
- g.fillStyle='#6f8f5c';g.beginPath();g.arc(X(0),Z(0),7,0,7);g.fill();g.fillStyle='#7c6238';g.fillRect(X(-1.5),Z(-1.5),3,3);}
+const MX0=-560,MZ0=-720,MAPW=2060,MAPH=1940,mapC=document.createElement('canvas');mapC.width=MAPW;mapC.height=MAPH;
+{const g=mapC.getContext('2d'),X=x=>x-MX0,Z=z=>z-MZ0;g.fillStyle='#cfc3a4';g.fillRect(0,0,MAPW,MAPH);
+ for(const r of MAPR){g.fillStyle=r[4];g.fillRect(X(r[0]),Z(r[1]),r[2]-r[0],r[3]-r[1]);}
+ // the freeway, the tracks and the trail on top
+ g.lineCap='round';g.strokeStyle='#bdb59f';g.lineWidth=2*FWH+28;g.beginPath();FWY.forEach((p,k)=>k?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.stroke();
+ g.strokeStyle='#8d8a84';g.lineWidth=2*FWH;g.stroke();g.strokeStyle='#e2b93b';g.lineWidth=1.5;g.stroke();
+ g.strokeStyle='#5d5650';g.lineWidth=3;g.setLineDash([6,4]);g.beginPath();g.moveTo(X(-1000),Z(TRK));g.lineTo(X(fwX(TRK)+60),Z(TRK));g.stroke();g.setLineDash([]);
+ g.strokeStyle='#b07a4a';g.lineWidth=3;g.beginPath();g.moveTo(X(-1000),Z(trailZ(-1000)));g.lineTo(X(600),Z(trailZ(600)));g.lineTo(X(1400),Z(trailZ(1400)));g.stroke();
+ g.fillStyle='#8a7a66';for(const c of colliders)if(c.kind===1)g.fillRect(X(c.x0),Z(c.z0),c.x1-c.x0,c.z1-c.z0);
+ g.fillStyle='rgba(120,160,200,.25)';for(const q of QUIET)g.fillRect(X(q[0]),Z(q[1]),q[2]-q[0],q[3]-q[1]);
+ // the playable edge
+ g.strokeStyle='rgba(21,17,12,.35)';g.lineWidth=3;g.strokeRect(X(BOUND.x0),Z(BOUND.z0),BOUND.x1-BOUND.x0,BOUND.z1-BOUND.z0);}

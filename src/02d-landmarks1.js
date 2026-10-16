@@ -1,5 +1,5 @@
 // =====================================================================
-// 02d LANDMARKS (1): local frames, the plaza, churches
+// 02d LANDMARKS (1): local frames, parking helpers, The Market Hall, the Civic Center, Vista Town Center
 // A landmark is written once in local coordinates with its front towards local +z, then turned in quarter turns:
 // r=0 front faces south (+z), r=1 east (+x), r=2 north (-z), r=3 west (-x).
 // =====================================================================
@@ -7,77 +7,105 @@ function TF(cx,cz,r){const c=[1,0,-1,0][r],s=[0,1,0,-1][r],F={cx,cz,r,ry:r*PI/2}
   F.p=(lx,lz)=>[cx+lx*c+lz*s,cz-lx*s+lz*c];
   F.b=(lx,lz,lw,ld)=>{const p=F.p(lx,lz);return r%2?[p[0],p[1],ld,lw]:[p[0],p[1],lw,ld];};
   const smap=[[0,1,2,3],[2,3,1,0],[1,0,3,2],[3,2,0,1]][r];F.s=k=>smap[k];
-  F.build=(lx,lz,lw,ld,h,o)=>{const b=F.b(lx,lz,lw,ld);o=o||{};o.front=F.s(o.front===undefined?1:o.front);return building(b[0],b[1],b[2],b[3],h,o);};
-  F.wall=(lx,lz,lw,ld,h,tint,cn,y0)=>{const b=F.b(lx,lz,lw,ld);wallSeg(b[0],b[1],b[2],b[3],h,tint,cn,y0);};
+  F.rect=(lx0,lz0,lx1,lz1)=>{const a=F.p(lx0,lz0),b=F.p(lx1,lz1);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])];};
   F.box=(lx,y,lz,lw,h,ld,col,top)=>{const b=F.b(lx,lz,lw,ld);boxC(M.flat,b[0],y,b[1],b[2],h,b[3],col,top);};
   F.side=(lx,lz,lw,ld,y0,h,side,cells,tint)=>{const b=F.b(lx,lz,lw,ld);wallSide(b[0],b[1],b[2],b[3],y0,h,F.s(side),cells,tint);};
   F.put=(g,lx,y,lz,ry,sx,sy,sz,col,mat)=>{const p=F.p(lx,lz);put(mat||M.flat,g,p[0],y,p[1],(ry||0)+F.ry,sx,sy,sz,col);};
   F.post=(lx,lz,h,rad,col,y0)=>{const p=F.p(lx,lz);post(p[0],p[1],h,rad,col,y0);};
   F.solid=(lx,lz,lw,ld,h,y0,kind)=>{const b=F.b(lx,lz,lw,ld);return solid(b[0],b[1],b[2],b[3],h,y0,kind);};
   F.sign=(t,lx,y,lz,lry,w,h,bg,fg,flush)=>{const p=F.p(lx,lz);sign(t,p[0],y,p[1],(lry||0)+F.ry,w,h,bg,fg,flush);};
-  F.flat=(mat,lx0,lz0,lx1,lz1,y,rp)=>{const a=F.p(lx0,lz0),b=F.p(lx1,lz1);flat(mat,Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1]),y,rp);};
-  F.car=(lx,lz,alongLX,col,type)=>{const p=F.p(lx,lz);return park(p[0],p[1],r%2?!alongLX:!!alongLX,col,type);};
+  F.board=(uv,lx,y,lz,lry,w,h,both)=>{const p=F.p(lx,lz);boardQ(uv,p[0],y,p[1],(lry||0)+F.ry,w,h,both);};
+  F.flat=(mat,lx0,lz0,lx1,lz1,y,rp)=>{const q=F.rect(lx0,lz0,lx1,lz1);flat(mat,q[0],q[1],q[2],q[3],y,rp);};
+  F.lot=(lx0,lz0,lx1,lz1,alongLX)=>{const q=F.rect(lx0,lz0,lx1,lz1);lotFlat(q[0],q[1],q[2],q[3],r%2?!alongLX:!!alongLX);};
+  F.pad=(lx0,lz0,lx1,lz1,top,swl)=>{const q=F.rect(lx0,lz0,lx1,lz1),m=[[0,1,2,3],[3,2,0,1],[1,0,3,2],[2,3,1,0]][r];swl=swl||[0,0,0,0];pad2(q[0],q[1],q[2],q[3],top,[swl[m[0]],swl[m[1]],swl[m[2]],swl[m[3]]]);};
+  F.car=(lx,lz,alongLX,col,type,lite)=>{const p=F.p(lx,lz);return park(p[0],p[1],r%2?!alongLX:!!alongLX,col,type,lite);};
   F.tree=(lx,lz,sc,ty)=>{const p=F.p(lx,lz);trees.push([p[0],p[1],sc||1,ty||0]);};F.palm=(lx,lz)=>{const p=F.p(lx,lz);palms.push([p[0],p[1]]);};
-  F.lamp=(lx,lz,ty)=>{const p=F.p(lx,lz);lamps.push([p[0],p[1],ty||0,F.ry]);};
+  F.fan=(lx,lz,h)=>{const p=F.p(lx,lz);fans.push([p[0],p[1],h||rr(11,17)]);};
+  F.lamp=(lx,lz,ty,ry,sc)=>{const p=F.p(lx,lz);lamps.push([p[0],p[1],ty||0,(ry||0)+F.ry,sc||1]);};
   F.cover=(lx,lz)=>{const p=F.p(lx,lz);lowCover.push(p);};F.barrel=(lx,lz)=>{const p=F.p(lx,lz);barrelSpots.push(p);};
   F.shade=(lx,lz,lw,ld,y)=>{const b=F.b(lx,lz,lw,ld);shadeRect(b[0],b[1],b[2],b[3],y);};
+  F.block=(lx,lz,lw,ld,h,o)=>{const b=F.b(lx,lz,lw,ld);o=Object.assign({},o||{});o.front=F.s(o.front===undefined?1:o.front);return block(b[0],b[1],b[2],b[3],h,o);};
+  F.shops=(lx,lz,lw,ld,o)=>{const b=F.b(lx,lz,lw,ld);return stripShops(b[0],b[1],b[2],b[3],F.s(1),o);};
+  F.wall=(lx0,lz0,lx1,lz1,h,tint,pil)=>{const a=F.p(lx0,lz0),b=F.p(lx1,lz1);wallLine(a[0],a[1],b[0],b[1],h,tint,pil);};
+  F.chain=(lx0,lz0,lx1,lz1,h)=>{const a=F.p(lx0,lz0),b=F.p(lx1,lz1);chainLink(a[0],a[1],b[0],b[1],h);};
+  F.planter=(lx,lz,lw,ld,tree)=>{const b=F.b(lx,lz,lw,ld);planter(b[0],b[1],b[2],b[3],tree);};
+  F.bench=(lx,lz,alongLX)=>{const p=F.p(lx,lz);bench(p[0],p[1],r%2?!alongLX:!!alongLX);};
+  F.picnic=(lx,lz,alongLX)=>{const p=F.p(lx,lz);picnic(p[0],p[1],r%2?!alongLX:!!alongLX);};
+  F.label=(lx,lz,t,k)=>{const p=F.p(lx,lz);label(p[0],p[1],t,k);};
   return F;}
-function roomFor(x,z,w,d){for(let k=0;k<colliders.length;k++){const c=colliders[k];if(c.y0<1.6&&x-w/2<c.x1+.4&&x+w/2>c.x0-.4&&z-d/2<c.z1+.4&&z+d/2>c.z0-.4)return false;}return true;}
-function park(x,z,alongX,col,type){type=type||(rnd()<.45?'sedan':rnd()<.74?'pickup':'van');const V=VEH[type];if(roomFor(x,z,alongX?V.len:V.wid,alongX?V.wid:V.len))return car(x,z,alongX,col,type);return null;}
-function bench(F,lx,lz,alongLX){const w=alongLX?2.2:.55,d=alongLX?.55:2.2;F.box(lx,PADY+.38,lz,w,.08,d,0x7a5a3a);F.box(lx+(alongLX?0:-.24),PADY+.46,lz+(alongLX?-.24:0),alongLX?w:.07,.42,alongLX?.07:d,0x7a5a3a);
-  for(const e of [-1,1])F.box(lx+(alongLX?e*.9:0),PADY,lz+(alongLX?0:e*.9),alongLX?.08:.5,.38,alongLX?.5:.08,0x4a4a48);F.solid(lx,lz,w,d,.9,0,5);}
-function planter(F,lx,lz,w,d,tree){F.box(lx,PADY,lz,w,.62,d,C.stone,0x6f8a4a);F.solid(lx,lz,w,d,.74,0,5);F.cover(lx,lz);F.shade(lx,lz,w,d,PADY);if(tree)F.tree(lx,lz,1.15,0);}
-const flagTex=tex(96,54,(g,w,h)=>{g.fillStyle='#1f6b45';g.fillRect(0,0,32,h);g.fillStyle='#f4f0e7';g.fillRect(32,0,32,h);g.fillStyle='#b3261e';g.fillRect(64,0,32,h);g.fillStyle='#8a6a3a';g.beginPath();g.arc(48,27,7,0,7);g.fill();});
-function flagpole(F,lx,lz,h){F.post(lx,lz,h,.07,0xd9d9d2,PADY);F.put(GEO.sph,lx,h+PADY,lz,0,.14,.14,.14,0xe2b93b);const p=F.p(lx,lz);
-  const f=new T.Mesh(new T.PlaneGeometry(3,1.7),new T.MeshBasicMaterial({side:T.DoubleSide,map:flagTex}));f.position.set(p[0]+1.55,h-.9,p[1]);addProp(f);}
-// ---------- Plaza Principal: a whole paved block with the kiosk in the middle
-function plaza(B){const F=TF(B.cx,B.cz,0),hw=B.w/2,hd=B.d/2;pad(B.cx,B.cz,B.w,B.d,M.plaza,true);
-  anchor(B.cx,B.cz,()=>{
-    // kiosk: round stone base with steps, eight columns, tiled octagonal roof
-    F.put(GEO.cyl12,0,PADY,0,0,5,.3,5,0xbdb4a2);F.put(GEO.cyl12,0,PADY+.3,0,0,4.5,.6,4.5,0xe9e4d8);
-    for(let a=0;a<8;a++){const an=a*PI/4+PI/8,x=Math.cos(an)*4,z=Math.sin(an)*4;F.put(GEO.cyl8,x,PADY+.9,z,0,.12,2.9,.12,0xf4f0e7);F.put(GEO.cyl8,x,PADY+.9,z,0,.19,.22,.19,0xd9d3c6);
-      const bn=an+PI/8,rx=Math.cos(bn)*3.98,rz=Math.sin(bn)*3.98;F.put(GEO.box,rx,PADY+1.72,rz,-bn,.08,.08,3.0,0x2b2621);F.put(GEO.box,rx,PADY+1.3,rz,-bn,.05,.05,3.0,0x2b2621);}
-    F.put(GEO.cyl8,0,PADY+3.8,0,PI/8,5.1,.14,5.1,0xe9e4d8);F.put(GEO.cone8,0,PADY+3.94,0,PI/8,5.3,1.9,5.3,C.tile);F.put(GEO.cyl8,0,PADY+5.8,0,0,.5,.5,.5,0xe9e4d8);F.put(GEO.sph,0,PADY+6.55,0,0,.34,.34,.34,0xe2b93b);
-    blob(B.cx,B.cz,6.4,6.4,PADY);
-    // paths of a different paving run from the corners and the sides to the kiosk
-    for(const s of [-1,1]){flat(M.walkO,B.cx-hw+2,B.cz+s*(hd-5)-1.2,B.cx+hw-2,B.cz+s*(hd-5)+1.2,PADY+.004,4);}
-    for(const p of [[-22,-12],[22,-12],[-22,12],[22,12]])planter(F,p[0],p[1],6,5,true);
-    for(const p of [[-33,0],[33,0]])planter(F,p[0],p[1],5,9,true);
-    for(const b of [[-12,-19,1],[12,-19,1],[-12,19,1],[12,19,1],[-22,-5.5,1],[22,-5.5,1],[-22,5.5,1],[22,5.5,1],[-9,0,0],[9,0,0]])bench(F,b[0],b[1],!!b[2]);
-    for(const p of [[-38,-20],[38,-20],[-38,20],[38,20],[-12,-12],[12,-12],[-12,12],[12,12],[0,-21],[0,21]])F.lamp(p[0],p[1],1);
-    for(const p of [[-39,-10],[-39,10],[39,-10],[39,10],[-28,-21],[28,-21],[-28,21],[28,21],[-6,-21.5],[6,21.5]])F.palm(p[0],p[1]);
-    flagpole(F,-14,-6,11);
-    // founders' clock (monument to the forjadores)
-    const mx=15,mz=-6;F.put(GEO.cyl8,mx,PADY,mz,PI/8,1.7,.5,1.7,C.stone);F.put(GEO.box,mx,PADY+.5,mz,0,1.15,5.4,1.15,0xf4f0e7);F.put(GEO.box,mx,PADY+5.9,mz,0,1.45,.16,1.45,0xd9d3c6);F.put(GEO.cone4,mx,PADY+6.06,mz,PI/4,1.05,1.2,1.05,C.tile);
-    F.solid(mx,mz,3.2,3.2,.6,0,5);F.solid(mx,mz,1.15,1.15,7);});
-  const cm=new T.MeshBasicMaterial({map:tex(64,64,(g,w,h)=>{g.fillStyle='#f4f0e7';g.fillRect(0,0,w,h);g.strokeStyle='#15110c';g.lineWidth=4;g.beginPath();g.arc(32,32,27,0,7);g.stroke();
-    g.lineWidth=3;g.beginPath();g.moveTo(32,32);g.lineTo(32,13);g.moveTo(32,32);g.lineTo(45,38);g.stroke();for(let a=0;a<12;a++){g.fillStyle='#15110c';g.fillRect(31+Math.sin(a*PI/6)*23,31-Math.cos(a*PI/6)*23,2,2);}})});
-  for(let a=0;a<4;a++){const c=new T.Mesh(new T.PlaneGeometry(.92,.92),cm);c.position.set(B.cx+15+Math.sin(a*PI/2)*.59,PADY+5.1,B.cz-6+Math.cos(a*PI/2)*.59);c.rotation.y=a*PI/2;addProp(c);}
-  sign('A LOS FORJADORES DE\nCIUDAD INSURGENTES',B.cx+15,PADY+1.2,B.cz-6+.59,0,1.05,.5,'#3a3128','#e2b93b',true);
-  F.solid(0,0,9,9,1,0,5);label(B.cx,B.cz,'PLAZA PRINCIPAL',1);}
-// ---------- churches. Local front (+z) is the entrance.
-const belfries=[];
-GEO.cross=(()=>{const a=new T.BoxGeometry(.16,1.5,.16),b=new T.BoxGeometry(.9,.16,.16);a.translate(0,.75,0);b.translate(0,1.05,0);return[a,b];})();
-function crossOn(F,lx,y,lz,sc,col){for(const g of GEO.cross)F.put(g,lx,y,lz,0,sc,sc,sc,col===undefined?0x2b2621:col);}
-function church(cx,cz,r,name,big){const F=TF(cx,cz,r),tint=0xf4efe4;
-  anchor(cx,cz,()=>{
-    if(big){const Wn=14,Ln=30,Hn=9,fz=14; // nave from lz=fz-Ln to fz, facade at fz
-      const nz=fz-Ln/2;for(const s of [2,3]){F.side(0,nz,Wn,Ln,PADY,4-PADY,s,rep('dado',8),tint);F.side(0,nz,Wn,Ln,4,4,s,['stucco','archWin','stucco','archWin','stucco','archWin','stucco','stucco'],tint);F.side(0,nz,Wn,Ln,8,Hn-8,s,rep('stucco',8),tint);}
-      F.side(0,nz,Wn,Ln,PADY,Hn-PADY,0,rep('stucco',3),tint);
-      const b=F.b(0,nz,Wn,Ln);roofGable(b[0],b[1],b[2],b[3],Hn,2.4,C.tile,tint);F.solid(0,nz,Wn,Ln,Hn+1,0,1);buildings.push({x:b[0],z:b[1],w:b[2],d:b[3],h:Hn,flat:false});F.shade(0,nz,Wn,Ln,PADY);
-      // facade with the arched door, a window above and a curved gable
-      const fzc=fz+.4;F.side(0,fzc,4,.8,PADY,4-PADY,1,['archDoor'],tint);F.side(0,fzc,4,.8,4,4,1,['archWin'],tint);F.side(0,fzc,4,.8,8,2.6,1,['stucco'],tint);
-      for(const s of [-1,1]){F.side(s*2.75,fzc,1.5,.8,PADY,4-PADY,1,['dado'],tint);F.side(s*2.75,fzc,1.5,.8,4,4,1,['stucco'],tint);F.side(s*2.75,fzc,1.5,.8,8,2.6,1,['stucco'],tint);}
-      F.box(0,10.6,fzc,7.3,.22,1,0xd9d3c6);F.box(0,10.82,fzc,4.6,.9,.8,tint);F.box(0,11.72,fzc,2.6,.8,.8,tint);crossOn(F,0,12.52,fzc,1.2);
-      F.solid(0,fzc,7,.8,11,0,1);
-      for(const s of [-1,1]){const tx=s*5.6,tz=fz-.9,Ht=12.5;for(let q=0;q<4;q++){F.side(tx,tz,4.2,4.2,PADY,4-PADY,q,['dado'],tint);F.side(tx,tz,4.2,4.2,4,4,q,[q===1?'archWin':'stucco'],tint);F.side(tx,tz,4.2,4.2,8,4.5,q,['stucco'],tint);}
-        F.box(tx,Ht,tz,4.5,.25,4.5,0xd9d3c6);for(const px of [-1.75,1.75])for(const pz of [-1.75,1.75])F.put(GEO.cyl8,tx+px,Ht+.25,tz+pz,0,.26,2.5,.26,tint);
-        F.box(tx,Ht+2.75,tz,4.5,.3,4.5,0xd9d3c6);F.put(GEO.dome,tx,Ht+3.05,tz,0,2.1,1.9,2.1,C.tile);crossOn(F,tx,Ht+4.9,tz,.9);F.put(GEO.cyl8,tx,Ht+1.3,tz,0,.5,.9,.5,0x6a5a3a);
-        F.solid(tx,tz,4.2,4.2,Ht,0,1);F.shade(tx,tz,4.2,4.2,PADY);const p=F.p(tx,tz);belfries.push({x:p[0],y:Ht+.25,z:p[1]});}
-      for(let k=0;k<3;k++){const dp=1.8-k*.5;F.box(0,PADY+k*.16,fz+.8+dp/2,6-k*.6,.16,dp,0xcfc6b4);}}
-    else{const Wn=9,Ln=16,Hn=5.6,nz=-1;F.side(0,nz,Wn,Ln,PADY,4-PADY,2,rep('dado',4),tint);F.side(0,nz,Wn,Ln,PADY,4-PADY,3,rep('dado',4),tint);F.side(0,nz,Wn,Ln,PADY,4-PADY,0,rep('dado',2),tint);F.side(0,nz,Wn,Ln,PADY,4-PADY,1,['dado','archDoor','dado'],tint);
-      for(let q=0;q<4;q++)F.side(0,nz,Wn,Ln,4,Hn-4,q,rep('stucco',q<2?2:4),tint);
-      const b=F.b(0,nz,Wn,Ln);roofGable(b[0],b[1],b[2],b[3],Hn,1.7,pick([C.tile,0xb9bfc0,0x9c6f55]),tint);F.solid(0,nz,Wn,Ln,Hn+.8,0,1);buildings.push({x:b[0],z:b[1],w:b[2],d:b[3],h:Hn,flat:false});F.shade(0,nz,Wn,Ln,PADY);
-      F.box(0,Hn,nz+Ln/2-.4,1.5,1.9,.8,tint);crossOn(F,0,Hn+1.9,nz+Ln/2-.4,1);}});
-  if(name)F.sign(name,big?0:-3,big?PADY+5.2:PADY+3.1,big?15.25:7.06,0,big?5.4:2.6,big?1.5:.62,'#f4f0e7','#3a3128',true);
-  label(cx,cz,(name||'TEMPLO').replace('\n',' '),big?1:0);return F;}
+function roomFor(x,z,w,d){const i0=Math.floor((x-w/2+1000)/16),i1=Math.floor((x+w/2+1000)/16),j0=Math.floor((z-d/2+1000)/16),j1=Math.floor((z+d/2+1000)/16);
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const L=roomBins.get(i*4096+j);if(!L)continue;for(const c of L)if(c.y0<1.6&&x-w/2<c.x1+.4&&x+w/2>c.x0-.4&&z-d/2<c.z1+.4&&z+d/2>c.z0-.4)return false;}return true;}
+// a coarse spatial hash of the colliders made so far, refreshed lazily, so that parking checks stay cheap
+const roomBins=new Map();let roomN=0;
+function roomSync(){for(;roomN<colliders.length;roomN++){const c=colliders[roomN],i0=Math.floor((c.x0+1000)/16),i1=Math.floor((c.x1+1000)/16),j0=Math.floor((c.z0+1000)/16),j1=Math.floor((c.z1+1000)/16);
+  if((i1-i0+1)*(j1-j0+1)>400)continue;for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i*4096+j;let L=roomBins.get(k);if(!L){L=[];roomBins.set(k,L);}L.push(c);}}}
+function park(x,z,alongX,col,type,lite){type=type||carType();const V=VEH[type];roomSync();if(roomFor(x,z,alongX?V.len:V.wid,alongX?V.wid:V.len))return car(x,z,alongX,col,type,lite);return null;}
+// cars in the stalls of a lot laid with F.lot from (lx0,lz0): fill = share of stalls taken
+function lotCars(F,lx0,lz0,lx1,lz1,alongLX,fill,lite){fill*=.26;const L1=alongLX?lx1-lx0:lz1-lz0,L2=alongLX?lz1-lz0:lx1-lx0;
+  for(let m=0;m*18.6<L2-5;m++)for(const rv of [2.75,15.85]){if(m*18.6+rv>L2-2.5)continue;for(let s=0;(s+1)*2.75<=L1-.3;s++){if(rnd()>fill)continue;const a=s*2.75+1.375,b=m*18.6+rv;
+      if(alongLX)F.car(lx0+a,lz0+b,false,undefined,undefined,lite===undefined?2:lite);else F.car(lx0+b,lz0+a,true,undefined,undefined,lite===undefined?2:lite);}}
+  for(let m=0;m*18.6<L2-1;m+=3)for(let s=24;s<L1-6;s+=60){const b=m*18.6+.2;if(alongLX)F.lamp(lx0+s,lz0+b,3);else F.lamp(lx0+b,lz0+s,3);}}
+// ---------- The Market Hall: a barn-like food hall on Haven, patio with tables and a small stage on its north side. Local front (+z) faces north.
+function marketHall(cx,cz){const F=TF(cx,cz,2),hw=22,hd=12,hz=-4,rc=0x3f5a4a,wt=0xb8452f,pz=hz+hd;
+  const b=F.b(0,hz,2*hw,2*hd);
+  anchor(b[0],b[1],()=>{for(let s=0;s<4;s++){const n=Math.max(1,Math.round((s<2?2*hw:2*hd)/4));const cells=s===1?cyc(['barn','storeD','barn','store'],n):s===0?cyc(['barn','doorMetal','barn','barn'],n):cyc(['barn','store','barn'],n);
+      F.side(0,hz,2*hw,2*hd,0,4.6,s,cells,wt);}
+    const top=gableRoofE(CE,b[0],b[1],b[2],b[3],4.6,.62,rc,.8,'corr','barn',wt);
+    const m=F.b(0,hz,2*hw-10,5);gableRoofE(CE,m[0],m[1],m[2],m[3],top-.3,.4,shade(rc,.9),.4,'corr','office',0xffffff);boxC(M.flat,m[0],top-1.9,m[1],m[2],1.6,m[3],0x2f4f5c);
+    for(const x of [-12,12]){F.box(x,PADY,pz+.2,5.2,3.8,.2,0xb8452f);F.box(x,PADY+3.75,pz+.3,6.4,.12,.3,0x2b2621);}
+    F.shade(0,hz,2*hw,2*hd,PADY);});
+  F.solid(0,hz,2*hw,2*hd,9,0,1);buildings.push({x:b[0],z:b[1],w:b[2],d:b[3],h:4.6,flat:false});
+  F.sign('THE MARKET HALL',0,7.4,pz+.9,0,13,2,'#2b2621','#f1d38a',true);F.sign('THE MARKET HALL',0,7.4,hz-hd-.9,PI,13,2,'#2b2621','#f1d38a',true);
+  // patio: decomposed granite, tables with umbrellas, string lights, planters; the stage at the far end
+  F.flat(M.plazaO,-hw,pz,hw,pz+28,PADY+.004,8);
+  for(let i=0;i<4;i++)for(let j=0;j<3;j++){const x=-18+i*12+rr(-1,1),z=pz+5+j*7;F.picnic(x,z,true);const um=pick([0xb3261e,0xe2b93b,0x2f7d4f,0xf4f0e7]),p=F.p(x,z);
+    anchor(p[0],p[1],()=>{post(p[0],p[1],2.6,.04,0xd9d3c6,PADY);put(M.flat,GEO.cone8,p[0],PADY+2.2,p[1],0,1.6,.55,1.6,um);});}
+  for(const x of [-hw+1,0,hw-1])for(const z of [pz+1,pz+26])F.post(x,z,5,.08,0x3a3128,PADY);
+  stringLights.push(...[[-hw+1,pz+1,0,pz+26],[0,pz+1,hw-1,pz+26],[-hw+1,pz+26,hw-1,pz+26],[-hw+1,pz+1,hw-1,pz+1],[0,pz+1,-hw+1,pz+26]].map(q=>{const a=F.p(q[0],q[1]),c=F.p(q[2],q[3]);return[a[0],a[1],c[0],c[1],4.8];}));
+  for(const x of [-hw+2,hw-2])F.planter(x,pz+14,2.2,6,2);F.cover(-hw+3,pz+22);F.cover(hw-3,pz+22);
+  const sz=pz+32;F.box(0,PADY,sz,12,.9,6,0x7a5a3a,0x8a6a45);F.solid(0,sz,12,6,1.02,0,5);F.cover(0,sz-3.4);
+  for(const x of [-5.6,5.6])for(const z of [sz-2.7,sz+2.7])F.post(x,z,4.4,.1,0x2b2621,PADY+.9);F.box(0,PADY+5.3,sz,12.6,.2,6.6,0x3f5a4a);
+  for(const x of [-6.8,6.8]){F.box(x,PADY,sz-2.4,1,1.8,.8,0x1c1a18);F.solid(x,sz-2.4,1,.8,1.9,0,5);}
+  F.board(strip('livemusic','LIVE MUSIC THURSDAYS','#2b2621','#f1d38a','bold 26px Arial'),0,PADY+4.35,sz-3.1,0,6,1.1);
+  for(const z of [pz+6,pz+20])F.fan(hw+3,z,rr(12,15));F.tree(-hw-4,pz+10,1.1,1);F.tree(-hw-4,hz,1,1);
+  F.label(0,0,'THE MARKET HALL',1);return F;}
+const stringLights=[];
+// ---------- Civic Center: a long two-story civic building with an arcade, a paved plaza with a round fountain, planters and low walls
+function civicCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1;pad2(x0,z0,x1,z1,M.grass,[SWA,0,SWA,0]);mapR(x0,z0,x1,z1,'#c4cf9f');
+  const px0=x0+3,px1=x0+78,pz0=z0+38,pz1=z0+128,fx=(px0+px1)/2-6,fz=(pz0+pz1)/2;flat(M.plazaO,px0,pz0,px1,pz1,PADY+.004,8);mapR(px0,pz0,px1,pz1,'#d9c3ae');
+  // fountain: two tiers in a round basin (cover)
+  anchor(fx,fz,()=>{put(M.flat,GEO.cyl12,fx,PADY,fz,0,7,.6,7,0xcfc6b4);put(M.flat,GEO.cyl12,fx,PADY+.55,fz,0,6.5,.05,6.5,0x4a8ab0);put(M.flat,GEO.cyl8,fx,PADY,fz,0,1.2,2.2,1.2,0xcfc6b4);
+    put(M.flat,GEO.cyl12,fx,PADY+2.2,fz,0,2.6,.3,2.6,0xcfc6b4);put(M.flat,GEO.cyl12,fx,PADY+2.45,fz,0,2.3,.04,2.3,0x6aa7c8);put(M.flat,GEO.cyl8,fx,PADY+2.5,fz,0,.35,1.1,.35,0xcfc6b4);
+    put(M.flat,GEO.coneO,fx,PADY+.6,fz,0,2.2,2.4,2.2,0xcfe6f2);blob(fx,fz,7.6,7.6,PADY);});
+  solid(fx,fz,9.6,9.6,.75,0,5);solid(fx,fz,1.8,1.8,3.4);for(const a of [0,1,2,3]){const an=a*PI/2+PI/4;lowCover.push([fx+Math.cos(an)*7.6,fz+Math.sin(an)*7.6]);}
+  // the open arena around it: planters, benches and low seat walls at the edges, nothing in the middle 50 m
+  for(const p of [[px0+6,pz0+6],[px1-6,pz0+6],[px0+6,pz1-6],[px1-6,pz1-6]])planter(p[0],p[1],4,4,1);
+  for(const p of [[fx-24,fz-12],[fx+22,fz+14],[fx-22,fz+16],[fx+24,fz-14]])planter(p[0],p[1],5,2,false);
+  for(const z of [pz0+20,pz1-20]){bench(px0+2,z,false);}for(const x of [fx-12,fx+12]){bench(x,pz0+2,true);bench(x,pz1-2,true);}
+  wallLine(px0+1,pz0+1,px0+20,pz0+1,.7,0xcfc6b4);wallLine(px1-20,pz1-1,px1-1,pz1-1,.7,0xcfc6b4);lowCover.push([px0+10,pz0+1],[px1-10,pz1-1]);
+  for(const p of [[px0+2,pz0+30],[px0+2,pz1-30],[px1+2,pz0+12],[px1+2,pz1-12]])fans.push([p[0],p[1],rr(13,17)]);
+  for(let z=pz0+8;z<pz1-6;z+=16)lamps.push([px1-3,z,1,0,1]);
+  // civic building: two stories, arcade along the plaza, a squat tower at the entry
+  const bx0=px1+6,bx1=Math.min(x1-6,bx0+56),bz0=z0+24,bz1=pz1+6,bw=bx1-bx0,bd=bz1-bz0,bx=(bx0+bx1)/2,bz=(bz0+bz1)/2,tint=0xe9dcc4;
+  anchor(bx,bz,()=>{for(let s=0;s<4;s++){const n=segs(s<2?bw:bd);wallSideE(CE,bx,bz,bw,bd,0,4,s,cyc(s===2?['arcade']:['hwinW','stucco'],n),tint);wallSideE(CE,bx,bz,bw,bd,4,4,s,cyc(['hwinA','stucco'],n),tint);}
+    hipRoof(bx,bz,bw,bd,8,.32,0xa65a3c,.7);
+    const tx=bx0-1,tz=bz;boxE(CE,tx,0,tz,8,13,8,tint,cuv(CI.stucco));wallSideE(CE,tx,tz,8,8,9,3,2,['hwinA'],tint);hipRoof(tx,tz,8,8,13,.5,0xa65a3c,.6);
+    shadeRect(bx,bz,bw,bd,PADY,1.6);});
+  solid(bx,bz,bw,bd,9,0,1);solid(bx0-1,bz,8,8,15,0,1);buildings.push({x:bx,z:bz,w:bw,d:bd,h:8,flat:false});belfries.push({x:bx0-1,y:13,z:bz});
+  sign('CIVIC CENTER',bx0-5.1,7,bz,-PI/2,7,1.4,'#f4ecd8','#3a3128',true);
+  // a library annex along Foothill and a parking lot behind
+  block(bx,z0+11,Math.min(bw,40),12,5,{front:2,fc:['glassFront','stucco'],sc:['stucco','hwinW'],tint:0xe3d3b8});
+  const lz0=bz1+6;if(z1-lz0>20){lotFlat(bx0-4,lz0,x1-2,lz0+18.6*Math.floor((z1-lz0-2)/18.6),true);const F=TF(0,0,0);lotCars(F,bx0-4,lz0,x1-2,lz0+18.6*Math.floor((z1-lz0-2)/18.6),true,.4);}
+  label(fx,fz,'CIVIC CENTER',1);return{fx,fz};}
+// ---------- Vista Town Center: four big boxes in a row, a huge lot in front, pad restaurants on Foothill
+function townCenter(R){const x0=R.x0,z0=R.z0,x1=R.x1,z1=R.z1,F=TF(0,0,0);pad2(x0,z0,x1,z1,M.pad,[0,SWA,SWA,0]);mapR(x0,z0,x1,z1,'#b7b3ab');
+  const bz0=z0+4,bd=38,names=[['HOME CENTER','#f4f0e7','#d86a1f'],['SUPERMARKET','#f4f0e7','#b3261e'],['OFFICE SUPPLY','#f4f0e7','#1d3f7a'],['CINEMA 12','#15110c','#e2b93b']];let x=x0+6;const ws=[62,48,40,52];
+  for(let k=0;k<4;k++){const w=Math.min(ws[k],x1-6-x);if(w<25)break;bigBox(x+w/2,bz0+bd/2,w,bd,1,names[k][0],{bg:names[k][1],fg:names[k][2],band:[0xb7472a,0x2f6a3a,0x1d3f7a,0x6a3d8f][k],h:k===3?11:9});x+=w+4;}
+  const lz0=bz0+bd+8,nm=Math.floor((z1-lz0-26)/18.6),lz1=lz0+nm*18.6;lotFlat(x0+4,lz0,x1-4,lz1,true);lotCars(F,x0+4,lz0,x1-4,lz1,true,.25);
+  flat(M.asphaltO,x0+4,bz0+bd+1,x1-4,lz0,PADY+.004,10);flat(M.asphaltO,x0+4,lz1,x1-4,z1-SWA-1,PADY+.004,10);
+  // pads along Foothill
+  const pz=z1-SWA-14;block(x0+40,pz,18,12,5.2,{front:1,fc:['storeD','glassFront'],tint:0xe8d8bc,band:0xb3261e});faceQuad(x0+40,pz,18,12,1,0,8,4.2,.9,signUV(8));
+  block(x1-40,pz,16,12,5.2,{front:1,fc:['storeD','store'],tint:0xe3cfb0,band:0x2f7d4f});faceQuad(x1-40,pz,16,12,1,0,8,4.2,.9,signUV(1));
+  for(let xx=x0+12;xx<x1-8;xx+=22)fans.push([xx,z1-SWA-2,rr(12,17)]);
+  pylon(strip('vtc','VISTA TOWN CENTER','#3a3128','#f1d38a','bold 30px "Arial Narrow",Arial'),(x0+x1)/2,z1-SWA-3,0,9,0xe3d3b8,strip('vtc2','HOME · FOOD · MOVIES','#f4f0e7','#3a3128'));
+  label((x0+x1)/2,(z0+z1)/2,'VISTA TOWN CENTER',1);}

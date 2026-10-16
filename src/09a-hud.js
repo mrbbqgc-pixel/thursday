@@ -15,14 +15,11 @@ const feedL=[],killL=[];
 function radio(who,text){if(MP.on&&MP.host&&mpMode().coop&&who!=='TIP')mpEvent('rad',0,[who,text]);const p=document.createElement('p');p.innerHTML='<b>'+esc(who)+'</b> '+esc(text);el.feed.appendChild(p);feedL.push({p,t:6.5});if(feedL.length>3)el.feed.removeChild(feedL.shift().p);sndUi('radio');}
 function killFeed(pts,label){const p=document.createElement('p');p.innerHTML='<b>'+esc(pts)+'</b> '+esc(label);el.kills.appendChild(p);killL.push({p,t:2.6});if(killL.length>5)el.kills.removeChild(killL.shift().p);}
 function clearFeeds(){for(const f of feedL)el.feed.removeChild(f.p);feedL.length=0;for(const f of killL)el.kills.removeChild(f.p);killL.length=0;}
-function colonia(x,z){if(inCemetery(x,z))return'Panteón Municipal';if(z>6)return x>10?'Col. Deportiva':z>430?'Col. Molino':'Col. La Laguna';if(x>454)return z<-610?'Col. División del Norte':'Col. Guadalupe Victoria';
-  if(z<-726)return'Col. División del Norte';if(x<-64&&z<-600)return'Col. Libertad';if(x>64&&z<-486)return'Col. Centro';return'Col. Fundo Legal';}
-// game position -> real coordinates, through the same street lines the map was fitted to (units of 101.4 m along and across the boulevard)
-const FIT_X=[[-448,-6.81],[-352,-5.23],[-256,-3.65],[-160,-2.07],[0,0],[64,.82],[160,2.4],[256,3.98],[352,5.56],[448,7.09],[1024,16.57]],
-  FIT_Z=[[-900,13.55],[-840,12.64],[-780,11.7],[-720,10.85],[-660,9.9],[-600,8.87],[-540,8.02],[-480,7.07],[-420,6.16],[-360,5.34],[-300,4.42],[-240,3.57],[-180,2.7],[-120,1.7],[-60,.89],[0,0],[54,-.79],[134,-2],[214,-3.21],[294,-4.42],[374,-5.66],[454,-6.83],[534,-8.06],[694,-10.5]];
-function pwl(v,A){let k=0;while(k<A.length-2&&v>A[k+1][0])k++;const a=A[k],b=A[k+1];return a[1]+(v-a[0])*(b[1]-a[1])/(b[0]-a[0]);}
+// area name for the HUD: landmarks first, then the districts
+function colonia(x,z){if(x<1400&&Math.abs(z-trailZ(x))<TRW+1&&!(x>330&&x<AV.MILL.x&&z>-628))return'Pacific Electric Trail';for(const a of AREAS)if(x>=a[0]&&x<=a[2]&&z>=a[1]&&z<=a[3])return a[4];return'Rancho Cucamonga';}
+// game position -> real coordinates through the frame formula (30 % compression about Haven x Foothill)
 const SB=Math.sin(ROT_DEG*PI/180),CB=Math.cos(ROT_DEG*PI/180);
-function latlon(x,z){const E=pwl(x,FIT_X)*101.4,S=pwl(z,FIT_Z)*101.4,east=E*CB+S*SB,north=-E*SB+S*CB;return[25.25459+north/110770,111.77557-east/100681];}
+function latlon(x,z){return[34.1063-z/33285,117.5759-x/27654];}
 const bearing=()=>((ROT_DEG-P.yaw*180/PI)%360+360)%360;
 const cg=el.compass.getContext('2d'),mg=el.mini.getContext('2d'),NAMES8=['N','NE','E','SE','S','SW','W','NW'];
 function drawCompass(){const W=680,H=52,b=bearing(),ppd=W/120;cg.clearRect(0,0,W,H);cg.textAlign='center';cg.textBaseline='middle';
@@ -89,14 +86,12 @@ function hud(dt){const w=curW(),D=WDEF[w.id];hudK++;
 // ---------- tactical map
 function drawBigMap(){if(el.bigmap.width!==MAPW){el.bigmap.width=MAPW;el.bigmap.height=MAPH;}const g=el.bigmap.getContext('2d'),X=x=>x-MX0,Z=z=>z-MZ0;g.drawImage(mapC,0,0);g.textAlign='center';g.textBaseline='middle';
   g.font='600 14px "Saira Condensed","Arial Narrow",Arial,sans-serif';g.fillStyle='rgba(21,17,12,.78)';
-  // avenue names run up the page; street names are then put on the first free stretch of their street in each part of town
-  const taken=[],vt=(t,x,z,o)=>{g.save();g.translate(X(x),Z(z));g.rotate(-PI/2);g.fillText(t,0,o||0);g.restore();const w=g.measureText(t).width/2+4;taken.push([X(x)-9+(o||0),Z(z)-w,18,2*w]);};
-  for(const x in NAME_X){const xx=+x;if(xx===0){vt(NAME_X[x],0,-210,-17);vt(NAME_X[x],0,330,-17);continue;}vt(NAME_X[x],xx,-150);vt(NAME_X[x],xx,-450);vt(NAME_X[x],xx,-810);}
-  vt('FCO. JAVIER MINA',-256,-150);vt('FCO. JAVIER MINA',-256,-450);vt('FCO. JAVIER MINA',-256,-810);vt('16 DE SEPTIEMBRE',-256,254);vt('16 DE SEPTIEMBRE',-256,574);
-  vt('TO LA PURÍSIMA',0,-925,-17);vt('HIGHWAY 1 TO CD. CONSTITUCIÓN',0,720,-17);
-  const ht=(t,z,cands)=>{const w=g.measureText(t).width/2+3;for(const x of cands){const r=[X(x)-w,Z(z)-8,2*w,16];if(!taken.some(q=>r[0]<q[0]+q[2]&&r[0]+r[2]>q[0]&&r[1]<q[1]+q[3]&&r[1]+r[3]>q[1])){g.fillText(t,X(x),Z(z));taken.push(r);return;}}};
-  for(const z in NAME_Z){const zz=+z,t=NAME_Z[z];if(zz===-900){ht(t,zz,[640,592,688]);continue;}ht(t,zz,[-208,-304,-112]);if(zz<0){ht(t,zz,[304,400,208,112]);ht(t,zz,[640,592,688,736]);}}
-  ht('HIGHWAY 1 TO LORETO',-13,[640,592,700]);
+  // main street names: avenues run up the page, streets across, repeated along their length where nothing else is written
+  const taken=[],free=r=>!taken.some(q=>r[0]<q[0]+q[2]&&r[0]+r[2]>q[0]&&r[1]<q[1]+q[3]&&r[1]+r[3]>q[1]);
+  for(const a of NSA)for(const z of [-560,-130,330,800,1120]){if(z<a.z0+30||z>a.z1-30)continue;const w=g.measureText(a.n).width/2+4,r=[X(a.x)-9,Z(z)-w,18,2*w];if(!free(r))continue;taken.push(r);
+    g.save();g.translate(X(a.x),Z(z));g.rotate(-PI/2);g.fillText(a.n,0,0);g.restore();}
+  for(const b of EWA)for(const x of [-380,-120,250,680,1000,1300]){if(x<b.x0+30||x>b.x1-30||x>fwX(b.z)-40)continue;const w=g.measureText(b.n).width/2+4,r=[X(x)-w,Z(b.z)-9,2*w,18];if(!free(r))continue;taken.push(r);g.fillText(b.n,X(x),Z(b.z));}
+  g.save();g.translate(X(fwX(300)+30),Z(300));g.rotate(-1.1);g.fillText('15 FREEWAY',0,0);g.restore();g.fillText('METROLINK',X(-250),Z(TRK)-12);
   const placed=[];for(const l of labels.slice().sort((a,b)=>b.k-a.k)){g.font=(l.k?'700 20px':'600 15px')+' "Saira Condensed","Arial Narrow",Arial,sans-serif';const w=g.measureText(l.t).width+10,h=l.k?24:20;let x=clamp(X(l.x)-w/2,4,MAPW-w-4),y=Z(l.z)-h/2;
     for(let t=0;t<4;t++){if(placed.some(p=>x<p[0]+p[2]&&x+w>p[0]&&y<p[1]+p[3]&&y+h>p[1]))y+=(t%2?-1:1)*(h+2)*(t+1);else break;}placed.push([x,y,w,h]);
     g.fillStyle=l.k?'rgba(21,17,12,.9)':'rgba(21,17,12,.72)';g.fillRect(x,y,w,h);g.fillStyle=l.k?COL.sun:COL.bone;g.fillText(l.t,x+w/2,y+h/2+1);}
