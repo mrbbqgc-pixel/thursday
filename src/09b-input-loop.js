@@ -86,7 +86,7 @@ function tap(id,fn,up){const b=$(id);b.addEventListener('touchstart',e=>{e.preve
   b.addEventListener('mousedown',e=>{e.preventDefault();fn();});if(up)b.addEventListener('mouseup',up);}
 tap('btnReload',()=>{IN.reload=true;});tap('btnSwap',()=>{IN.swap=true;});tap('btnJump',()=>{IN.jump=true;});tap('btnCrouch',()=>{IN.crouchT=true;});tap('btnNade',()=>{IN.nade=true;});
 tap('btnAds',()=>{P.wantAds=!P.wantAds;});tap('btnUse',()=>{IN.use=true;IN.useHeld=true;},()=>{IN.useHeld=false;});
-tap('btnPause',()=>{unlock();pause();});tap('btnMap',()=>{unlock();openMap();});
+tap('btnPause',()=>{unlock();pause();});tap('btnMap',()=>{unlock();openMap();});tap('mini',()=>{unlock();openMap();}); // the minimap opens the map too
 tap('btnView',toggleView); // (mech) VIEW: third/first person
 
 // ---------- frame loop
@@ -125,6 +125,7 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,damageSoldier,boboSet,KIND,SURV,syncBobo,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);},M,menuAt:t=>{menuT=t;}};
 Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests
-Object.assign(window.__game,LIFEX); // (life) civilians, traffic and birds for the tests (07c)
+Object.assign(window.__game,LIFEX);
+Object.assign(window.__game,{radio,banner}); // HUD tests // (life) civilians, traffic and birds for the tests (07c)
 el.btnStart.disabled=false;el.btnMapMenu.hidden=false;toMain();mpAuto();requestAnimationFrame(tick);
 })();

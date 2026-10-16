@@ -108,7 +108,7 @@ if base:
             shutil.copy(os.path.join(root, f), os.path.join(out, f))
     man = {'name': TITLE, 'short_name': 'THURSDAY', 'description': DESC, 'start_url': './', 'scope': './', 'display': 'fullscreen',
            'orientation': 'landscape', 'background_color': '#15110c', 'theme_color': '#15110c',
-           'icons': [{'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png'}]}
+           'icons': [{'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'}, {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'}]}
     open(os.path.join(out, 'manifest.webmanifest'), 'w', encoding='utf8').write(json.dumps(man, ensure_ascii=False, indent=1) + '\n')
     open(os.path.join(out, '.nojekyll'), 'w').write('')
 print('wrote', os.path.join(out, 'index.html'), len(html.encode('utf8')), 'bytes', '(hosted at ' + base + ')' if base else '(single file)')
