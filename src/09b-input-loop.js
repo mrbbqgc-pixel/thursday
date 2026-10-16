@@ -119,7 +119,9 @@ function tick(now){requestAnimationFrame(tick);if(G.state==='lost')return;const 
       showMenu('dead','You are down',G.mode==='mission'?RP(DOWN_MSG)+' You restart at the last checkpoint.':'You held the cul-de-sac through wave '+(MS.surv?MS.surv.wave:0)+'.',statList());}}
   avatarFrame(dt); // (mech) the player's figure outside play, and when down in third person
   fxUpdate(dt);sky.position.copy(camera.position);sierra.position.set(camera.position.x,0,camera.position.z);sunSprite.position.copy(camera.position).addScaledVector(SUN,2000);if(Q.shadows)sunFollow(camera.position.x,camera.position.z);
-  cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);}
+  cullChunks(camera.position.x,camera.position.z);renderer.render(scene,camera);
+  // (fast) a few frames into the menu, compile the shader programs that the first frame of play would otherwise stop to compile
+  if(!tick.warm&&frame>2&&G.state==='menu'){tick.warm=1;try{renderer.compile(scene,camera);}catch(e){}}}
 window.__game={buildMs:Math.round(performance.now()-T0),sim:(n,dt)=>{for(let i=0;i<n;i++){frame++;if(G.state==='play')simStep(dt,.01);else if(G.state==='dead'){updAI(dt);updNades(dt);updProps(dt);}fxUpdate(dt);}},setShadows,BOT,makeField,flow,flowDir,los,eyeY,chestY,camera,renderer,scene,belfries,buildings,lowCover,G,P,MS,OBJ,foes,allies,ST,IN,startMission,startSurvival,stageStart,stageDone,enterPlay,MP,NET,ARENAS,mpCreate,mpJoin,mpStart,mpSetCfg,mpSetMe,mpLeave,mpEvent,mpOpen,hurt,toMain,pause,explode,humans,damageProp,picks,nades,colliders,Q,WDEF,addPick,explode,spawnWave,restartCheckpoint,SAVE,showWeapon,addSoldier,animSoldier,clearSoldiers,damageSoldier,boboSet,KIND,SURV,syncBobo,gunRoot,updCamera,cullChunks,cars,BLOCKS,chunkMeshes,freeSpot,heli,
   cam:(x,y,z,tx,ty,tz)=>{camera.position.set(x,y,z);camera.lookAt(tx,ty,tz);},M,menuAt:t=>{menuT=t;}};
 Object.assign(window.__game,MECH); // (mech) view, avatar and bike hooks for tests

@@ -77,8 +77,12 @@ sunFollow(0,0);
 const MAXA=Math.min(8,renderer.capabilities.getMaxAnisotropy());
 function tex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
   const t=new T.CanvasTexture(c);if(rep)t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=MAXA;return t;}
-function noise(g,w,h,n,a,x0,y0){x0=x0||0;y0=y0||0;for(let k=0;k<n;k++){g.fillStyle='rgba('+(rnd()<.5?'0,0,0,':'255,255,255,')+(rnd()*a).toFixed(3)+')';
-  g.fillRect(x0+rnd()*w,y0+rnd()*h,1+rnd()*2,1+rnd()*2);}}
+// speckle: n tiny rects, each black or white at a random alpha. (fast) The alpha goes through globalAlpha and the colour string is
+// only set when it changes (parsing a new rgba() string per rect was half the cost); same draws from rnd(), same picture.
+function noise(g,w,h,n,a,x0,y0){x0=x0||0;y0=y0||0;if(n<=0)return;const ga=g.globalAlpha;let last=-1,al='';
+  for(let k=0;k<n;k++){const b=rnd()<.5?0:1;al=(rnd()*a).toFixed(3);if(b!==last){g.fillStyle=b?'#ffffff':'#000000';last=b;}g.globalAlpha=ga*+al;
+    g.fillRect(x0+rnd()*w,y0+rnd()*h,1+rnd()*2,1+rnd()*2);}
+  g.globalAlpha=ga;g.fillStyle='rgba('+(last?'255,255,255,':'0,0,0,')+al+')';}
 const L=o=>new T.MeshLambertMaterial(o);
 // colour helpers: hex int -> shaded hex int
 function shade(h,k){return(clamp(Math.round((h>>16&255)*k),0,255)<<16)|(clamp(Math.round((h>>8&255)*k),0,255)<<8)|clamp(Math.round((h&255)*k),0,255);}
@@ -123,9 +127,19 @@ function boxC(mat,x,y,z,w,h,d,col,top,skip){const x0=x-w/2,x1=x+w/2,y1=y+h,z0=z-
 const _m4=new T.Matrix4(),_n3=new T.Matrix3(),_v=new T.Vector3(),_q=new T.Quaternion(),_e=new T.Euler(),_s=new T.Vector3(),_p=new T.Vector3();
 function pushGeo(mat,geo,m4,col){_n3.getNormalMatrix(m4);const P=geo.attributes.position,N=geo.attributes.normal,U=geo.attributes.uv,Cc=geo.attributes.color,ix=geo.index;
   _v.setFromMatrixPosition(m4);const B=bat(mat,_v.x,_v.z),k=B.p.length/3,r=(col>>16&255)/255,g=(col>>8&255)/255,bl=(col&255)/255,tx=B.uv,own=!!mat.map&&!!U;
-  for(let i=0;i<P.count;i++){_v.fromBufferAttribute(P,i).applyMatrix4(m4);B.p.push(_v.x,_v.y,_v.z);_v.fromBufferAttribute(N,i).applyMatrix3(_n3).normalize();B.n.push(_v.x,_v.y,_v.z);
-    if(Cc)B.c.push(r*Cc.getX(i),g*Cc.getY(i),bl*Cc.getZ(i));else B.c.push(r,g,bl);if(tx){if(own)B.u.push(U.getX(i),U.getY(i));else B.u.push(WU,WV);}}
-  const i0=B.i.length;if(ix)for(let i=0;i<ix.count;i++)B.i.push(k+ix.getX(i));else for(let i=0;i<P.count;i++)B.i.push(k+i);
+  if(P.isInterleavedBufferAttribute||N.isInterleavedBufferAttribute||(Cc&&Cc.isInterleavedBufferAttribute)||(own&&U.isInterleavedBufferAttribute)||(ix&&ix.isInterleavedBufferAttribute)){
+    for(let i=0;i<P.count;i++){_v.fromBufferAttribute(P,i).applyMatrix4(m4);B.p.push(_v.x,_v.y,_v.z);_v.fromBufferAttribute(N,i).applyMatrix3(_n3).normalize();B.n.push(_v.x,_v.y,_v.z);
+      if(Cc)B.c.push(r*Cc.getX(i),g*Cc.getY(i),bl*Cc.getZ(i));else B.c.push(r,g,bl);if(tx){if(own)B.u.push(U.getX(i),U.getY(i));else B.u.push(WU,WV);}}}
+  else{ // (fast) the same arithmetic as Vector3.applyMatrix4 / applyMatrix3 / normalize, on the plain arrays: identical numbers, no per-vertex calls
+    const e=m4.elements,f=_n3.elements,pa=P.array,ps=P.itemSize,na=N.array,ns=N.itemSize,ca=Cc?Cc.array:null,cs=Cc?Cc.itemSize:0,ua=own?U.array:null,us=own?U.itemSize:0,bp=B.p,bn=B.n,bc=B.c,bu=B.u;
+    const e0=e[0],e1=e[1],e2=e[2],e3=e[3],e4=e[4],e5=e[5],e6=e[6],e7=e[7],e8=e[8],e9=e[9],e10=e[10],e11=e[11],e12=e[12],e13=e[13],e14=e[14],e15=e[15];
+    const f0=f[0],f1=f[1],f2=f[2],f3=f[3],f4=f[4],f5=f[5],f6=f[6],f7=f[7],f8=f[8];
+    for(let i=0,n=P.count;i<n;i++){let x=pa[i*ps],y=pa[i*ps+1],z=pa[i*ps+2];const w=1/(e3*x+e7*y+e11*z+e15);
+      bp.push((e0*x+e4*y+e8*z+e12)*w,(e1*x+e5*y+e9*z+e13)*w,(e2*x+e6*y+e10*z+e14)*w);
+      x=na[i*ns];y=na[i*ns+1];z=na[i*ns+2];const nx=f0*x+f3*y+f6*z,ny=f1*x+f4*y+f7*z,nz=f2*x+f5*y+f8*z,q=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);
+      bn.push(nx*q,ny*q,nz*q);
+      if(ca)bc.push(r*ca[i*cs],g*ca[i*cs+1],bl*ca[i*cs+2]);else bc.push(r,g,bl);if(tx){if(ua)bu.push(ua[i*us],ua[i*us+1]);else bu.push(WU,WV);}}}
+  const i0=B.i.length;if(ix){const ia=ix.array,bi=B.i;for(let i=0,n=ix.count;i<n;i++)bi.push(k+ia[i]);}else for(let i=0;i<P.count;i++)B.i.push(k+i);
   if(B.det){if(!geo.boundingSphere)geo.computeBoundingSphere();detMark(B,i0,geo.boundingSphere.radius*m4.getMaxScaleOnAxis());}}
 // distance detail: a small object baked into a chunk remembers its index range and size, and the chunk drops it when it is far (03c)
 function detMark(B,i0,size){if(!B.det||size>=DET_R[DET_R.length-1])return;const d=B.det,n=d.length;if(n&&d[n-1]===i0&&d[n-3]===size)d[n-1]=B.i.length;else d.push(size,i0,B.i.length);}

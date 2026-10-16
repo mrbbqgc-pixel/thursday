@@ -108,9 +108,12 @@ const macroC=document.createElement('canvas');macroC.width=macroC.height=64;
  g.putImageData(im,0,0);}
 function macroAlpha(g,w,h){g.save();g.globalCompositeOperation='destination-in';g.drawImage(macroC,0,0,w,h);g.restore();}
 // lo..hi: colour factors at the two ends of the macro noise; sc: macro scale in texture tiles
-function macroMat(m,sc,lo,hi){const v3=a=>'vec3('+a.map(x=>x.toFixed(3)).join(',')+')',key='mac'+sc+lo+hi;
-  m.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n\tdiffuseColor.rgb*=mix('+v3(lo)+','+v3(hi)+',clamp((texture2D(map,mat2(.8,-.6,.6,.8)*vUv*'+sc.toFixed(4)+'+vec2(.37,.71)).a-.6)*2.5,0.,1.));\n\tdiffuseColor.a=1.0;');};
-  m.customProgramCacheKey=()=>key;return m;}
+// The factors and the scale are uniforms (rounded as they used to be written into the shader), so every macro material shares one
+// shader program: fewer programs to compile before the first frame.
+function macroMat(m,sc,lo,hi){const v3=a=>new T.Vector3(+a[0].toFixed(3),+a[1].toFixed(3),+a[2].toFixed(3)),
+    U={macLo:{value:v3(lo)},macHi:{value:v3(hi)},macSc:{value:+sc.toFixed(4)}};
+  m.onBeforeCompile=s=>{Object.assign(s.uniforms,U);s.fragmentShader='uniform vec3 macLo;\nuniform vec3 macHi;\nuniform float macSc;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n\tdiffuseColor.rgb*=mix(macLo,macHi,clamp((texture2D(map,mat2(.8,-.6,.6,.8)*vUv*macSc+vec2(.37,.71)).a-.6)*2.5,0.,1.));\n\tdiffuseColor.a=1.0;');};
+  m.customProgramCacheKey=()=>'mac';return m;}
 // soft blob that wraps round the tile edges
 function wblob(g,w,h,x,y,rx,ry,a,fill){for(const ox of [-w,0,w])for(const oy of [-h,0,h]){if(x+ox+rx<0||x+ox-rx>w||y+oy+ry<0||y+oy-ry>h)continue;
   g.fillStyle=fill;g.globalAlpha=a;g.beginPath();g.ellipse(x+ox,y+oy,rx,ry,0,0,7);g.fill();}g.globalAlpha=1;}
