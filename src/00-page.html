@@ -109,6 +109,10 @@ body.touch .tb.on{background:rgba(255,178,62,.45);border-color:var(--sun)}
 #btnSwap{right:calc(170px + var(--sr));bottom:calc(102px + var(--sb))}
 #btnCrouch{right:calc(131px + var(--sr));bottom:calc(156px + var(--sb))}
 #btnView{right:calc(75px + var(--sr));bottom:calc(184px + var(--sb))} /* (mech) third/first person */
+/* (drive, 06e) in a car only USE (get out) and VIEW; on a bike no jump, crouch or swap */
+body.drv .tb:not(#btnUse):not(#btnView),body.ride #btnJump,body.ride #btnCrouch,body.ride #btnSwap,body.drv #wpn,body.drv #stBar,body.drv #cross{display:none!important}
+body.touch.drv #btnUse{right:calc(30px + var(--sr))!important;bottom:calc(46px + var(--sb))!important;height:48px!important;border-radius:24px!important;font-size:13px!important}
+body.touch.drv #btnView{right:calc(42px + var(--sr));bottom:calc(118px + var(--sb))}body.touch.drv #prompt{right:calc(128px + var(--sr));bottom:calc(60px + var(--sb))}
 #btnUse{right:calc(182px + var(--sr));bottom:calc(198px + var(--sb));width:auto!important;height:40px;border-radius:20px!important;padding:0 14px!important;border-color:var(--sun)!important;background:rgba(21,17,12,.4)!important;font-size:12px!important}
 body.touch #stick{display:block;position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;
   border:1.5px solid rgba(243,232,211,.3);background:rgba(21,17,12,.16)}

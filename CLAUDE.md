@@ -103,6 +103,7 @@ reachable through the session proxy; Pages was switched on by pushing the `gh-pa
   parked elsewhere. 13 lowrider bikes are parked round town (`b.world`; a mission reset puts them back). Hold USE to get on or in, and
   to get out. Which car a player took stays on that player's machine; the others see a stand-in car or bike under the
   player from the vehicle field of the state report (`vehPack`, checked by `vehRx`). Nothing to borrow within 45 m of a 'plant' objective.
+  On phones a car shows only USE and VIEW (`body.drv`), a bike drops JUMP, CROUCH and SWAP (`body.ride`); driving HUD coverage about 15%.
 - **Content:** the enemy is Kingsley Prime's private security, a fictional corporate army. Humour comes from personality, never
   stereotypes. Schools are quiet scenery: no objectives, no spawns (`inQuiet`, alias `inCemetery`, and `freeSpot` exclude them).
 - **Place data** came from Google Maps lookups. Keep the "place data: Google Maps" note on the menu, and keep ratings, reviews and

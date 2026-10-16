@@ -5,7 +5,7 @@ const el={};['hud','menu','mapOver','objText','objFill','squad','compass','area'
   'wp','wpD','prompt','banner','banT','banS','fade','boss','bossFill','stick','knob','menuTitle','menuMsg','menuStats','btnStart','btnSurvival','btnMapMenu','btnQuit','btnUse','bigmap','optSens','optSnd','optShadow','btnAds','btnCrouch','controls','opts']
   .forEach(k=>el[k]=$(k));
 // the version shown on the menu. Each revision goes up by 0.001: Update 1.003, 1.004, ...
-const GAME_VER='Update 1.002';$('ver').textContent=GAME_VER;
+const GAME_VER='Update 1.003';$('ver').textContent=GAME_VER;
 const COL={bone:'#f3e8d3',sun:'#ffb23e',blood:'#d8412f',sky:'#8ec1e6',ink:'#15110c',agave:'#86c2a2'};
 function setT(e,v){if(e._v!==v){e._v=v;e.textContent=v;}}
 function setH(e,v){if(e._v!==v){e._v=v;e.innerHTML=v;}}

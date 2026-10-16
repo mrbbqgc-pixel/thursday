@@ -71,7 +71,7 @@ function bikeSpin(m,dist,crank,steer){const B=m.userData.B;B[2].rotation.x-=dist
 function spawnBike(x,z,yaw,col){col=col===undefined?RP(BIKE_COLS):col;const b={g:bikeModel(col),x,z,y:0,yaw:yaw||0,col,v:0,steer:0,lean:0,wr:0,cr:0,fallen:false,riding:false};
   b.B=b.g.userData.B;scene.add(b.g);bikes.push(b);bikePose(b);return b;}
 // world bikes (b.world, parked round town by 06e) stay and go back to where they were parked; the others (the trail chase's) go
-function clearBikes(){if(P.bike)dismountBike(2);for(let k=bikes.length-1;k>=0;k--){const b=bikes[k];if(!b.world){scene.remove(b.g);bikes.splice(k,1);continue;}
+function clearBikes(){if(P.bike)dismountBike(2);vehUi();for(let k=bikes.length-1;k>=0;k--){const b=bikes[k];if(!b.world){scene.remove(b.g);bikes.splice(k,1);continue;}
   b.x=b.home[0];b.z=b.home[1];b.yaw=b.home[2];b.y=0;b.v=0;b.fallen=false;b.riding=false;bikePose(b);}}
 function bikePose(b){const lean=b.riding?b.lean:b.fallen?1.42:.11;b.g.position.set(b.x,b.y+(b.fallen&&!b.riding?.04:0),b.z);b.g.rotation.set(0,b.yaw,lean);
   b.B[1].rotation.y=b.riding?b.steer*.45:b.fallen?0:.35;b.B[2].rotation.x=b.B[3].rotation.x=b.wr;b.B[4].rotation.x=b.cr;}

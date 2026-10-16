@@ -6,7 +6,7 @@
 // colliders move with them when they are parked somewhere else. Hold USE (F on a keyboard) near one to get in, hold it again to get out.
 // Driving: W/S or the stick's up/down throttle, brake and reverse; A/D or the stick's left/right steer; Space is a handbrake. Up to
 // about 25 m/s. No shooting from a car; damage taken inside is reduced. Walls stop the car (it slides along a glancing wall); people
-// stop it too (the car is pushed back, nobody is run over). Chase camera in both views; dragging the view looks round, it swings back.
+// stop it too (the car is pushed back, nobody is run over). Chase camera (first person: the driver's seat); dragging the view looks round, it swings back.
 // API: carEnter(k) carExit(how) (how: 0 get out beside it, 1 thrown out (killed inside), 2 let go where it stands: teleport, reset)
 //   P.car (or null) DRV.cars driveUpdate(dt) carCamera(dt) carHurt(dmg) carsReset() vehStage(st) vehPack() vehRx(a) vehPuppet(pl,s,dt)
 // Hooks elsewhere: 02c vehicle() (carBorrow), 02j anyCar (no baked shadow), 06b updPlayer/updCamera/hurt/updPicks, 06d updBikes,
@@ -50,12 +50,14 @@ function carCells(k,on){if(!on){if(k.cells)for(const q of k.cells)blocked[q]=0;k
 // park car k where it stands: its collider is the box round its footprint (as for the cars parked at an angle in 02j)
 function carPark(k){const c=k.c,V=k.V,cy=Math.abs(Math.cos(k.yaw)),sy=Math.abs(Math.sin(k.yaw)),w=(cy*V.wid+sy*V.len)*.86,d=(sy*V.wid+cy*V.len)*.86;
   binDel(c);c.x0=k.x-w/2;c.x1=k.x+w/2;c.z0=k.z-d/2;c.z1=k.z+d/2;c.off=false;binAdd(c);carCells(k,true);}
-function carsReset(){if(P.car)carExit(2);for(const k of DRV.cars){if(k.c.wrecked)continue;const h=k.home;carCells(k,false);binDel(k.c);
+function carsReset(){if(P.car)carExit(2);vehUi();for(const k of DRV.cars){if(k.c.wrecked)continue;const h=k.home;carCells(k,false);binDel(k.c);
   k.x=h[0];k.z=h[1];k.yaw=h[2];k.y=h[3];k.c.x0=h[4];k.c.z0=h[5];k.c.x1=h[6];k.c.z1=h[7];k.c.off=false;binAdd(k.c);k.vx=k.vz=0;k.steer=0;carPose(k);}}
 function carPose(k){k.g.position.set(k.x,k.y,k.z);k.g.rotation.set(0,k.yaw,0);}
 
 // ---------- every frame of play (from updBikes, or from driveUpdate in a car): culling, the USE latch, the first-frame checks
-function vehFrame(dt){if(!IN.useHeld)DRV.latch=false;
+// the touch layout while driving or riding (00-page.html: body.drv, body.ride)
+function vehUi(){const d=!!P.car,r=!!P.bike;if(DRV.ui!==(d?2:r?1:0)){DRV.ui=d?2:r?1:0;document.body.classList.toggle('drv',d);document.body.classList.toggle('ride',r);}}
+function vehFrame(dt){if(!IN.useHeld)DRV.latch=false;vehUi();
   if(!DRV.init){DRV.init=true; // nothing to borrow next to an objective you hold USE at (the command post's generator)
     const pl=ST.filter(t=>t.type==='plant');for(const k of DRV.cars)if(pl.some(t=>Math.hypot(t.x-k.x,t.z-k.z)<45))k.ok=false;for(const b of bikes)if(b.world&&pl.some(t=>Math.hypot(t.x-b.x,t.z-b.z)<45))b.off=true;}
   const cx=camera.position.x,cz=camera.position.z;
@@ -79,7 +81,7 @@ function carEnter(k){if(P.car||P.bike||!P.alive||!k||k.c.wrecked)return false;P.
 function carExit(how){const k=P.car;if(!k)return false;how=how|0;
   if(how!==2){const p=exitSpot(k);if(!p&&how===0){toast('NO ROOM TO GET OUT');DRV.latch=true;return false;}P.car=null;carPark(k);if(p){P.x=p[0];P.z=p[1];}else pushOut(P,.45,0);}
   else{P.car=null;carPark(k);}
-  P.y=0;P.vx=P.vz=P.vy=0;P.speed=0;k.vx=k.vz=0;k.steer=0;DRV.hold=0;DRV.latch=true;VIEW.d=.5;engSound(0,0);if(how!==2)carDoor(k.x,k.z);return true;}
+  P.y=0;P.vx=P.vz=P.vy=0;P.speed=0;k.vx=k.vz=0;k.steer=0;DRV.hold=0;DRV.latch=true;VIEW.d=.5;engSound(0,0);vehUi();if(how!==2)carDoor(k.x,k.z);return true;}
 // beside the driver's door if there is room there, else the other door, the ends, a little further out
 function exitSpot(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx,hl=k.V.len/2,hw=k.V.wid/2,pr={x:0,z:0},C=[];
   for(const o of [.8,1.6,2.6])C.push([-.25,-(hw+o)],[-.25,hw+o],[hl+o,0],[-(hl+o),0],[1.2,-(hw+o)],[1.2,hw+o]);
@@ -122,7 +124,7 @@ function driveUpdate(dt){const k=P.car,V=k.V;vehFrame(dt);
   P.hurtT+=dt;if(P.hurtT>4.5&&P.hp<100)P.hp=Math.min(100,P.hp+20*dt);if(Math.hypot(P.x-P.stillX,P.z-P.stillZ)>3.5){P.stillX=P.x;P.stillZ=P.z;P.stillT=0;}else P.stillT+=dt;
   if(P.flashT>0)P.flashT-=dt;flash.visible=false;tpFlash.visible=false;P.recoil=0;P.kick*=Math.exp(-dt*13);P.punch*=Math.exp(-dt*7);P.roll*=Math.exp(-dt*6);
   engSound(1,Math.abs(vf),f);if(P.speed>12)noiseEvent(P.x,P.z,25,true);
-  if(P.speed<4||DRV.hold>0)G.prompt=DRV.off;} // (only when slow: at speed the prompt and the USE button would sit on the car)
+  if(isTouch||P.speed<4||DRV.hold>0)G.prompt=DRV.off;} // (on a keyboard only when slow: the prompt would sit on the car; on a phone it is beside USE)
 // static colliders against the car's box (separating axes: x, z and the car's own two): the deepest overlap pushes the car out.
 // Returns true and the push direction in _cb when there was one. Kerbs and pads (under 0.35 m), awnings and roofs (from 1.3 m) do not count.
 function carSolids(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx,hl=k.V.len/2*.96,hw=k.V.wid/2*.94,st=++stamp;let best=0,bx=0,bz=0,hit=false;
@@ -147,12 +149,15 @@ function carPeople(k){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw),rx=-fz,rz=fx
   if(MP.on)for(const L of [MP.rivals,MP.mates])for(const s of L){if(!s.alive)continue;if(s.inCar){const e=DRV.rem.get(s.pid);if(e){const ff=-Math.sin(e.yaw),fz2=-Math.cos(e.yaw),q=VEH[e.type].len/4,r=VEH[e.type].wid/2;one(null,s.x+ff*q,s.z+fz2*q,r,0);one(null,s.x-ff*q,s.z-fz2*q,r,0);}}else one(null,s.x,s.z,.42,s.y0||0);}
   if(typeof traffic!=='undefined')for(const c of traffic){if(!c.on)continue;const ff=-Math.sin(c.yaw),fz2=-Math.cos(c.yaw),q=c.V.len/4,r=c.V.wid/2;one(null,c.x+ff*q,c.z+fz2*q,r,0);one(null,c.x-ff*q,c.z-fz2*q,r,0);}}
 
-// ---------- the chase camera (third and first person alike): behind and above, swinging round behind the car as it drives; dragging the
-// view looks round for a moment. Pulled in when a wall is behind.
+// ---------- the camera: in third person a chase camera behind and above, swinging round behind the car as it drives; dragging the
+// view looks round for a moment. Pulled in when a wall is behind. In first person the driver's seat (VIEW switches).
 function carCamera(dt){const k=P.car,sp=Math.hypot(k.vx,k.vz);VIEW.on=true;VIEW.sc=0;gunRoot.visible=false;PAV.g.visible=false;tpFlash.visible=false;
   if(Math.abs(angDiff(P.yaw,DRV.camYaw))>.002)DRV.lookT=1.4;else if(DRV.lookT>0)DRV.lookT-=dt;
   const vf=k.vx*-Math.sin(k.yaw)+k.vz*-Math.cos(k.yaw),back=vf<-2.5&&IN.f<-.2,want=k.yaw+(back?PI:0),fol=DRV.lookT>0?0:clamp(sp/4,.35,1)*3;
-  P.yaw+=angDiff(want,P.yaw)*Math.min(1,dt*fol);if(DRV.lookT<=0)P.pitch+=(-.17-P.pitch)*Math.min(1,dt*2);P.pitch=clamp(P.pitch,-.85,.35);DRV.camYaw=P.yaw;
+  P.yaw+=angDiff(want,P.yaw)*Math.min(1,dt*fol);if(DRV.lookT<=0)P.pitch+=((viewTP()?-.17:-.06)-P.pitch)*Math.min(1,dt*2);P.pitch=clamp(P.pitch,-.85,.35);DRV.camYaw=P.yaw;
+  if(!viewTP()){const fx=-Math.sin(k.yaw),fz=-Math.cos(k.yaw); // first person: the driver's seat, looking over the hood
+    camera.position.set(k.x+fx*.05+fz*.36,k.y+k.V.h*.78,k.z+fz*.05-fx*.36);camera.rotation.set(P.pitch+P.punch,P.yaw,0);const fv=P.baseFov+clamp(sp/DRV.VMAX,0,1)*6;
+    if(Math.abs(camera.fov-fv)>.02){camera.fov+=(fv-camera.fov)*Math.min(1,dt*6);camera.updateProjectionMatrix();}return;}
   const cp=Math.cos(P.pitch),dx=Math.sin(P.yaw)*cp,dy=-Math.sin(P.pitch),dz=Math.cos(P.yaw)*cp,D=lerp(6.2,7.4,clamp(sp/DRV.VMAX,0,1)),tx=k.x,ty=k.y+1.55,tz=k.z,
     t=rayWorld(tx,ty,tz,dx,dy,dz,D+.3),want2=t<D+.3?Math.max(1.2,t-.35):D;
   if(want2<DRV.camD)DRV.camD=want2;else DRV.camD+=(want2-DRV.camD)*Math.min(1,dt*3);
