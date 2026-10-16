@@ -40,7 +40,10 @@ for(const s of signalArms){const [px,pz,dx,dz,L0,green]=s;
 { // chain-link mesh panels: one see-through batch for every fence in town
  M.chain=new T.MeshBasicMaterial({transparent:true,side:T.DoubleSide,depthWrite:false,map:tex(64,64,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle='rgba(150,158,160,.75)';g.lineWidth=1.4;
    for(let k=-64;k<128;k+=8){g.beginPath();g.moveTo(k,0);g.lineTo(k+64,64);g.moveTo(k,64);g.lineTo(k+64,0);g.stroke();}},true)});
- for(const f of fenceMesh){const x0=f[0]-f[2]/2,x1=f[0]+f[2]/2,z0=f[1]-f[3]/2,z1=f[1]+f[3]/2,L0=Math.max(f[2],f[3]);quad(M.chain,[x0,.05,z0],[x1,.05,z1],[x1,f[4],z1],[x0,f[4],z0],0,0,1,L0/1.2,f[4]/1.2);}}
+ for(const f of fenceMesh){const x0=f[0]-f[2]/2,x1=f[0]+f[2]/2,z0=f[1]-f[3]/2,z1=f[1]+f[3]/2,L0=Math.max(f[2],f[3]);quad(M.chain,[x0,.05,z0],[x1,.05,z1],[x1,f[4],z1],[x0,f[4],z0],0,0,1,L0/1.2,f[4]/1.2);}
+ // wire baskets of the shopping carts (their frames are baked in 03a): four sides and the floor of a box, wider at the top
+ for(const c of cartSpots){const cs=Math.cos(c[2]),sn=Math.sin(c[2]),P=(lx,y,lz)=>[c[0]+lx*cs+lz*sn,PADY+y,c[1]-lx*sn+lz*cs],b=[[-.22,.42,-.36],[.22,.42,-.36],[.22,.42,.32],[-.22,.42,.32]],t=[[-.27,.95,-.42],[.27,.95,-.42],[.27,.95,.4],[-.27,.95,.4]];
+   for(let k=0;k<4;k++){const j=(k+1)%4;quad(M.chain,P(...b[k]),P(...b[j]),P(...t[j]),P(...t[k]),0,0,1,.9,.9);}quad(M.chain,P(...b[0]),P(...b[1]),P(...b[2]),P(...b[3]),0,1,0,.9,1.3);}}
 // explosive barrels and fuel pumps are separate objects so they can be destroyed
 {const pts=[];for(const q of [[0,0],[.4,0],[.42,.03],[.42,.36],[.44,.38],[.42,.4],[.42,.74],[.44,.76],[.42,.78],[.42,1.12],[.4,1.15],[.34,1.15],[.34,1.12],[0,1.12]])pts.push(new T.Vector2(q[0],q[1]));
  const barrelGeo=new T.LatheGeometry(pts,12),barrelMat=L({color:0xb3261e});

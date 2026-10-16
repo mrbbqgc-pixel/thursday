@@ -107,7 +107,7 @@ isoR(()=>{const g=FRT.image.getContext('2d'),T6=(n,c,r,fn)=>{const x=c*64,y=128+
   T6('petals',0,1,()=>{for(let i=0;i<520;i++){const a=rnd()*TAU,r=Math.sqrt(rnd())*31;if(rnd()>1.15-r/31)continue;E(32+Math.cos(a)*r,32+Math.sin(a)*r,rr(.8,1.8),rr(.6,1.3),rnd()*3,pick(['#8a62c8','#9a72d8','#7a56b4','#a888e0']));}});
   T6('frondD',1,1,()=>{g.strokeStyle='#8a6a42';g.lineWidth=3;g.beginPath();g.moveTo(32,63);g.lineTo(32,40);g.stroke();for(let a=0;a<=26;a++){const an=PI*(.1+.8*a/26),r1=rr(.8,1);g.strokeStyle=pick(['#a8875a','#9a7a4e','#b8986a','#8a6a42']);
     g.lineWidth=rr(2,3.4);g.beginPath();g.moveTo(32,40);g.lineTo(32+Math.cos(an)*30*r1,40-Math.sin(an)*38*r1);g.stroke();}});
-  T6('crack',2,1,()=>{g.strokeStyle='rgba(28,24,20,.95)';for(let k=0;k<2;k++){g.lineWidth=k?1.2:2;g.beginPath();let x=0,y=rr(20,44);g.moveTo(x,y);while(x<64){x+=rr(3,7);y+=rr(-3,3);g.lineTo(x,y);
+  T6('crack',2,1,()=>{g.strokeStyle='rgba(46,42,38,1)';for(let k=0;k<2;k++){g.lineWidth=k?1:1.6;g.beginPath();let x=0,y=rr(20,44);g.moveTo(x,y);while(x<64){x+=rr(3,7);y+=rr(-3,3);g.lineTo(x,y);
       if(rnd()<.12){g.stroke();g.beginPath();g.moveTo(x,y);let bx=x,by=y;for(let s=0;s<4;s++){bx+=rr(1,4);by+=rr(-5,5);g.lineTo(bx,by);}g.stroke();g.beginPath();g.moveTo(x,y);}}g.stroke();}});
   T6('tar',3,1,()=>{g.strokeStyle='rgba(14,12,10,1)';g.lineWidth=3.2;g.lineCap='round';for(let k=0;k<5;k++){g.beginPath();let x=rr(0,64),y=rr(0,64);g.moveTo(x,y);for(let s=0;s<6;s++){x+=rr(-12,12);y+=rr(-12,12);g.lineTo(x,y);}g.stroke();}});
   T6('iron',0,2,()=>{g.fillStyle='#1c1b1a';g.fillRect(0,10,64,3);g.fillRect(0,52,64,3);g.fillRect(0,60,64,3);for(let x=2;x<64;x+=8){g.fillRect(x,6,2.4,57);g.beginPath();g.moveTo(x-1.5,7);g.lineTo(x+1.2,1);g.lineTo(x+3.9,7);g.fill();}
@@ -115,6 +115,7 @@ isoR(()=>{const g=FRT.image.getContext('2d'),T6=(n,c,r,fn)=>{const x=c*64,y=128+
   T6('dryP',1,2,()=>{for(let i=0;i<9;i++){const x=rr(8,56),y=rr(8,56);for(let k=0;k<14;k++)E(x+rr(-9,9),y+rr(-7,7),rr(2,6),rr(1.5,4.5),rnd()*3,pick(['#a49a66','#9a8f5c','#ada27a','#8e855a','#968c62']));}});
   T6('rocks',2,2,()=>{for(let x=-2;x<66;){const w=rr(5,10);E(x+w/2,58,w/2,rr(3.5,6),0,pick(['#cfc8ba','#b8b0a2','#9e978a','#d9d2c4','#a8a092']));x+=w-1;}});
   T6('leaves',3,2,()=>{for(let i=0;i<70;i++){const a=rnd()*TAU,r=Math.sqrt(rnd())*30;E(32+Math.cos(a)*r,32+Math.sin(a)*r,rr(1.2,2.6),rr(.7,1.4),rnd()*3,pick(['#9a7a3c','#b08a44','#7a6a34','#c4a050','#6a5a2c']));}});
+  T6('spray',0,3,()=>{for(let i=0;i<260;i++){const a=PI*rr(.1,.9),r=Math.pow(rnd(),.7)*30;E(32+Math.cos(a)*r,62-Math.sin(a)*r*1.6,rr(.5,1.2),rr(.5,1.1),0,pick(['#eef6fa','#d8ecf4','#ffffff','#c8e0ec']));}});
   FRT.needsUpdate=true;});
 M.frond=L({map:FRT,alphaTest:.45,side:T.DoubleSide,vertexColors:true,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});M.frond.userData.chunk=1;M.frond.userData.cast=true;
 // decomposed-granite gravel for xeriscaped yards, and a parking lot whose striping has worn and faded
@@ -135,7 +136,7 @@ function stain(x,z,rx,rz,ry,y){y=(y===undefined?PADY:y)+.016;const c=Math.cos(ry
 function smear(x,z,len,wid,ry,y){y=(y===undefined?PADY:y)+.016;const c=Math.cos(ry),s=Math.sin(ry),ax=s*len/2,az=c*len/2,bx=c*wid/2,bz=-s*wid/2;
   quadC(M.shade,[x-ax-bx,y,z-az-bz],[x-ax+bx,y,z-az+bz],[x+ax+bx,y,z+az+bz],[x+ax-bx,y,z+az-bz],0,1,0,0,.6,.3,.9,.3);}
 // lists of small props that 03a bakes from templates: [x, z, ry, variant]
-const binSpots=[],postBoxes=[],yardSigns=[],toySpots=[],boatSpots=[],cartSpots=[],corralSpots=[],dumpSpots=[],phoneSpots=[],newsSpots=[],adBenches=[],hedgeSpots=[],rockSpots=[],sprinkSpots=[],hoopPoles=[];
+const binSpots=[],postBoxes=[],yardSigns=[],toySpots=[],boatSpots=[],cartSpots=[],corralSpots=[],dumpSpots=[],phoneSpots=[],newsSpots=[],adBenches=[],hedgeSpots=[],rockSpots=[],iceSpots=[],hoopPoles=[];
 // a strip of cut-out quads standing on the line from a to b (river-rock edging), one tile every seg metres
 function cutL(a,b,y,h,uv,col,seg){const L0=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.round(L0/(seg||1.3))),ry=Math.atan2(-(b[1]-a[1]),b[0]-a[0]);
   for(let k=0;k<n;k++){const t=(k+.5)/n;cutQ(lerp(a[0],b[0],t),lerp(a[1],b[1],t),y,L0/n+.02,h,ry,uv,col);}}

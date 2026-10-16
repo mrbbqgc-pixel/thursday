@@ -89,14 +89,15 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       if(ubL!==null)bulbs.push([ubL,v,-1,endL]);if(ubH!==null)bulbs.push([ubH,v,1,endH]);
       for(const side of [-1,1])lotRows.push({v,side,a:eL==='open'?uL0:segA,b:eH==='open'?uL1:segB,ubL,ubH,i,aunt:side>0&&!!(o.bulbAt&&o.bulbAt[i]&&o.bulbAt[i][0]!==undefined)});
       SPN.push(P((ra+rb)/2,v));}});
-  // pads: everything inside R that is not road
+  // pads: everything inside R that is not road. On parkway streets (dressing) the grass runs to the curb and the sidewalk is set back (see dressLot)
+  const PKW=isoR(()=>rnd()<(o.older?.85:.6));
   const ub=[U0,U1];for(const r of roads){ub.push(Math.max(U0,Math.min(U1,r.u0)),Math.max(U0,Math.min(U1,r.u1)));}
   const xs=[...new Set(ub.map(q=>Math.round(q*100)/100))].sort((p,q)=>p-q),ivs=[];
   for(let i=0;i<xs.length-1;i++){const a=xs[i],b=xs[i+1];if(b-a<.05)continue;const m=(a+b)/2,cov=roads.filter(r=>r.u0<=m&&r.u1>=m).sort((p,q)=>p.v0-q.v0),gaps=[];let cur=V0,ck='R';
     for(const r of cov){if(r.v0>cur+.05)gaps.push([cur,r.v0,ck,r.c?'c':'s']);if(r.v1>cur){cur=r.v1;ck=r.c?'c':'s';}}if(V1>cur+.05)gaps.push([cur,V1,ck,'R']);ivs.push({a,b,gaps,cov});}
   const key=g=>g.map(q=>q.join(',')).join(';');
   for(let i=0;i<ivs.length;i++){const I=ivs[i];let j=i;while(j+1<ivs.length&&key(ivs[j+1].gaps)===key(I.gaps)&&ivs[j+1].a===ivs[j].b)j++;const a=I.a,b=ivs[j].b,L=i>0?ivs[i-1]:null,Rn=j+1<ivs.length?ivs[j+1]:null;
-    for(const g of I.gaps){const sk=(k,t)=>t==='R'?(K[k]==='A'?SWA:0):t==='c'?SWC:SWL;
+    for(const g of I.gaps){const sk=(k,t)=>t==='R'?(K[k]==='A'?SWA:0):t==='c'?SWC:PKW?0:SWL;
       const side=(N,isLo)=>{if(isLo?a<=U0+.01:b>=U1-.01)return K[isLo?2:3]==='A'?SWA:0;if(!N)return-1;const c=N.cov.find(r=>r.c&&r.v0<=g[0]+.01&&r.v1>=g[1]-.01);return c?SWC:-1;};
       padL(a,g[0],b,g[1],[sk(0,g[2]),sk(1,g[3]),side(L,true),side(Rn,false)]);}
     i=j;}
@@ -126,7 +127,8 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       if(ty===5)tree(u,v,rr(.9,1.15),5);else if(rnd()<.18){const p=P(u,v);fans.push([p[0],p[1],rr(11,17)]);}else tree(u,v,rr(.85,1.15),pick([0,2,3,0,6]));}}
   // ---------- lots
   const tintN=()=>pick(wallCols),roofN=()=>pick(roofCols),only1=!!o.older,lotsAll=[];
-  const TK=isoR(()=>({park:rnd()<(only1?.85:.6),post:only1||rnd()<.3,old:only1})); // dressing: parkway strips, curbside post mailboxes
+  const TK=isoR(()=>({park:PKW,post:only1||rnd()<.3,old:only1})); // dressing: parkway strips, curbside post mailboxes
+  isoR(()=>streetWear(roads,P,sw,TK.park)); // dressing: cracked and patched asphalt, cracked sidewalks
   const rowRear=(r)=>{const i=r.i;if(r.side<0)return i===0?vL0:rear[i-1];return i===ns-1?vL1:rear[i];};
   const bulbDz=(ul,uh,ubb)=>{if(ubb===null||ubb===undefined)return 0;const du=ubb<ul?ul-ubb:ubb>uh?ubb-uh:0,Rr=RBUL+1.5;return du>=Rr?0:Math.sqrt(Rr*Rr-du*du);};
   for(const r of lotRows){const vR=rowRear(r),depth=Math.abs(r.v-vR)-HWL-SWL;if(depth<17)continue;
@@ -147,8 +149,9 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       const vc=vF+sg*(set+H.D/2),wc=P(l.u,vc),tint=tintN(),rf=roofN(),hs=isoR(()=>houseLook(tint,rf,only1)),hz=house(wc[0],wc[1],rw(fr),l.k,hs.t,hs.r,hs);l.vc=vc;l.vf=vF+sg*set;l.vb=vc+sg*H.D/2;l.vF=vF;l.W=H.W;
       // driveway and front walk (local coordinates of the template: x -> u, z -> v, flipped for the south row)
       const gU=sw?hz.gar[1]:hz.gar[0],du=sw?hz.door[1]:hz.door[0];l.gU=gU;
-      flatL(M.walkO,gU-2.8,Math.min(r.v+sg*HWL,l.vf),gU+2.8,Math.max(r.v+sg*HWL,l.vf),PADY+.003,6);
-      flatL(M.walkO,du-.6,Math.min(vF,vc+sg*(H.D/2-.4)),du+.6,Math.max(vF,vc+sg*(H.D/2-.4)),PADY+.003,6);
+      const pk=PKW&&Math.abs(vF-(r.v+sg*(HWL+SWL)))<.05,vS=vF+sg*(pk?1.25:0);l.pk=pk; // dressing: on parkway streets the sidewalk band is drawn per row below
+      if(pk)flatL(M.walkO,gU-2.8,Math.min(r.v+sg*HWL,vF),gU+2.8,Math.max(r.v+sg*HWL,vF),PADY+.003,6);flatL(M.walkO,gU-2.8,Math.min(pk?vS:r.v+sg*HWL,l.vf),gU+2.8,Math.max(pk?vS:r.v+sg*HWL,l.vf),PADY+.003,6);
+      flatL(M.walkO,du-.6,Math.min(vS,vc+sg*(H.D/2-.4)),du+.6,Math.max(vS,vc+sg*(H.D/2-.4)),PADY+.003,6);
       // yard life
       const sideU=gU>l.u?-1:1,fy=Math.abs(l.vf-vF);
       if(fy>3.2&&rnd()<.25){const t=rnd();if(t<.08){const p=P(l.u+sideU*(H.W/2-1.5),vF+sg*fy*.55);fans.push([p[0],p[1],rr(9,14)]);}else{tree(l.u+sideU*(H.W/2-2),vF+sg*Math.min(fy*.5,3.2),rr(.7,1.05),pick([0,1,2,3,0,2,6]));isoR(()=>yardTree(trees[trees.length-1]));}l.tr=1;}
@@ -168,6 +171,8 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
       lotsAll.push(l);}
     // gates between neighbours, side walls back to the rear line, and the end walls of the row
     const Lp=L.filter(l=>!l.skip);
+    {let a=null,b=null;const vF0=r.v+sg*(HWL+SWL),strip=()=>{if(a!==null)flatL(M.walkO,a,Math.min(vF0,vF0+sg*1.25),b,Math.max(vF0,vF0+sg*1.25),PADY+.003,6);a=null;}; // the set-back sidewalk
+     for(const l of Lp){if(!l.pk){strip();continue;}const u0=l.u-l.w/2,u1=l.u+l.w/2;if(a!==null&&u0<=b+.05)b=u1;else{strip();a=u0;b=u1;}}strip();}
     for(let k=0;k<Lp.length;k++){const l=Lp[k],nx=Lp[k+1],bnd=l.u+l.w/2+l.ex;
       if(nx){const g=r.side<0?Math.min(l.vf,nx.vf)-2.2:Math.max(l.vf,nx.vf)+2.2,ok=r.side<0?g>Math.max(l.vb,nx.vb)+.5:g<Math.min(l.vb,nx.vb)-.5;
         if(ok){if(!l.aunt&&!nx.aunt)gateL(l.u+l.W/2,g,nx.u-nx.W/2,g);else{gateL(l.aunt?bnd:l.u+l.W/2,g,nx.aunt?bnd:nx.u-nx.W/2,g);}wallL(bnd,g,bnd,vR,0,C.greyWall);
@@ -179,7 +184,7 @@ function tract(R,o){o=o||{};const sw=!!o.swap,P=sw?(u,v)=>[v,u]:(u,v)=>[u,v],rw=
     if(!TK.post)for(let k=0;k<Lp.length;k+=5){const l=Lp[k],p=P(l.u+l.w/2-1,r.v+sg*(HWL+.7));mailboxes.push([p[0],p[1]]);}
     if(r.side<0)for(let k=2;k<Lp.length;k+=6){const l=Lp[k],p=P(l.u+l.w/2,r.v-(HWL+.5));lamps.push([p[0],p[1],5,(sw?0:PI/2)+(sw?PI:0),1]);}
     for(let k=0;k<Lp.length;k++)if(rnd()<.07){const l=Lp[k],p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);l.curb=1;}
-    isoR(()=>{for(const l of Lp)if(!l.curb&&rnd()<.06){const p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);}});}
+    isoR(()=>{for(const l of Lp)if(!l.curb&&rnd()<.04){const p=P(l.u+(l.gU>l.u?-l.w/2+3:l.w/2-3),r.v+sg*(HWL-1.15));car(p[0],p[1],!sw,undefined,undefined,1);}});}
   // end lots facing the bulbs, with gates back to the side walls
   for(const bb of bulbs){if(!bb[3])continue;const dir=bb[2],k=Math.floor(rnd()*HT.length),H=HT[k],uf=bb[0]+dir*(RBUL+1.5+3.2),uc=uf+dir*H.D/2;if(dir>0?uc+H.D/2>uL1-3:uc-H.D/2<uL0+3)continue;
     const wc=P(uc,bb[1]),fr=dir>0?3:1,t0=tintN(),r0=roofN(),hs=isoR(()=>houseLook(t0,r0,only1)),hz=house(wc[0],wc[1],rw(fr),k,hs.t,hs.r,hs);
@@ -213,15 +218,13 @@ function houseLook(t,rf,old){const s=old?pick([5,5,1,1,0,3,5]):pick([0,0,1,2,3,4
 function yardTree(t){const k=rnd();if(k<.3)t[3]=7;else if(k<.42)t[3]=1;if(t[3]===1)for(let i=0;i<2;i++)cutF(t[0]+rr(-1.6,1.6),t[1]+rr(-1.6,1.6),PADY+.008,rr(2.4,3.6),rr(2.4,3.6),rnd()*3,CUT.petals);}
 // T: the tract's frame (P, sw, rw, fr, sg, flatL), its look (TK) and whether it is trash day on this street
 function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.TK,old=tk.old,u0=l.u-l.w/2,u1=l.u+l.w/2,curb=r.v+sg*HWL,vF=l.vF,
-    park=tk.park&&!l.aunt&&Math.abs(vF-(r.v+sg*(HWL+SWL)))<.05,v0=vF+sg*(park?1.25:0),gf=Math.max(0,H.gar[1]-H.door[1]),vm=l.vf+sg*gf,dside=gU>l.u?-1:1,
+    park=l.pk&&!l.aunt,v0=vF+sg*(park?1.25:0),gf=Math.max(0,H.gar[1]-H.door[1]),vm=l.vf+sg*gf,dside=gU>l.u?-1:1,
     rect=(mat,ua,ub,va,vb,y)=>T.flatL(mat,ua,Math.min(va,vb),ub,Math.max(va,vb),y,6);
   // a boat on its trailer on a concrete pad beside the driveway
   let boatIv=null;if(!l.car&&rnd()<.04){const bu=gU+dside*1.35;boatIv=1;const p=P(bu,l.vf-sg*3.4);boatSpots.push([p[0],p[1],ry+(rnd()<.5?0:PI)]);solid(p[0],p[1],T.sw?6.8:2.3,T.sw?2.3:6.8,2.2,0,0);
     if(rnd()<.5){const q=P(gU-dside*1.35,l.vf-sg*2.75);car(q[0],q[1],T.sw,undefined,undefined,2);}}
   // parkway: grass between the curb and a sidewalk set back from it, often with a young staked tree
-  if(park){for(const q of cutIv(u0,u1,[[gU-2.8,gU+2.8]]))rect(M.grassO,q[0],q[1],curb,vF,PADY+.002);
-    for(const q of cutIv(u0,u1,[[gU-2.8,gU+2.8],[du-.6,du+.6]]))rect(M.walkO,q[0],q[1],vF,v0,PADY+.003);
-    if(rnd()<.36){const c=cutIv(u0+1.2,u1-1.2,[[gU-3.8,gU+3.8]]);if(c.length){const q=pick(c),p=P(rr(q[0],q[1]),(curb+vF)/2);trees.push([p[0],p[1],rr(.8,1.1),rnd()<.75?9:pick([0,2,6,1])]);}}}
+  if(park){if(rnd()<.26){const c=cutIv(u0+1.2,u1-1.2,[[gU-3.8,gU+3.8]]);if(c.length){const q=pick(c),p=P(rr(q[0],q[1]),(curb+vF)/2);trees.push([p[0],p[1],rr(.8,1.1),rnd()<.75?9:pick([0,2,6,1])]);}}}
   // the lawn: lush, patchy, brown, dirt, gravel with agaves and boulders, or overgrown
   const lt=pick(old?['lush','patchy','patchy','brown','brown','dirt','xeri','over','patchy']:['lush','lush','lush','patchy','patchy','brown','xeri','xeri','over','lush']);
   const ex=[[gU-2.8,gU+2.8],[du-.6,du+.6]];const ivs=cutIv(u0+.05,u1-.05,ex),la=v0,lb=l.vf;
@@ -231,9 +234,11 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
     if(lt==='over'||lt==='dirt')for(let k=0;k<(lt==='over'?rr(4,8):rr(1,3));k++){const p=spot();cutX(p[0],p[1],PADY,rr(.6,1.1),rr(.45,.9),CUT.weed,0xffffff,rnd()*3);}
     if(lt==='xeri'){for(let k=0;k<rr(1,3.6);k++){const p=spot();cutX(p[0],p[1],PADY,rr(1,1.6),rr(.7,1.1),CUT.agave,0xffffff,rnd()*3);}for(let k=0;k<rr(0,2.2);k++){const p=spot();rockSpots.push([p[0],p[1],rr(.35,.7),rnd()*3]);}
       if(rnd()<.5)cutL(P(du+.7,v0+sg*.1),P(du+.7,vm-sg*.4),PADY,.2,CUT.rocks,0xffffff,2.2);}}
+  // a sprinkler running on a few green lawns, the grass dark and wet round it
+  if(lt==='lush'&&ivs.length&&rnd()<.06){const q=pick(ivs),p=P(rr(q[0]+.5,q[1]-.5),lerp(la,lb,rr(.3,.7)));cutX(p[0],p[1],PADY,rr(1.6,2.4),rr(1.2,1.6),CUT.spray,0xffffff,rnd()*3);stain(p[0],p[1],1.4,1.4,0,PADY);}
   // the driveway: oil stains, the family cars (often two side by side), a portable hoop at its edge
   if(rnd()<.55)for(let k=0;k<1+(rnd()<.4?1:0);k++){const p=P(gU+rr(-1.6,1.6),l.vf-sg*rr(1.4,4.2));stain(p[0],p[1],rr(.3,.7),rr(.3,.9),rnd()*3,PADY);}
-  if(!l.car&&!boatIv&&fy>5.4&&rnd()<(old?.3:.22)){for(const o of rnd()<.35?[-1.35,1.35]:[rr(-.4,.4)]){const p=P(gU+o,l.vf-sg*2.75);car(p[0],p[1],T.sw,undefined,undefined,2);}}
+  if(!l.car&&!boatIv&&fy>5.4&&rnd()<(old?.2:.14)){for(const o of rnd()<.3?[-1.35,1.35]:[rr(-.4,.4)]){const p=P(gU+o,l.vf-sg*2.75);car(p[0],p[1],T.sw,undefined,undefined,2);}}
   if(!l.hoop&&rnd()<.07){const p=P(gU-dside*2.3,vF+sg*(park?1.7:.6));hoopPoles.push([p[0],p[1],ry+PI]);solid(p[0],p[1],.3,.3,3.1,0,0);}
   // the curb: a white post mailbox by the driveway, the bins out on trash day
   if(tk.post){const p=P(gU-dside*3.35,curb+sg*(park?.7:.35));postBoxes.push([p[0],p[1],ry]);solid(p[0],p[1],.3,.3,1.3,0,0);}
@@ -250,3 +255,12 @@ function dressLot(T,r,l,H,gU,du,fy){const P=T.P,sg=T.sg,ry=T.rw(T.fr)*PI/2,tk=T.
 // wooden power poles along the rear lot lines (inside the playing area; not in the home block, which has its own module)
 function backPoles(P,sw,rv,a,b,coll){const c=P((a+b)/2,rv);if(c[0]<BOUND.x0||c[0]>BOUND.x1||c[1]<BOUND.z0||c[1]>BOUND.z1)return;if(c[0]>-249&&c[0]<0&&c[1]>-504&&c[1]<-260)return;
   for(let u=a+12;u<b-8;u+=48){if(coll.some(uc=>Math.abs(u-uc)<HWC+SWC+5))continue;const p=P(u,rv+.55);poles.push([p[0],p[1],sw?1:0,1]);}}
+// cracks, tar-sealed cracks and dark utility patches on the tract streets, cracks across the sidewalks (local road boxes, see tract)
+function streetWear(roads,P,sw,park){for(const r of roads){const alongU=!r.c,a=alongU?r.u0:r.v0,b=alongU?r.u1:r.v1,c=alongU?(r.v0+r.v1)/2:(r.u0+r.u1)/2,hw=alongU?(r.v1-r.v0)/2:(r.u1-r.u0)/2,
+    m=P(alongU?(a+b)/2:c,alongU?c:(a+b)/2);if(m[0]<BOUND.x0-30||m[0]>BOUND.x1+30||m[1]<BOUND.z0-30||m[1]>BOUND.z1+30)continue;if(m[0]>-249&&m[0]<0&&m[1]>-504&&m[1]<-260)continue;
+  const ry0=(alongU!==sw)?0:PI/2,at=(t,o)=>alongU?P(t,c+o):P(c+o,t);
+  for(let t=a+rr(2,8);t<b-2;t+=rr(7,15)){const k=rnd(),o=rr(-hw+.8,hw-.8),p=at(t,o);
+    if(k<.42)cutF(p[0],p[1],.034,rr(2.2,4.2),rr(.5,.9),ry0+rr(-.35,.35),CUT.crack,0xffffff);
+    else if(k<.55)cutF(p[0],p[1],.034,rr(1.8,3),rr(1.6,2.6),ry0+rr(-.2,.2),CUT.tar,0xffffff);
+    else if(k<.63){const w=rr(1.2,3),d=rr(1,2.2),y=.036;quadC(M.shade,[p[0]-w/2,y,p[1]+d/2],[p[0]+w/2,y,p[1]+d/2],[p[0]+w/2,y,p[1]-d/2],[p[0]-w/2,y,p[1]-d/2],0,1,0,0,.62,.14,.9,.14);}}
+  if(!r.c)for(const s of [-1,1])for(let t=a+rr(3,10);t<b-2;t+=rr(10,22))if(rnd()<.45){const p=at(t,s*(hw+(park?2.1:.8)));cutF(p[0],p[1],PADY+.006,rr(.9,1.4),.4,ry0+PI/2+rr(-.3,.3),CUT.crack,0xd8d2c6);}}}

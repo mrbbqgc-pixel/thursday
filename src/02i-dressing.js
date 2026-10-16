@@ -36,6 +36,16 @@ for(const s of [[1150,-142,4,1],[1136,-160,4,0],[-140,72,4.5,1],[46,166,4,1]])sa
  for(const c of [[cx+14,cz+6,1.2],[cx+15.4,cz+6.2,1],[cx-4,cz-10,1.1]])crate(c[0],c[1],c[2],0x9a9478);
  barrelSpots.push([cx+10,cz+14],[cx-16,cz+2]);label(cx,cz,'KINGSLEY COMMAND POST',0);}
 barrelSpots.push([-70,60],[-40,62],[1160,-90],[54,148],[660,1012]);
+// ---------- bus benches with an advert on the back at some corners, the odd payphone beside them
+isoR(()=>{for(const i of ISEC){if(!inB(i.x,i.z,-20)||rnd()>.3)continue;if(i.x>-249&&i.x<0&&i.z>-504&&i.z<-260)continue;const ns=rnd()<.5,s=rnd()<.5?-1:1,t=rnd()<.5?-1:1,
+    x=ns?i.x+s*(i.a.hw+1.3):i.x+t*(i.a.hw+rr(9,16)),z=ns?i.z+t*(i.b.hw+rr(9,16)):i.z+s*(i.b.hw+1.3),ry=ns?(s<0?PI/2:-PI/2):(s<0?0:PI);
+    if(x>fwEdge(z)-6)continue;roomSync();if(!roomFor(x,z,2.2,2.2,1))continue;adBenches.push([x,z,ry]);solid(x,z,ns?.6:1.9,ns?1.9:.6,1.1,0,5);
+    if(rnd()<.3){const px=ns?x:x+2.2,pz=ns?z+2.2:z;phoneSpots.push([px,pz,ry]);solid(px,pz,.5,.5,2.1,0,0);}}});
+// ---------- worn arterials: cracks along the lanes, sealed cracks and dark patches (inside the playing area)
+isoR(()=>{const wear=(x,z,ry)=>{const k=rnd();if(k<.5)cutF(x,z,.034,rr(2.6,5),rr(.5,.9),ry+rr(-.25,.25),CUT.crack,0xffffff);else if(k<.75)cutF(x,z,.034,rr(2,3.2),rr(1.8,2.8),ry+rr(-.2,.2),CUT.tar,0xffffff);
+    else{const w=rr(1.6,3.4),d=rr(1.2,2.6),y=.036;quadC(M.shade,[x-w/2,y,z+d/2],[x+w/2,y,z+d/2],[x+w/2,y,z-d/2],[x-w/2,y,z-d/2],0,1,0,0,.62,.14,.9,.14);}};
+  for(const a of NSA)for(let z=Math.max(a.z0,BOUND.z0);z<Math.min(a.z1,BOUND.z1);z+=rr(14,30)){if(ISEC.some(i=>i.a===a&&Math.abs(i.z-z)<i.b.hw+5))continue;const o=rr(1,a.hw-1)*(rnd()<.5?-1:1);if(a.med&&Math.abs(o)<a.med/2+.5)continue;wear(a.x+o,z,PI/2);}
+  for(const b of EWA)for(let x=Math.max(b.x0,BOUND.x0);x<Math.min(b.x1,BOUND.x1,fwEdge(b.z)-8);x+=rr(14,30)){if(ISEC.some(i=>i.b===b&&Math.abs(i.x-x)<i.a.hw+5))continue;const o=rr(1,b.hw-1)*(rnd()<.5?-1:1);if(b.med&&Math.abs(o)<b.med/2+.5)continue;wear(x,b.z+o,0);}});
 // ---------- spawn points: intersections, tract streets and trail stops were added on the way; plus the big lots
 for(const q of [[-150,40],[190,-60],[600,90],[650,1000],[520,1100],[1120,-120],[900,60],[440,420],[60,250]])SPN.push(q);
 for(let k=SPN.length-1;k>=0;k--)if(!inB(SPN[k][0],SPN[k][1],-4))SPN.splice(k,1);

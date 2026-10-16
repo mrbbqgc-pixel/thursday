@@ -150,7 +150,7 @@ function house(x,z,r,k,tint,roof,o){o=o||{};const H=o.s?HV[k][o.s]:HT[k],ry=r*PI
 function stripShops(x,z,w,d,front,o){o=o||{};const tint=o.tint===undefined?pick([0xeee3cb,0xe8d8bc,0xf1ebe0,0xe3cfb0]):o.tint,h=5.4,ax=front<2,flen=ax?w:d,n=Math.max(2,Math.round(flen/4.2)),s=SD[front];
   anchor(x,z,()=>{for(let q=0;q<4;q++){const len=q<2?w:d,m=segs(len);
       if(q===front){const cells=[];for(let k=0;k<n;k++)cells.push(k%3===1?'storeD':rnd()<.12?'dado':'store');wallSideE(CE,x,z,w,d,0,4,q,cells,tint);wallSideE(CE,x,z,w,d,4,h-4,q,rep('stucco',n),tint);}
-      else wallSideE(CE,x,z,w,d,0,h,q,q===(front^1)?cyc(['dado','doorMetal','dado','dado'],m):rep('dado',m),tint);}
+      else wallSideE(CE,x,z,w,d,0,h,q,q===(front^1)?cyc(['grime','doorMetal','dado','grime'],m):rep('dado',m),tint);}
     roofFlat(x,z,w,d,h+.12,0xcfc8bc,shade(tint,.85));
     for(let k=0;k<Math.round(w*d/180);k++)boxC(M.flat,x+rr(-w/3,w/3),h,z+rr(-d/3,d/3),1.4,.8,1.1,0xc9ccc8,0xb3b6b2);
     // covered walk: slab on square stucco piers, a sloped band of tile above it
@@ -162,7 +162,8 @@ function stripShops(x,z,w,d,front,o){o=o||{};const tint=o.tint===undefined?pick(
       const nl=Math.hypot(1.5,ox-.3);quadUV(M.wall,a,b,c,e,ni[0]*1.5/nl,(ox-.3)/nl,ni[2]*1.5/nl,rc,[tu[0],tu[1],tu[0]+(tu[2]-tu[0])*.9,tu[3]]);
       if(o.signs!==false&&rnd()<.85)faceQuad(x,z,w,d,front,(u0+u1)/2*(front===0||front===3?-1:1),Math.min(3.6,flen/n-.4),3.82,.8,signUV(o.sign0===undefined?(shopK++):o.sign0+k),dep+.32);}
     shadeRect(x,z,w,d,PADY,1.4);});
-  solid(x,z,w,d,h+.2,0,1);solid(x+s[0]*(w/2+1.5),z+s[1]*(d/2+1.5),ax?flen:3,ax?3:flen,.25,3.55,0);buildings.push({x,z,w,d,h,flat:true});return tint;}
+  solid(x,z,w,d,h+.2,0,1);solid(x+s[0]*(w/2+1.5),z+s[1]*(d/2+1.5),ax?flen:3,ax?3:flen,.25,3.55,0);buildings.push({x,z,w,d,h,flat:true});
+  isoR(()=>shopLife(x,z,w,d,front,n,3));return tint;}
 let shopK=0;
 // generic flat-roofed block: cells per side given as patterns (front side 'fc', others 'sc'), optional band and upper floors
 function block(x,z,w,d,h,o){o=o||{};const front=o.front===undefined?1:o.front,tint=o.tint===undefined?0xece5d6:o.tint,fc=o.fc||['store','storeD','store'],sc=o.sc||['dado'],fl=o.floors||1,fh=h/fl;
@@ -185,6 +186,7 @@ function bigBox(x,z,w,d,front,name,o){o=o||{};const h=o.h||9,tint=o.tint===undef
     boxC(M.flat,x+s[0]*(w/2+pd+1.5),3.9,z+s[1]*(d/2+pd+1.5),ax?pw-2:3,.25,ax?3:pw-2,0xd7cfc0);
     for(let k=0;k<Math.round(w*d/400);k++)boxC(M.flat,x+rr(-w/3,w/3),h+.3,z+rr(-d/3,d/3),2,1,1.5,0xc9ccc8,0xb3b6b2);
     shadeRect(x,z,w,d,PADY,2);});
+  isoR(()=>shopLife(x,z,w,d,front,0,0,pw));
   if(name){const sy=h-.6,px=x+s[0]*(w/2+1.25),pz=z+s[1]*(d/2+1.25);sign(name,px,sy+.6,pz,[PI,0,-PI/2,PI/2][front],Math.min(pw-2,name.length*1.3+2),2.2,o.bg||'#f4f0e7',o.fg||'#b3261e',true);}
   solid(x,z,w,d,h+.4,0,1);solid(x+s[0]*(w/2+.6),z+s[1]*(d/2+.6),ax?pw:1.2,ax?1.2:pw,h+3.2,0,1);buildings.push({x,z,w,d,h,flat:true});return tint;}
 // tilt-up warehouse with truck doors along one side; trailers backed up to some of them
@@ -202,6 +204,18 @@ function warehouse(x,z,w,d,dock,o){o=o||{};const h=o.h||rr(9,12),tint=o.tint===u
   const s=SD[dock],ax=dock<2,len=ax?w:d,n=Math.max(1,Math.round(len/8));
   for(let k=1;k<n;k+=2)if(rnd()<.45){const u=-len/2+(k+.5)*len/n,tx=ax?x+u:x+s[0]*(w/2+7.6),tz=ax?z+s[1]*(d/2+7.6):z+u;trailers.push([tx,tz,ax?0:1]);}
   solid(x,z,w,d,h+.5,0,1);buildings.push({x,z,w,d,h,flat:true});return tint;}
+// ---------- dressing: life round a shop building (side stream). Behind it dumpsters with grease stains; on a strip's covered walk (dep metres
+// deep, n bays) banners under the roof edge, a payphone and newspaper boxes; a big box (pw: portal width) gets them by its doors.
+function shopLife(x,z,w,d,front,n,dep,pw){const s=SD[front],b=SD[front^1],ax=front<2,flen=ax?w:d,ryF=Math.atan2(s[0],s[1]),ryB=Math.atan2(b[0],b[1]),
+    W=(u,v,sd)=>ax?[x+u,z+sd[1]*(d/2+v)]:[x+sd[0]*(w/2+v),z+u];
+  const nd=Math.max(1,Math.round(flen/(dep?24:30)));for(let k=0;k<nd;k++){if(rnd()<.25)continue;const u=-flen/2+flen*(k+.5)/nd+rr(-3,3),p=W(u,1.25,b);
+    dumpSpots.push([p[0],p[1],ryB+rr(-.08,.08),Math.floor(rnd()*3)]);const c=solid(p[0],p[1],ax?2:1.5,ax?1.5:2,1.35,0,5);lowCover.push([p[0],p[1]]);
+    for(let j=0;j<2;j++){const q=W(u+rr(-1.5,1.5),rr(.6,3),b);stain(q[0],q[1],rr(.4,.9),rr(.3,.8),rnd()*3,PADY);}}
+  if(dep){for(let k=0;k<n;k++){if(rnd()>.26)continue;const u=-flen/2+flen*(k+.5)/n,p=W(u,dep-.12,s),uv=pick([DUV.open,DUV.sale,DUV.sale,DUV.grand,DUV.lease]);anchor(p[0],p[1],()=>boardQ(uv,p[0],2.72,p[1],ryF,Math.min(2.6,flen/n-.8),.55,true));}
+    if(rnd()<.8){const k=Math.floor(rnd()*n),u=-flen/2+flen*(k+.5)/n,p=W(u+rr(-1,1),dep-.55,s);phoneSpots.push([p[0],p[1],ryF+PI]);solid(p[0],p[1],.5,.5,2.1,0,0);}
+    if(rnd()<.85){const k=Math.floor(rnd()*n),u=-flen/2+flen*(k+.5)/n,m=2+Math.floor(rnd()*3);for(let j=0;j<m;j++){const p=W(u+(j-(m-1)/2)*.56,dep-.45,s);newsSpots.push([p[0],p[1],ryF,Math.floor(rnd()*3)]);}}}
+  else if(pw){for(const e of [-1,1]){if(rnd()<.4)continue;const p=W(e*(pw/2+1.5),2.6,s);phoneSpots.push([p[0],p[1],ryF]);solid(p[0],p[1],.5,.5,2.1,0,0);}
+    const m=2+Math.floor(rnd()*2);for(let j=0;j<m;j++){const p=W(-pw/2-3+j*.56,2.2,s);newsSpots.push([p[0],p[1],ryF+PI,Math.floor(rnd()*3)]);}}}
 // mid-rise office: ribbon windows on every floor
 function office(x,z,w,d,floors,o){o=o||{};const tint=o.tint===undefined?pick([0xe6e2d8,0xd8d2c4,0xcfc9bc]):o.tint,h=floors*4;
   anchor(x,z,()=>{for(let q=0;q<4;q++){const n=Math.max(1,Math.round((q<2?w:d)/6));for(let f=0;f<floors;f++)wallSideE(CE,x,z,w,d,f*4,4,q,rep(f===0&&q===(o.front===undefined?1:o.front)?'glassFront':'office',n),tint);}

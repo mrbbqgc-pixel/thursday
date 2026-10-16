@@ -62,8 +62,8 @@ function treeGeo(type){const b=new GB();let nb=0;const BL=()=>lumpy(nb++?GEO.blo
   else if(type===4){b.add(TK,0,0,0,0,0,.04,.2,7.5,.2,0x5f4a36);for(const q of [[0,8,0,2.3,1.3,2.2],[-1.4,6.7,.6,1.5,.9,1.4],[.6,9.2,-.3,1.4,1,1.4]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x3b5a33,lit(.6,1,6,10));}
   else if(type===5){b.add(TK,0,0,0,0,0,.05,.22,11,.16,0xd8cfbf,(x,y,z)=>.9+rr(-.08,.08));for(const q of [[0,11.6,0,2.3,3,2.1],[-1,8.6,.5,1.6,2,1.4],[.4,13.6,.1,1.4,1.8,1.4]])b.add(BL(),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[5],0x82927a,lit(.65,1,7,15));}
   else if(type===6){for(const a of [0,3.1])b.add(GEO.rod,Math.cos(a)*.2,0,Math.sin(a)*.2,Math.sin(a)*.2,0,Math.cos(a)*.2,.07,1.8,.07,0x8a7766);b.add(BL(),0,2.3,0,0,rnd()*3,0,1.5,1.2,1.5,0xc8708e,lit(.65,1,1.4,3.2));}
-  else if(type===7){for(let k=0;k<3;k++){const a=k*2.1+rr(-.3,.3),tl=rr(.12,.2);b.add(GEO.rod,Math.cos(a)*.15,0,Math.sin(a)*.15,Math.sin(a)*tl,0,-Math.cos(a)*tl,rr(.06,.09),rr(4.6,6),.07,0xe9e5dc,(x,y,z)=>rnd()<.25?.55:1);}
-    for(const q of [[.5,4.6,.2,1.3,1.6],[-.6,5.4,-.3,1.2,1.5],[.1,6.2,.5,1,1.2]])b.add(lumpy(GEO.blobT,.25),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[3],0x8ea24e,lit(.6,1,3.6,7));}
+  else if(type===7){for(let k=0;k<3;k++){const a=k*2.1+rr(-.3,.3),tl=rr(.12,.2);b.add(GEO.rod3,Math.cos(a)*.15,0,Math.sin(a)*.15,Math.sin(a)*tl,0,-Math.cos(a)*tl,rr(.07,.1),rr(4.6,6),.08,0xe9e5dc,(x,y,z)=>rnd()<.25?.55:1);}
+    for(const q of [[.4,4.8,.2,1.4,1.8],[-.5,5.8,-.3,1.2,1.6]])b.add(lumpy(GEO.blobT,.25),q[0],q[1],q[2],0,rnd()*3,0,q[3],q[4],q[3],0x8ea24e,lit(.6,1,3.6,7));}
   else if(type===8){b.add(lumpy(GEO.blobT,.08),0,2.6,0,0,rnd()*3,0,.62,2.8,.62,0x2f4f2a,lit(.55,1,0,5.4));b.add(GEO.rod,0,0,0,0,0,0,.08,.4,.08,0x5a4a3c);}
   else{b.add(GEO.rod,0,0,0,0,0,.03,.05,2.3,.05,0x6b5a44);for(const s of [-1,1])b.add(GEO.rod3,s*.28,0,0,0,0,0,.035,2,.035,0xc8b08a);
     b.add(lumpy(GEO.blobT,.2),0,2.6,0,0,rnd()*3,0,.95,.85,.95,0x6f9a44,lit(.6,1,1.8,3.4));}
@@ -130,3 +130,22 @@ const pq=(E,a,b,c,d,col,uv,n)=>{n=n||[0,0,1];E.q(a,b,c,d,n[0],n[1],n[2],col,uv||
  bake(t.geo(),M.flat,hoopPoles,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
 // dry fronds dropped under a quarter of the fan palms
 isoR(()=>{for(const f of fans)if(rnd()<.28)for(let k=0;k<1+(rnd()<.4?1:0);k++){const a=rnd()*TAU,r=rr(.8,2.6);cutF(f[0]+Math.cos(a)*r,f[1]+Math.sin(a)*r,PADY+.012,rr(1,1.5),rr(1.1,1.7),rnd()*TAU,CUT.frondD);}});
+// ---------- dressing pass, commercial: dumpsters, shopping carts (their wire baskets are added with the chain-link mesh in 03b), cart corrals,
+// payphones, newspaper boxes, bus-bench adverts, the gas station's ice chest
+{ const t=new TB();taperE(t,0,.1,0,1.85,1.3,1.95,1.45,1.15,0xffffff);for(const s of [-1,1])t.q([s>0?0:-.98,1.25,-.74],[s>0?.98:0,1.25,-.74],[s>0?.98:0,1.34,.74],[s>0?0:-.98,1.34,.74],0,.99,.06,0x1c1b1a,WUV);
+  t.q([-.98,1.25,.74],[.98,1.25,.74],[.98,1.34,.74],[-.98,1.34,.74],0,0,1,0x1c1b1a,WUV);for(const s of [-1,1])boxE(t,s*1.0,.55,0,.12,.25,.9,0x9a9a9a);for(const s of [-1,1])boxE(t,s*.7,0,0,.14,.1,1.2,0x2b2b2a);
+  t.q([-.42,.6,.735],[.42,.6,.735],[.42,.98,.735],[-.42,.98,.735],0,0,1,0xffffff,DUV.noDump);const cs=[0x2f5a3a,0x2d4f7a,0x6a4a32];
+  bakeC(t.geo(),M.wall,dumpSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];},p=>cs[p[3]]);}
+{ const t=new TB();boxE(t,0,.12,0,.5,.03,.82,0x9aa0a2);for(const s of [-1,1])boxE(t,s*.22,.16,.36,.03,.86,.03,0x9aa0a2);boxE(t,0,1.0,.42,.52,.04,.05,0xc8202a);boxE(t,0,.4,-.05,.46,.03,.7,0x9aa0a2);
+  for(const q of [[-.2,-.34],[.2,-.34],[-.2,.34],[.2,.34]])boxE(t,q[0],0,q[1],.04,.12,.08,0x1c1b1a);bake(t.geo(),M.flat,cartSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
+{ const t=new TB();for(const s of [-1,1]){boxE(t,s*.55,.92,0,.06,.06,3.6,0x8c9396);boxE(t,s*.55,.5,0,.05,.05,3.6,0x8c9396);for(const e of [-1,1])taperE(t,s*.55,0,e*1.78,.07,.07,.06,.06,.95,0x8c9396);}
+  boxE(t,0,.92,-1.8,1.16,.06,.06,0x8c9396);taperE(t,0,0,1.85,.06,.06,.05,.05,1.45,0x8c9396);t.q([-.32,1.12,1.88],[.32,1.12,1.88],[.32,1.42,1.88],[-.32,1.42,1.88],0,0,1,0xffffff,DUV.cart);
+  t.q([.32,1.12,1.82],[-.32,1.12,1.82],[-.32,1.42,1.82],[.32,1.42,1.82],0,0,-1,0xffffff,DUV.cart);bake(t.geo(),M.wall,corralSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
+{ const t=new TB();taperE(t,0,0,0,.14,.14,.12,.12,1.05,0x7a8082);boxE(t,0,1.02,0,.44,.62,.24,0x9aa1a3);t.q([-.2,1.06,.122],[.2,1.06,.122],[.2,1.6,.122],[-.2,1.6,.122],0,0,1,0xffffff,DUV.phone);
+  boxE(t,0,1.66,-.02,.56,.07,.36,0x2d4f8a);for(const s of [-1,1])boxE(t,s*.27,1.0,-.02,.03,.66,.36,0x2d4f8a);bake(t.geo(),M.wall,phoneSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
+{ const cs=[0x1d3f7a,0xf2efe6,0xe2b93b];for(let v=0;v<3;v++){const t=new TB();taperE(t,0,0,0,.3,.3,.28,.28,.34,0x5a5f61);boxE(t,0,.34,0,.44,.62,.4,cs[v]);t.q([-.21,.36,.202],[.21,.36,.202],[.21,.94,.202],[-.21,.94,.202],0,0,1,0xffffff,DUV.news[v]);
+  bake(t.geo(),M.wall,newsSpots.filter(p=>p[3]===v),(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}}
+{ const t=new TB();boxE(t,0,.42,.08,1.9,.07,.45,0x7a5a3a);for(const s of [-1,1])boxE(t,s*.8,0,.08,.07,.42,.4,0x3a3a38);boxE(t,0,.5,-.17,1.9,.62,.06,0x2f6a3a);
+  t.q([.93,.54,-.205],[-.93,.54,-.205],[-.93,1.08,-.205],[.93,1.08,-.205],0,0,-1,0xffffff,DUV.benchAd);t.q([-.93,.54,-.135],[.93,.54,-.135],[.93,1.08,-.135],[-.93,1.08,-.135],0,0,1,0xffffff,DUV.benchAd);
+  bake(t.geo(),M.wall,adBenches,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}
+{ const t=new TB();boxE(t,0,0,0,1.4,1.12,.75,0xf2efe6);t.q([-.5,.45,.377],[.5,.45,.377],[.5,.9,.377],[-.5,.9,.377],0,0,1,0xffffff,DUV.ice);bake(t.geo(),M.wall,iceSpots,(o,p)=>{o.position.set(p[0],PADY,p[1]);o.rotation.y=p[2];});}

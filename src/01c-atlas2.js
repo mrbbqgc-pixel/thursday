@@ -12,7 +12,8 @@ for(let c=0;c<8;c++)cell('signs'+c,g=>{for(let j=0;j<4;j++){const s=shopSigns[c*
     const w=Math.min(226,g.measureText(s[0]).width)+12;keep(g,128-w/2,y+8,w,52);}});
 function signUV(k){k%=shopSigns.length;const c=cuv(signCell0+(k>>2)),j=k&3,vh=(c[3]-c[1])/4;return[c[0],c[3]-(j+1)*vh+.0004,c[2],c[3]-j*vh-.0004];}
 // random numbers for the dressing pass come from a side stream, so the layout of the town stays as it was
-function isoR(fn){const s0=seed;seed=(Math.imul(s0^0x5bd1e995,0x9e3779b1)^0x27d4eb2f)>>>0;try{return fn();}finally{seed=s0;}}
+// colliders made inside are tagged 'dress', and the layout's own room checks (roomFor) do not see them
+function isoR(fn){const s0=seed,c0=colliders.length;seed=(Math.imul(s0^0x5bd1e995,0x9e3779b1)^0x27d4eb2f)>>>0;try{return fn();}finally{seed=s0;for(let k=c0;k<colliders.length;k++)colliders[k].dress=1;}}
 // ---- lived-in tract and strip-mall pieces (dressing pass): bronze sliders, shutters, arched entries, windowed and open garages,
 // stone wainscot, weathered stucco, dark gable trim, flat concrete tile, back-of-strip grime, and a cell of small decals (see DUV)
 isoR(()=>{
